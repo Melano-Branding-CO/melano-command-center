@@ -137,7 +137,10 @@ function LeadsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [bulk, setBulk] = useState("");
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", source: "", zone: "" });
+
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
