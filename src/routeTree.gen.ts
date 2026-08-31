@@ -10,12 +10,41 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
+import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
+import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as ApiPublicCronDailyMeetingRouteImport } from './routes/api/public/cron/daily-meeting'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAgentsRoute = AuthenticatedAgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
+  id: '/command',
+  path: '/command',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
+  id: '/today',
+  path: '/today',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const ApiPublicCronDailyMeetingRoute =
   ApiPublicCronDailyMeetingRouteImport.update({
@@ -26,27 +55,62 @@ const ApiPublicCronDailyMeetingRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/agents': typeof AuthenticatedAgentsRoute
+  '/command': typeof AuthenticatedCommandRoute
+  '/today': typeof AuthenticatedTodayRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/agents': typeof AuthenticatedAgentsRoute
+  '/command': typeof AuthenticatedCommandRoute
+  '/today': typeof AuthenticatedTodayRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/agents': typeof AuthenticatedAgentsRoute
+  '/_authenticated/command': typeof AuthenticatedCommandRoute
+  '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/public/cron/daily-meeting'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/agents'
+    | '/command'
+    | '/today'
+    | '/api/public/cron/daily-meeting'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/cron/daily-meeting'
-  id: '__root__' | '/' | '/api/public/cron/daily-meeting'
+  to:
+    | '/'
+    | '/auth'
+    | '/agents'
+    | '/command'
+    | '/today'
+    | '/api/public/cron/daily-meeting'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/agents'
+    | '/_authenticated/command'
+    | '/_authenticated/today'
+    | '/api/public/cron/daily-meeting'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
   ApiPublicCronDailyMeetingRoute: typeof ApiPublicCronDailyMeetingRoute
 }
 
@@ -59,6 +123,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/agents': {
+      id: '/_authenticated/agents'
+      path: '/agents'
+      fullPath: '/agents'
+      preLoaderRoute: typeof AuthenticatedAgentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/command': {
+      id: '/_authenticated/command'
+      path: '/command'
+      fullPath: '/command'
+      preLoaderRoute: typeof AuthenticatedCommandRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/today': {
+      id: '/_authenticated/today'
+      path: '/today'
+      fullPath: '/today'
+      preLoaderRoute: typeof AuthenticatedTodayRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/api/public/cron/daily-meeting': {
       id: '/api/public/cron/daily-meeting'
       path: '/api/public/cron/daily-meeting'
@@ -69,8 +168,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRoute
+  AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
+  AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgentsRoute: AuthenticatedAgentsRoute,
+  AuthenticatedCommandRoute: AuthenticatedCommandRoute,
+  AuthenticatedTodayRoute: AuthenticatedTodayRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
   ApiPublicCronDailyMeetingRoute: ApiPublicCronDailyMeetingRoute,
 }
 export const routeTree = rootRouteImport
