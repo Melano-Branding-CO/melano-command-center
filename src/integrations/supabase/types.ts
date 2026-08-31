@@ -833,6 +833,160 @@ export type Database = {
           },
         ]
       }
+      lead_events: {
+        Row: {
+          action: string
+          actor_agent: string | null
+          actor_user: string | null
+          created_at: string
+          from_value: string | null
+          id: string
+          lead_id: string
+          note: string | null
+          organization_id: string
+          to_value: string | null
+          trace_id: string | null
+        }
+        Insert: {
+          action: string
+          actor_agent?: string | null
+          actor_user?: string | null
+          created_at?: string
+          from_value?: string | null
+          id?: string
+          lead_id: string
+          note?: string | null
+          organization_id: string
+          to_value?: string | null
+          trace_id?: string | null
+        }
+        Update: {
+          action?: string
+          actor_agent?: string | null
+          actor_user?: string | null
+          created_at?: string
+          from_value?: string | null
+          id?: string
+          lead_id?: string
+          note?: string | null
+          organization_id?: string
+          to_value?: string | null
+          trace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_events_actor_agent_fkey"
+            columns: ["actor_agent"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_events_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_events_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          assigned_agent: string | null
+          budget: number | null
+          cohort: string
+          created_at: string
+          currency: string
+          email: string | null
+          full_name: string
+          id: string
+          interest: string | null
+          is_demo: boolean
+          last_contact_at: string | null
+          next_follow_up_at: string | null
+          notes: string | null
+          organization_id: string
+          owner_user: string | null
+          phase: Database["public"]["Enums"]["lead_phase"]
+          phone: string | null
+          score: number
+          source: string | null
+          status: Database["public"]["Enums"]["lead_status"]
+          updated_at: string
+          zone: string | null
+        }
+        Insert: {
+          assigned_agent?: string | null
+          budget?: number | null
+          cohort?: string
+          created_at?: string
+          currency?: string
+          email?: string | null
+          full_name: string
+          id?: string
+          interest?: string | null
+          is_demo?: boolean
+          last_contact_at?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          organization_id: string
+          owner_user?: string | null
+          phase?: Database["public"]["Enums"]["lead_phase"]
+          phone?: string | null
+          score?: number
+          source?: string | null
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+          zone?: string | null
+        }
+        Update: {
+          assigned_agent?: string | null
+          budget?: number | null
+          cohort?: string
+          created_at?: string
+          currency?: string
+          email?: string | null
+          full_name?: string
+          id?: string
+          interest?: string | null
+          is_demo?: boolean
+          last_contact_at?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          organization_id?: string
+          owner_user?: string | null
+          phase?: Database["public"]["Enums"]["lead_phase"]
+          phone?: string | null
+          score?: number
+          source?: string | null
+          status?: Database["public"]["Enums"]["lead_status"]
+          updated_at?: string
+          zone?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_assigned_agent_fkey"
+            columns: ["assigned_agent"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meeting_outputs: {
         Row: {
           agent_id: string
@@ -1411,6 +1565,15 @@ export type Database = {
         | "FAILED"
       execution_mode: "MANUAL" | "ASSISTED" | "AUTONOMOUS" | "APPROVAL_REQUIRED"
       health_state: "GREEN" | "YELLOW" | "RED"
+      lead_phase: "FASE_0_14" | "FASE_15_45" | "FASE_46_90"
+      lead_status:
+        | "NUEVO"
+        | "CONTACTADO"
+        | "CALIFICADO"
+        | "NEGOCIACION"
+        | "GANADO"
+        | "PERDIDO"
+        | "DESCARTADO"
       meeting_status: "SCHEDULED" | "RUNNING" | "COMPLETED" | "FAILED"
       priority_level: "P0" | "P1" | "P2" | "P3"
       run_status: "RUNNING" | "SUCCESS" | "FAILED" | "SKIPPED"
@@ -1569,6 +1732,16 @@ export const Constants = {
       ],
       execution_mode: ["MANUAL", "ASSISTED", "AUTONOMOUS", "APPROVAL_REQUIRED"],
       health_state: ["GREEN", "YELLOW", "RED"],
+      lead_phase: ["FASE_0_14", "FASE_15_45", "FASE_46_90"],
+      lead_status: [
+        "NUEVO",
+        "CONTACTADO",
+        "CALIFICADO",
+        "NEGOCIACION",
+        "GANADO",
+        "PERDIDO",
+        "DESCARTADO",
+      ],
       meeting_status: ["SCHEDULED", "RUNNING", "COMPLETED", "FAILED"],
       priority_level: ["P0", "P1", "P2", "P3"],
       run_status: ["RUNNING", "SUCCESS", "FAILED", "SKIPPED"],
