@@ -254,8 +254,60 @@ function LeadsPage() {
     }
   }
 
+  async function importBulk() {
+    const rows = bulk
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [full_name, email, phone, zone, source] = line
+          .split(/\t|;|,/)
+          .map((c) => c.trim());
+        return {
+          organization_id: org!.id,
+          full_name: full_name ?? "",
+          email: email || null,
+          phone: phone || null,
+          zone: zone || null,
+          source: source || "Inmobiliarias Mar del Plata",
+          cohort: "LUXIA",
+          assigned_agent: luxia?.id ?? null,
+          owner_user: session?.user?.id ?? null,
+        };
+      })
+      .filter((r) => r.full_name.length > 1);
+
+    if (rows.length === 0) {
+      toast.error("No se detectaron filas válidas");
+      return;
+    }
+    setBusy("bulk");
+    try {
+      const { error } = await db().from("leads").insert(rows);
+      if (error) throw error;
+      await db()
+        .from("activity_logs")
+        .insert({
+          organization_id: org!.id,
+          actor_type: "human",
+          action: "lead.bulk_imported",
+          entity_type: "lead",
+          detail: { count: rows.length, screen: "leads" },
+        });
+      toast.success(`${rows.length} leads cargados en la cohorte LUXIA`);
+      setBulk("");
+      setImporting(false);
+      await qc.invalidateQueries();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo importar");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <>
+
       <PageHeader
         title="Leads · LUXIA"
         subtitle="Cohorte real de leads inmobiliarios con avance controlado por fases 0–14 / 15–45 / 46–90."
