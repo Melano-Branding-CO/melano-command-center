@@ -141,9 +141,12 @@ function GreenGatePage() {
     setBusy(task.id);
     try {
       const patch: Record<string, unknown> = { status };
-      if (status === "RUNNING") patch.started_at = new Date().toISOString();
-      if (status === "DONE") patch.completed_at = new Date().toISOString();
-      const { error } = await supabase.from("tasks").update(patch).eq("id", task.id);
+      if (status === "RUNNING") patch["started_at"] = new Date().toISOString();
+      if (status === "DONE") patch["completed_at"] = new Date().toISOString();
+      const { error } = await (supabase as unknown as { from: (t: string) => any })
+        .from("tasks")
+        .update(patch)
+        .eq("id", task.id);
       if (error) throw error;
       await supabase.from("activity_logs").insert({
         organization_id: org!.id,
