@@ -371,6 +371,37 @@ function LeadsPage() {
         </Panel>
       ) : null}
 
+      {importing ? (
+        <Panel title="Importar contactos reales · inmobiliarias de Mar del Plata">
+          <p className="mb-2 text-xs text-muted-foreground">
+            Una línea por contacto, separado por coma, punto y coma o tabulación:
+            <span className="ml-1 font-mono">
+              Nombre o inmobiliaria, email, teléfono, zona, origen
+            </span>
+            . Solo datos verificados: lo que no tengas, dejalo vacío.
+          </p>
+          <textarea
+            value={bulk}
+            onChange={(e) => setBulk(e.target.value)}
+            rows={8}
+            placeholder={
+              "Inmobiliaria X, contacto@dominio.com, +54 223 000 0000, Centro, Relevamiento MdP\nInmobiliaria Y, , +54 223 000 0001, Güemes, Referido"
+            }
+            className="w-full rounded-md border border-border bg-background p-3 font-mono text-xs text-foreground outline-none focus:ring-1 focus:ring-ring"
+          />
+          <div className="mt-3 flex items-center gap-3">
+            <Button size="sm" disabled={busy === "bulk"} onClick={importBulk}>
+              Cargar en la cohorte LUXIA
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {bulk.split("\n").filter((l) => l.trim()).length} línea(s) detectada(s)
+            </span>
+          </div>
+        </Panel>
+      ) : null}
+
+
+
       {isLoading ? (
         <Empty text="Cargando cohorte…" />
       ) : filtered.length === 0 ? (
