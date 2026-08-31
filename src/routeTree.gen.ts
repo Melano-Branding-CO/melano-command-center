@@ -10,11 +10,17 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ApiPublicCronDailyMeetingRouteImport } from './routes/api/public/cron/daily-meeting'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiPublicCronDailyMeetingRoute =
@@ -26,27 +32,31 @@ const ApiPublicCronDailyMeetingRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/api/public/cron/daily-meeting'
+  fullPaths: '/' | '/auth' | '/api/public/cron/daily-meeting'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/api/public/cron/daily-meeting'
-  id: '__root__' | '/' | '/api/public/cron/daily-meeting'
+  to: '/' | '/auth' | '/api/public/cron/daily-meeting'
+  id: '__root__' | '/' | '/auth' | '/api/public/cron/daily-meeting'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthRoute: typeof AuthRoute
   ApiPublicCronDailyMeetingRoute: typeof ApiPublicCronDailyMeetingRoute
 }
 
@@ -57,6 +67,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/cron/daily-meeting': {
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthRoute: AuthRoute,
   ApiPublicCronDailyMeetingRoute: ApiPublicCronDailyMeetingRoute,
 }
 export const routeTree = rootRouteImport
