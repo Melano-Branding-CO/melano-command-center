@@ -16,6 +16,7 @@ import {
   Settings,
   ShieldCheck,
   Sun,
+  Users,
   Wallet,
   X,
 } from "lucide-react";
