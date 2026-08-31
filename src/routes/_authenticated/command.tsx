@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/command")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: CommandCenter;
+  component: CommandCenter,
 });
 
 type Task = {
