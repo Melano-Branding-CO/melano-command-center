@@ -15,6 +15,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
+import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
@@ -54,6 +55,12 @@ const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
   path: '/approvals',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAutomationsRoute =
+  AuthenticatedAutomationsRouteImport.update({
+    id: '/automations',
+    path: '/automations',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
   id: '/command',
   path: '/command',
@@ -108,6 +115,7 @@ export interface FileRoutesByFullPath {
   '/activity': typeof AuthenticatedActivityRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/approvals': typeof AuthenticatedApprovalsRoute
+  '/automations': typeof AuthenticatedAutomationsRoute
   '/command': typeof AuthenticatedCommandRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
@@ -124,6 +132,7 @@ export interface FileRoutesByTo {
   '/activity': typeof AuthenticatedActivityRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/approvals': typeof AuthenticatedApprovalsRoute
+  '/automations': typeof AuthenticatedAutomationsRoute
   '/command': typeof AuthenticatedCommandRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
@@ -142,6 +151,7 @@ export interface FileRoutesById {
   '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
+  '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
@@ -160,6 +170,7 @@ export interface FileRouteTypes {
     | '/activity'
     | '/agents'
     | '/approvals'
+    | '/automations'
     | '/command'
     | '/decisions'
     | '/meetings'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/activity'
     | '/agents'
     | '/approvals'
+    | '/automations'
     | '/command'
     | '/decisions'
     | '/meetings'
@@ -193,6 +205,7 @@ export interface FileRouteTypes {
     | '/_authenticated/activity'
     | '/_authenticated/agents'
     | '/_authenticated/approvals'
+    | '/_authenticated/automations'
     | '/_authenticated/command'
     | '/_authenticated/decisions'
     | '/_authenticated/meetings'
@@ -253,6 +266,13 @@ declare module '@tanstack/react-router' {
       path: '/approvals'
       fullPath: '/approvals'
       preLoaderRoute: typeof AuthenticatedApprovalsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/automations': {
+      id: '/_authenticated/automations'
+      path: '/automations'
+      fullPath: '/automations'
+      preLoaderRoute: typeof AuthenticatedAutomationsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/command': {
@@ -336,6 +356,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
   AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRouteWithChildren
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
+  AuthenticatedAutomationsRoute: typeof AuthenticatedAutomationsRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
@@ -349,6 +370,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedActivityRoute: AuthenticatedActivityRoute,
   AuthenticatedAgentsRoute: AuthenticatedAgentsRouteWithChildren,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
+  AuthenticatedAutomationsRoute: AuthenticatedAutomationsRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
