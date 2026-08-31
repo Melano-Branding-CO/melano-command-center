@@ -137,7 +137,10 @@ function LeadsPage() {
   const [busy, setBusy] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [creating, setCreating] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const [bulk, setBulk] = useState("");
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", source: "", zone: "" });
+
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
@@ -251,8 +254,60 @@ function LeadsPage() {
     }
   }
 
+  async function importBulk() {
+    const rows = bulk
+      .split("\n")
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => {
+        const [full_name, email, phone, zone, source] = line
+          .split(/\t|;|,/)
+          .map((c) => c.trim());
+        return {
+          organization_id: org!.id,
+          full_name: full_name ?? "",
+          email: email || null,
+          phone: phone || null,
+          zone: zone || null,
+          source: source || "Inmobiliarias Mar del Plata",
+          cohort: "LUXIA",
+          assigned_agent: luxia?.id ?? null,
+          owner_user: session?.user?.id ?? null,
+        };
+      })
+      .filter((r) => r.full_name.length > 1);
+
+    if (rows.length === 0) {
+      toast.error("No se detectaron filas válidas");
+      return;
+    }
+    setBusy("bulk");
+    try {
+      const { error } = await db().from("leads").insert(rows);
+      if (error) throw error;
+      await db()
+        .from("activity_logs")
+        .insert({
+          organization_id: org!.id,
+          actor_type: "human",
+          action: "lead.bulk_imported",
+          entity_type: "lead",
+          detail: { count: rows.length, screen: "leads" },
+        });
+      toast.success(`${rows.length} leads cargados en la cohorte LUXIA`);
+      setBulk("");
+      setImporting(false);
+      await qc.invalidateQueries();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo importar");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <>
+
       <PageHeader
         title="Leads · LUXIA"
         subtitle="Cohorte real de leads inmobiliarios con avance controlado por fases 0–14 / 15–45 / 46–90."
@@ -268,6 +323,10 @@ function LeadsPage() {
         <Button variant="outline" size="sm" onClick={() => setCreating((v) => !v)}>
           {creating ? "Cancelar" : "Nuevo lead"}
         </Button>
+        <Button variant="outline" size="sm" onClick={() => setImporting((v) => !v)}>
+          {importing ? "Cerrar importación" : "Importar lista"}
+        </Button>
+
         <span className="text-xs text-muted-foreground">
           {filtered.length} lead{filtered.length === 1 ? "" : "s"} en la cohorte
         </span>
@@ -311,6 +370,37 @@ function LeadsPage() {
           </form>
         </Panel>
       ) : null}
+
+      {importing ? (
+        <Panel title="Importar contactos reales · inmobiliarias de Mar del Plata">
+          <p className="mb-2 text-xs text-muted-foreground">
+            Una línea por contacto, separado por coma, punto y coma o tabulación:
+            <span className="ml-1 font-mono">
+              Nombre o inmobiliaria, email, teléfono, zona, origen
+            </span>
+            . Solo datos verificados: lo que no tengas, dejalo vacío.
+          </p>
+          <textarea
+            value={bulk}
+            onChange={(e) => setBulk(e.target.value)}
+            rows={8}
+            placeholder={
+              "Inmobiliaria X, contacto@dominio.com, +54 223 000 0000, Centro, Relevamiento MdP\nInmobiliaria Y, , +54 223 000 0001, Güemes, Referido"
+            }
+            className="w-full rounded-md border border-border bg-background p-3 font-mono text-xs text-foreground outline-none focus:ring-1 focus:ring-ring"
+          />
+          <div className="mt-3 flex items-center gap-3">
+            <Button size="sm" disabled={busy === "bulk"} onClick={importBulk}>
+              Cargar en la cohorte LUXIA
+            </Button>
+            <span className="text-xs text-muted-foreground">
+              {bulk.split("\n").filter((l) => l.trim()).length} línea(s) detectada(s)
+            </span>
+          </div>
+        </Panel>
+      ) : null}
+
+
 
       {isLoading ? (
         <Empty text="Cargando cohorte…" />
