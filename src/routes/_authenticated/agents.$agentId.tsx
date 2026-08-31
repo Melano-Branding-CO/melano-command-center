@@ -34,6 +34,12 @@ type AgentRow = {
   last_run_at: string | null;
   last_result: string | null;
   last_error: string | null;
+  system_prompt: string;
+  context: string | null;
+  execution_loop: string | null;
+  stop_conditions: string | null;
+  failure_handling: string | null;
+  measurable_outcome: string | null;
 };
 
 type Run = {
@@ -148,6 +154,31 @@ function AgentDetail() {
               ))}
             </ul>
           )}
+        </Panel>
+      </div>
+      <div className="mt-4">
+        <Panel title="Prompt operativo real">
+          <div className="space-y-3 text-sm">
+            <pre className="max-h-64 overflow-auto whitespace-pre-wrap rounded bg-muted/40 p-3 text-[11px] leading-relaxed">
+              {agent.system_prompt}
+            </pre>
+            {(
+              [
+                ["Contexto", agent.context],
+                ["Ciclo de ejecución", agent.execution_loop],
+                ["Condiciones de parada", agent.stop_conditions],
+                ["Manejo de fallos", agent.failure_handling],
+                ["Resultado medible", agent.measurable_outcome],
+              ] as const
+            ).map(([label, value]) =>
+              value ? (
+                <div key={label}>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+                  <p className="text-sm text-foreground">{value}</p>
+                </div>
+              ) : null,
+            )}
+          </div>
         </Panel>
       </div>
     </>
