@@ -16,6 +16,7 @@ import {
   Settings,
   ShieldCheck,
   Sun,
+  Users,
   Wallet,
   X,
 } from "lucide-react";
@@ -30,6 +31,7 @@ const NAV = [
   { to: "/dashboards", label: "Dashboards", icon: ChartNoAxesColumn },
   { to: "/bruno", label: "Bruno", icon: ShieldCheck },
   { to: "/green-gate", label: "Green Gate", icon: BadgeCheck },
+  { to: "/leads", label: "Leads · LUXIA", icon: Users },
   { to: "/today", label: "Today", icon: Sun },
   { to: "/revenue", label: "Revenue", icon: Wallet },
   { to: "/agents", label: "Agents", icon: Bot },
