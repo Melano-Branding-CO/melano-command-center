@@ -1,0 +1,23 @@
+name = "melano-command-center"
+main = ".output/server/index.mjs"
+compatibility_date = "2026-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[assets]
+directory = ".output/public"
+binding = "ASSETS"
+
+# Reunión ejecutiva diaria 06:00 America/Argentina/Buenos_Aires (UTC-3) = 09:00 UTC
+[triggers]
+crons = ["0 9 * * *"]
+
+[observability]
+enabled = true
+
+# Variables públicas (no secretas). Los secretos se cargan con `wrangler secret put`.
+[vars]
+VITE_SUPABASE_URL = "https://iuuzheclayeiytmxahdp.supabase.co"
+VITE_SUPABASE_PROJECT_ID = "iuuzheclayeiytmxahdp"
+VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zDnhMGy8W-q-ZKMGiOvMkg_RpXqgDGy"
+SUPABASE_URL = "https://iuuzheclayeiytmxahdp.supabase.co"
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zDnhMGy8W-q-ZKMGiOvMkg_RpXqgDGy"
