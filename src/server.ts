@@ -45,6 +45,20 @@ function isH3SwallowedErrorBody(body: string): boolean {
 }
 
 export default {
+  // Cloudflare Cron Trigger (0 9 * * * UTC = 06:00 Buenos Aires)
+  async scheduled(_event: unknown, _env: unknown, ctx: { waitUntil: (p: Promise<unknown>) => void }) {
+    const run = (async () => {
+      try {
+        const { runExecutiveMeetingServer } = await import("./lib/melano-ai.server");
+        const result = await runExecutiveMeetingServer({ trigger: "schedule" });
+        console.log("[cron:daily-meeting] ok", result.meetingId, result.traceId);
+      } catch (error) {
+        console.error("[cron:daily-meeting]", error);
+      }
+    })();
+    ctx.waitUntil(run);
+    await run;
+  },
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       const handler = await getServerEntry();
@@ -59,3 +73,4 @@ export default {
     }
   },
 };
+
