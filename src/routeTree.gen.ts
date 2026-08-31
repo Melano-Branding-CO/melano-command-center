@@ -20,6 +20,7 @@ import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedMetricsRouteImport } from './routes/_authenticated/metrics'
+import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedRevenueRouteImport } from './routes/_authenticated/revenue'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
@@ -81,6 +82,11 @@ const AuthenticatedMetricsRoute = AuthenticatedMetricsRouteImport.update({
   path: '/metrics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
+  id: '/products',
+  path: '/products',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedRevenueRoute = AuthenticatedRevenueRouteImport.update({
   id: '/revenue',
   path: '/revenue',
@@ -120,6 +126,7 @@ export interface FileRoutesByFullPath {
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/metrics': typeof AuthenticatedMetricsRoute
+  '/products': typeof AuthenticatedProductsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/metrics': typeof AuthenticatedMetricsRoute
+  '/products': typeof AuthenticatedProductsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/metrics': typeof AuthenticatedMetricsRoute
+  '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/revenue': typeof AuthenticatedRevenueRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
     | '/decisions'
     | '/meetings'
     | '/metrics'
+    | '/products'
     | '/revenue'
     | '/tasks'
     | '/today'
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/decisions'
     | '/meetings'
     | '/metrics'
+    | '/products'
     | '/revenue'
     | '/tasks'
     | '/today'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/_authenticated/decisions'
     | '/_authenticated/meetings'
     | '/_authenticated/metrics'
+    | '/_authenticated/products'
     | '/_authenticated/revenue'
     | '/_authenticated/tasks'
     | '/_authenticated/today'
@@ -303,6 +315,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMetricsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/products': {
+      id: '/_authenticated/products'
+      path: '/products'
+      fullPath: '/products'
+      preLoaderRoute: typeof AuthenticatedProductsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/revenue': {
       id: '/_authenticated/revenue'
       path: '/revenue'
@@ -361,6 +380,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
   AuthenticatedMetricsRoute: typeof AuthenticatedMetricsRoute
+  AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
   AuthenticatedRevenueRoute: typeof AuthenticatedRevenueRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
@@ -375,6 +395,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
   AuthenticatedMetricsRoute: AuthenticatedMetricsRoute,
+  AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedRevenueRoute: AuthenticatedRevenueRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
