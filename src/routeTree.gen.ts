@@ -18,6 +18,7 @@ import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
 import { Route as AuthenticatedBrunoRouteImport } from './routes/_authenticated/bruno'
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
+import { Route as AuthenticatedDashboardsRouteImport } from './routes/_authenticated/dashboards'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedGreenGateRouteImport } from './routes/_authenticated/green-gate'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
@@ -73,6 +74,11 @@ const AuthenticatedBrunoRoute = AuthenticatedBrunoRouteImport.update({
 const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
   id: '/command',
   path: '/command',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardsRoute = AuthenticatedDashboardsRouteImport.update({
+  id: '/dashboards',
+  path: '/dashboards',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
@@ -142,6 +148,7 @@ export interface FileRoutesByFullPath {
   '/automations': typeof AuthenticatedAutomationsRoute
   '/bruno': typeof AuthenticatedBrunoRoute
   '/command': typeof AuthenticatedCommandRoute
+  '/dashboards': typeof AuthenticatedDashboardsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/automations': typeof AuthenticatedAutomationsRoute
   '/bruno': typeof AuthenticatedBrunoRoute
   '/command': typeof AuthenticatedCommandRoute
+  '/dashboards': typeof AuthenticatedDashboardsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
@@ -186,6 +194,7 @@ export interface FileRoutesById {
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
   '/_authenticated/bruno': typeof AuthenticatedBrunoRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
+  '/_authenticated/dashboards': typeof AuthenticatedDashboardsRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/green-gate': typeof AuthenticatedGreenGateRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
@@ -209,6 +218,7 @@ export interface FileRouteTypes {
     | '/automations'
     | '/bruno'
     | '/command'
+    | '/dashboards'
     | '/decisions'
     | '/green-gate'
     | '/meetings'
@@ -230,6 +240,7 @@ export interface FileRouteTypes {
     | '/automations'
     | '/bruno'
     | '/command'
+    | '/dashboards'
     | '/decisions'
     | '/green-gate'
     | '/meetings'
@@ -252,6 +263,7 @@ export interface FileRouteTypes {
     | '/_authenticated/automations'
     | '/_authenticated/bruno'
     | '/_authenticated/command'
+    | '/_authenticated/dashboards'
     | '/_authenticated/decisions'
     | '/_authenticated/green-gate'
     | '/_authenticated/meetings'
@@ -335,6 +347,13 @@ declare module '@tanstack/react-router' {
       path: '/command'
       fullPath: '/command'
       preLoaderRoute: typeof AuthenticatedCommandRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboards': {
+      id: '/_authenticated/dashboards'
+      path: '/dashboards'
+      fullPath: '/dashboards'
+      preLoaderRoute: typeof AuthenticatedDashboardsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/decisions': {
@@ -435,6 +454,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAutomationsRoute: typeof AuthenticatedAutomationsRoute
   AuthenticatedBrunoRoute: typeof AuthenticatedBrunoRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
+  AuthenticatedDashboardsRoute: typeof AuthenticatedDashboardsRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedGreenGateRoute: typeof AuthenticatedGreenGateRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
@@ -453,6 +473,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAutomationsRoute: AuthenticatedAutomationsRoute,
   AuthenticatedBrunoRoute: AuthenticatedBrunoRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
+  AuthenticatedDashboardsRoute: AuthenticatedDashboardsRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedGreenGateRoute: AuthenticatedGreenGateRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
