@@ -8,9 +8,12 @@ import type { Json as DbJson } from "@/integrations/supabase/types";
 
 export type Json = DbJson;
 
-async function ai(system: string, user: string): Promise<string> {
+export type AiResult = { text: string; tokens: number; model: string; ms: number };
+
+async function aiFull(system: string, user: string): Promise<AiResult> {
   const key = process.env["LOVABLE_API_KEY"];
   if (!key) throw new Error("Falta LOVABLE_API_KEY en el servidor");
+  const t0 = Date.now();
   const res = await fetch(GATEWAY, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
@@ -24,13 +27,26 @@ async function ai(system: string, user: string): Promise<string> {
   });
   if (!res.ok) {
     const body = await res.text();
+    if (res.status === 429) throw new Error("Límite de uso de IA alcanzado. Reintentá en unos minutos.");
+    if (res.status === 402) throw new Error("Sin créditos de IA disponibles.");
     throw new Error(`AI gateway ${res.status}: ${body.slice(0, 300)}`);
   }
   const data = (await res.json()) as {
     choices?: Array<{ message?: { content?: string } }>;
+    usage?: { total_tokens?: number };
   };
-  return data.choices?.[0]?.message?.content ?? "";
+  return {
+    text: data.choices?.[0]?.message?.content ?? "",
+    tokens: data.usage?.total_tokens ?? 0,
+    model: MODEL,
+    ms: Date.now() - t0,
+  };
 }
+
+async function ai(system: string, user: string): Promise<string> {
+  return (await aiFull(system, user)).text;
+}
+
 
 function parseJson<T>(text: string, fallback: T): T {
   const cleaned = text
@@ -110,7 +126,47 @@ const AGENT_SCHEMA = `Respondé SOLO con JSON válido con esta forma:
 {"situation":"...","changes":"...","problems":"...","opportunities":"...","metrics":{"clave":"valor"},"proposed_action":"..."}
 Reglas: nunca inventes datos como hechos. Si no hay evidencia en el contexto, escribí "SIN DATOS" y marcá el supuesto explícitamente.`;
 
-/** Ejecuta un agente individual y persiste el run. */
+type AgentRowFull = {
+  id: string;
+  organization_id: string;
+  code: string;
+  name: string;
+  role: string;
+  objective: string;
+  system_prompt: string;
+  context: string | null;
+  execution_loop: string | null;
+  stop_conditions: string | null;
+  failure_handling: string | null;
+  observability: string | null;
+  measurable_outcome: string | null;
+  execution_mode: string;
+  tools: DbJson;
+};
+
+/** Prompt real del agente: system_prompt + toda su ficha operativa. */
+export function buildAgentPrompt(agent: AgentRowFull, toolNames: string[]): string {
+  const section = (label: string, value?: string | null) =>
+    value && value.trim() ? `\n\n## ${label}\n${value.trim()}` : "";
+  return (
+    `${agent.system_prompt.trim()}` +
+    `\n\n## Identidad\n${agent.name} (${agent.code}) — ${agent.role} de MELANO INC.` +
+    `\n\n## Objetivo\n${agent.objective}` +
+    section("Contexto operativo", agent.context) +
+    section("Ciclo de ejecución", agent.execution_loop) +
+    section("Condiciones de parada", agent.stop_conditions) +
+    section("Manejo de fallos", agent.failure_handling) +
+    section("Observabilidad", agent.observability) +
+    section("Resultado medible esperado", agent.measurable_outcome) +
+    `\n\n## Modo de ejecución\n${agent.execution_mode}` +
+    (toolNames.length ? `\n\n## Herramientas habilitadas\n${toolNames.join(", ")}` : "") +
+    `\n\n## Formato de salida\n${AGENT_SCHEMA}`
+  );
+}
+
+const COST_PER_1K_TOKENS = 0.0003;
+
+/** Ejecuta un agente individual con su prompt real y persiste el run completo. */
 export async function runAgentServer(agentId: string, meetingId?: string) {
   const db = supabaseAdmin;
   const { data: agent, error } = await db.from("agents").select("*").eq("id", agentId).single();
@@ -118,6 +174,17 @@ export async function runAgentServer(agentId: string, meetingId?: string) {
 
   const traceId = crypto.randomUUID();
   const context = await loadOrgContext(agent.organization_id);
+
+  const { data: toolRows } = await db
+    .from("agent_tools")
+    .select("tool_name")
+    .eq("agent_id", agent.id)
+    .eq("enabled", true);
+  const toolNames = (toolRows ?? []).map((t) => t.tool_name);
+
+  const systemPrompt = buildAgentPrompt(agent as unknown as AgentRowFull, toolNames);
+  const userPrompt = `Estado real de la organización (JSON):\n${context}\n\nProducí tu análisis ejecutivo de hoy siguiendo tu ciclo de ejecución.`;
+
   const { data: run } = await db
     .from("agent_runs")
     .insert({
@@ -126,7 +193,14 @@ export async function runAgentServer(agentId: string, meetingId?: string) {
       ...(meetingId ? { meeting_id: meetingId } : {}),
       trigger: meetingId ? ("schedule" as const) : ("manual" as const),
       status: "RUNNING" as const,
-      input: { context_bytes: context.length },
+      input: {
+        model: MODEL,
+        agent_code: agent.code,
+        system_prompt: systemPrompt,
+        user_prompt_preview: userPrompt.slice(0, 2000),
+        context_bytes: context.length,
+      } as unknown as DbJson,
+      tools_used: toolNames as unknown as DbJson,
       trace_id: traceId,
     })
     .select("id")
@@ -135,13 +209,12 @@ export async function runAgentServer(agentId: string, meetingId?: string) {
   await db.from("agents").update({ status: "RUNNING" }).eq("id", agent.id);
 
   try {
-    const text = await ai(
-      `${agent.system_prompt}\n\nSos ${agent.name} (${agent.role}) de MELANO INC. Objetivo: ${agent.objective}.\n${AGENT_SCHEMA}`,
-      `Estado real de la organización (JSON):\n${context}\n\nProducí tu análisis ejecutivo de hoy.`,
-    );
+    const result = await aiFull(systemPrompt, userPrompt);
+    const text = result.text;
     const parsed = parseJson<Record<string, unknown>>(text, {
       situation: text.slice(0, 800) || "SIN DATOS",
       proposed_action: "SIN DATOS",
+      raw_text: text.slice(0, 4000),
     });
 
     if (run?.id) {
@@ -151,6 +224,8 @@ export async function runAgentServer(agentId: string, meetingId?: string) {
           status: "SUCCESS" as const,
           finished_at: new Date().toISOString(),
           output: parsed as unknown as DbJson,
+          tokens: result.tokens,
+          estimated_cost: Number(((result.tokens / 1000) * COST_PER_1K_TOKENS).toFixed(6)),
         })
         .eq("id", run.id);
     }
@@ -171,12 +246,19 @@ export async function runAgentServer(agentId: string, meetingId?: string) {
       action: "agent.run.success",
       entity_type: "agent",
       entity_id: agent.id,
-      detail: { proposed_action: (parsed["proposed_action"] ?? null) as DbJson },
+      detail: {
+        proposed_action: (parsed["proposed_action"] ?? null) as DbJson,
+        tokens: result.tokens,
+        duration_ms: result.ms,
+        model: result.model,
+        run_id: run?.id ?? null,
+      } as unknown as DbJson,
       trace_id: traceId,
     });
 
-    return { agent, parsed, traceId };
+    return { agent, parsed, traceId, runId: run?.id ?? null, tokens: result.tokens };
   } catch (err) {
+
     const message = err instanceof Error ? err.message : String(err);
     if (run?.id) {
       await db
