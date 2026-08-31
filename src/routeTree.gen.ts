@@ -16,6 +16,7 @@ import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
 import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
+import { Route as AuthenticatedBrunoRouteImport } from './routes/_authenticated/bruno'
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
@@ -63,6 +64,11 @@ const AuthenticatedAutomationsRoute =
     path: '/automations',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedBrunoRoute = AuthenticatedBrunoRouteImport.update({
+  id: '/bruno',
+  path: '/bruno',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
   id: '/command',
   path: '/command',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/automations': typeof AuthenticatedAutomationsRoute
+  '/bruno': typeof AuthenticatedBrunoRoute
   '/command': typeof AuthenticatedCommandRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/approvals': typeof AuthenticatedApprovalsRoute
   '/automations': typeof AuthenticatedAutomationsRoute
+  '/bruno': typeof AuthenticatedBrunoRoute
   '/command': typeof AuthenticatedCommandRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/_authenticated/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
+  '/_authenticated/bruno': typeof AuthenticatedBrunoRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/agents'
     | '/approvals'
     | '/automations'
+    | '/bruno'
     | '/command'
     | '/decisions'
     | '/meetings'
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/agents'
     | '/approvals'
     | '/automations'
+    | '/bruno'
     | '/command'
     | '/decisions'
     | '/meetings'
@@ -228,6 +239,7 @@ export interface FileRouteTypes {
     | '/_authenticated/agents'
     | '/_authenticated/approvals'
     | '/_authenticated/automations'
+    | '/_authenticated/bruno'
     | '/_authenticated/command'
     | '/_authenticated/decisions'
     | '/_authenticated/meetings'
@@ -297,6 +309,13 @@ declare module '@tanstack/react-router' {
       path: '/automations'
       fullPath: '/automations'
       preLoaderRoute: typeof AuthenticatedAutomationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/bruno': {
+      id: '/_authenticated/bruno'
+      path: '/bruno'
+      fullPath: '/bruno'
+      preLoaderRoute: typeof AuthenticatedBrunoRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/command': {
@@ -395,6 +414,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRouteWithChildren
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
   AuthenticatedAutomationsRoute: typeof AuthenticatedAutomationsRoute
+  AuthenticatedBrunoRoute: typeof AuthenticatedBrunoRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
@@ -411,6 +431,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAgentsRoute: AuthenticatedAgentsRouteWithChildren,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
   AuthenticatedAutomationsRoute: AuthenticatedAutomationsRoute,
+  AuthenticatedBrunoRoute: AuthenticatedBrunoRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
