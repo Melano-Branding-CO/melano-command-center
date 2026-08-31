@@ -8,9 +8,12 @@ import type { Json as DbJson } from "@/integrations/supabase/types";
 
 export type Json = DbJson;
 
-async function ai(system: string, user: string): Promise<string> {
+export type AiResult = { text: string; tokens: number; model: string; ms: number };
+
+async function aiFull(system: string, user: string): Promise<AiResult> {
   const key = process.env["LOVABLE_API_KEY"];
   if (!key) throw new Error("Falta LOVABLE_API_KEY en el servidor");
+  const t0 = Date.now();
   const res = await fetch(GATEWAY, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
@@ -24,13 +27,26 @@ async function ai(system: string, user: string): Promise<string> {
   });
   if (!res.ok) {
     const body = await res.text();
+    if (res.status === 429) throw new Error("Límite de uso de IA alcanzado. Reintentá en unos minutos.");
+    if (res.status === 402) throw new Error("Sin créditos de IA disponibles.");
     throw new Error(`AI gateway ${res.status}: ${body.slice(0, 300)}`);
   }
   const data = (await res.json()) as {
     choices?: Array<{ message?: { content?: string } }>;
+    usage?: { total_tokens?: number };
   };
-  return data.choices?.[0]?.message?.content ?? "";
+  return {
+    text: data.choices?.[0]?.message?.content ?? "",
+    tokens: data.usage?.total_tokens ?? 0,
+    model: MODEL,
+    ms: Date.now() - t0,
+  };
 }
+
+async function ai(system: string, user: string): Promise<string> {
+  return (await aiFull(system, user)).text;
+}
+
 
 function parseJson<T>(text: string, fallback: T): T {
   const cleaned = text
