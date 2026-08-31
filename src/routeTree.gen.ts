@@ -21,6 +21,7 @@ import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedDashboardsRouteImport } from './routes/_authenticated/dashboards'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedGreenGateRouteImport } from './routes/_authenticated/green-gate'
+import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedMetricsRouteImport } from './routes/_authenticated/metrics'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
@@ -91,6 +92,11 @@ const AuthenticatedGreenGateRoute = AuthenticatedGreenGateRouteImport.update({
   path: '/green-gate',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
   id: '/meetings',
   path: '/meetings',
@@ -151,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/dashboards': typeof AuthenticatedDashboardsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
+  '/leads': typeof AuthenticatedLeadsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/metrics': typeof AuthenticatedMetricsRoute
   '/products': typeof AuthenticatedProductsRoute
@@ -173,6 +180,7 @@ export interface FileRoutesByTo {
   '/dashboards': typeof AuthenticatedDashboardsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
+  '/leads': typeof AuthenticatedLeadsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/metrics': typeof AuthenticatedMetricsRoute
   '/products': typeof AuthenticatedProductsRoute
@@ -197,6 +205,7 @@ export interface FileRoutesById {
   '/_authenticated/dashboards': typeof AuthenticatedDashboardsRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/green-gate': typeof AuthenticatedGreenGateRoute
+  '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/metrics': typeof AuthenticatedMetricsRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
@@ -221,6 +230,7 @@ export interface FileRouteTypes {
     | '/dashboards'
     | '/decisions'
     | '/green-gate'
+    | '/leads'
     | '/meetings'
     | '/metrics'
     | '/products'
@@ -243,6 +253,7 @@ export interface FileRouteTypes {
     | '/dashboards'
     | '/decisions'
     | '/green-gate'
+    | '/leads'
     | '/meetings'
     | '/metrics'
     | '/products'
@@ -266,6 +277,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dashboards'
     | '/_authenticated/decisions'
     | '/_authenticated/green-gate'
+    | '/_authenticated/leads'
     | '/_authenticated/meetings'
     | '/_authenticated/metrics'
     | '/_authenticated/products'
@@ -370,6 +382,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedGreenGateRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/leads': {
+      id: '/_authenticated/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof AuthenticatedLeadsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/meetings': {
       id: '/_authenticated/meetings'
       path: '/meetings'
@@ -457,6 +476,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardsRoute: typeof AuthenticatedDashboardsRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedGreenGateRoute: typeof AuthenticatedGreenGateRoute
+  AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
   AuthenticatedMetricsRoute: typeof AuthenticatedMetricsRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
@@ -476,6 +496,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardsRoute: AuthenticatedDashboardsRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedGreenGateRoute: AuthenticatedGreenGateRoute,
+  AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
   AuthenticatedMetricsRoute: AuthenticatedMetricsRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
