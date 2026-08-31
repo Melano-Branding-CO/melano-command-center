@@ -272,7 +272,7 @@ function Kpi({
 }: {
   label: string;
   value: string | number;
-  hint?: string;
+  hint?: string | undefined;
   tone?: "muted" | "good" | "warn" | "bad";
 }) {
   const toneClass = {
