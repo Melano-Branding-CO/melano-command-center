@@ -42,7 +42,18 @@ type Run = {
   started_at: string | null;
   finished_at: string | null;
   error: string | null;
+  trace_id: string | null;
+  tokens: number | null;
+  estimated_cost: number | null;
+  tools_used: unknown;
+  output: Record<string, unknown> | null;
 };
+
+function durationOf(r: Run) {
+  if (!r.started_at || !r.finished_at) return "—";
+  const ms = new Date(r.finished_at).getTime() - new Date(r.started_at).getTime();
+  return `${(ms / 1000).toFixed(1)}s`;
+}
 
 function AgentDetail() {
   const { agentId } = Route.useParams();
@@ -108,11 +119,31 @@ function AgentDetail() {
           {(runs ?? []).length === 0 ? (
             <Empty text="Sin ejecuciones registradas." />
           ) : (
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-3 text-sm">
               {(runs ?? []).map((r) => (
-                <li key={r.id} className="flex items-center justify-between gap-2">
-                  <span className="text-muted-foreground">{fmtDate(r.started_at)}</span>
-                  <StatusBadge status={r.status} />
+                <li key={r.id} className="rounded-md border border-border/60 p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-muted-foreground">{fmtDate(r.started_at)}</span>
+                    <StatusBadge status={r.status} />
+                  </div>
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
+                    <span>trace {r.trace_id ? r.trace_id.slice(0, 8) : "—"}</span>
+                    <span>{r.tokens ?? 0} tokens</span>
+                    <span>US$ {(r.estimated_cost ?? 0).toFixed(4)}</span>
+                    <span>{durationOf(r)}</span>
+                  </div>
+                  {r.error ? (
+                    <p className="mt-2 text-xs text-destructive">{r.error}</p>
+                  ) : r.output ? (
+                    <details className="mt-2">
+                      <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
+                        Ver output real
+                      </summary>
+                      <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded bg-muted/40 p-2 text-[11px] leading-relaxed">
+                        {JSON.stringify(r.output, null, 2)}
+                      </pre>
+                    </details>
+                  ) : null}
                 </li>
               ))}
             </ul>
