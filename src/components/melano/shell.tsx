@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { to: "/command", label: "Command Center", icon: LayoutDashboard },
   { to: "/bruno", label: "Bruno", icon: ShieldCheck },
+  { to: "/green-gate", label: "Green Gate", icon: BadgeCheck },
   { to: "/today", label: "Today", icon: Sun },
   { to: "/revenue", label: "Revenue", icon: Wallet },
   { to: "/agents", label: "Agents", icon: Bot },
