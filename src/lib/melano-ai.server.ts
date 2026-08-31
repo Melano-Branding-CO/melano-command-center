@@ -4,7 +4,9 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 const MODEL = "google/gemini-2.5-flash";
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
-export type Json = Record<string, unknown>;
+import type { Json as DbJson } from "@/integrations/supabase/types";
+
+export type Json = DbJson;
 
 async function ai(system: string, user: string): Promise<string> {
   const key = process.env["LOVABLE_API_KEY"];
@@ -148,7 +150,7 @@ export async function runAgentServer(agentId: string, meetingId?: string) {
         .update({
           status: "SUCCESS" as const,
           finished_at: new Date().toISOString(),
-          output: parsed,
+          output: parsed as unknown as DbJson,
         })
         .eq("id", run.id);
     }
@@ -169,7 +171,7 @@ export async function runAgentServer(agentId: string, meetingId?: string) {
       action: "agent.run.success",
       entity_type: "agent",
       entity_id: agent.id,
-      detail: { proposed_action: parsed["proposed_action"] ?? null },
+      detail: { proposed_action: (parsed["proposed_action"] ?? null) as DbJson },
       trace_id: traceId,
     });
 
@@ -285,9 +287,9 @@ export async function runExecutiveMeetingServer(
             changes: String(parsed["changes"] ?? ""),
             problems: String(parsed["problems"] ?? ""),
             opportunities: String(parsed["opportunities"] ?? ""),
-            metrics: (parsed["metrics"] as Json) ?? {},
+            metrics: (parsed["metrics"] as DbJson) ?? {},
             proposed_action: String(parsed["proposed_action"] ?? ""),
-            raw: parsed as Json,
+            raw: parsed as unknown as DbJson,
           });
           return { code: agent.code, name: agent.name, output: parsed };
         } catch (err) {
@@ -375,7 +377,7 @@ Respondé SOLO JSON:
           impact: dec.expected_impact ?? null,
           risk: dec.risk ?? null,
           evidence: { meeting_id: meeting.id },
-          payload: dec as unknown as Json,
+          payload: dec as unknown as DbJson,
           status: "PENDING" as const,
           trace_id: traceId,
         });
@@ -388,7 +390,7 @@ Respondé SOLO JSON:
         status: "COMPLETED" as const,
         finished_at: new Date().toISOString(),
         summary: brief.summary ?? null,
-        executive_brief: brief as unknown as Json,
+        executive_brief: brief as unknown as DbJson,
       })
       .eq("id", meeting.id);
 

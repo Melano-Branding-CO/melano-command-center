@@ -1,6 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+type Serializable = string | number | boolean | null | Serializable[] | { [k: string]: Serializable };
+
 export const runMeetingNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { organizationId: string }) => {
@@ -43,7 +45,7 @@ export const runAgentNow = createServerFn({ method: "POST" })
     }
     const { runAgentServer } = await import("./melano-ai.server");
     const { parsed, traceId } = await runAgentServer(data.agentId);
-    return { traceId, output: parsed };
+    return { traceId, output: JSON.parse(JSON.stringify(parsed)) as Record<string, Serializable> };
   });
 
 export const decideApproval = createServerFn({ method: "POST" })

@@ -22,6 +22,7 @@ import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedMetricsRouteImport } from './routes/_authenticated/metrics'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedRevenueRouteImport } from './routes/_authenticated/revenue'
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
@@ -92,6 +93,11 @@ const AuthenticatedRevenueRoute = AuthenticatedRevenueRouteImport.update({
   path: '/revenue',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/metrics': typeof AuthenticatedMetricsRoute
   '/products': typeof AuthenticatedProductsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
@@ -146,6 +153,7 @@ export interface FileRoutesByTo {
   '/metrics': typeof AuthenticatedMetricsRoute
   '/products': typeof AuthenticatedProductsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
+  '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
@@ -166,6 +174,7 @@ export interface FileRoutesById {
   '/_authenticated/metrics': typeof AuthenticatedMetricsRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/revenue': typeof AuthenticatedRevenueRoute
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/metrics'
     | '/products'
     | '/revenue'
+    | '/settings'
     | '/tasks'
     | '/today'
     | '/agents/$agentId'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/metrics'
     | '/products'
     | '/revenue'
+    | '/settings'
     | '/tasks'
     | '/today'
     | '/agents/$agentId'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/_authenticated/metrics'
     | '/_authenticated/products'
     | '/_authenticated/revenue'
+    | '/_authenticated/settings'
     | '/_authenticated/tasks'
     | '/_authenticated/today'
     | '/_authenticated/agents/$agentId'
@@ -329,6 +341,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRevenueRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tasks': {
       id: '/_authenticated/tasks'
       path: '/tasks'
@@ -382,6 +401,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMetricsRoute: typeof AuthenticatedMetricsRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
   AuthenticatedRevenueRoute: typeof AuthenticatedRevenueRoute
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
 }
@@ -397,6 +417,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMetricsRoute: AuthenticatedMetricsRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedRevenueRoute: AuthenticatedRevenueRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
 }

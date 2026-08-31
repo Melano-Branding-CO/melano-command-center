@@ -16,7 +16,7 @@ const priorityStyles: Record<string, string> = {
 };
 
 export function PriorityBadge({ priority }: { priority: string }) {
-  return <Pill className={priorityStyles[priority] ?? priorityStyles.P3!}>{priority}</Pill>;
+  return <Pill className={priorityStyles[priority] ?? priorityStyles["P3"]!}>{priority}</Pill>;
 }
 
 const statusStyles: Record<string, string> = {
@@ -65,7 +65,7 @@ const factStyles: Record<string, string> = {
 
 export function FactBadge({ kind }: { kind: string }) {
   const key = kind?.toUpperCase?.() ?? "PENDIENTE";
-  return <Pill className={factStyles[key] ?? factStyles.PENDIENTE!}>{key}</Pill>;
+  return <Pill className={factStyles[key] ?? factStyles["PENDIENTE"]!}>{key}</Pill>;
 }
 
 export function ModePill({ mode }: { mode: string }) {
