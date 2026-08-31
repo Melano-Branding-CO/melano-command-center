@@ -18,6 +18,7 @@ import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
+import { Route as AuthenticatedMetricsRouteImport } from './routes/_authenticated/metrics'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
@@ -67,6 +68,11 @@ const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
   path: '/meetings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMetricsRoute = AuthenticatedMetricsRouteImport.update({
+  id: '/metrics',
+  path: '/metrics',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
   path: '/tasks',
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/command': typeof AuthenticatedCommandRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
+  '/metrics': typeof AuthenticatedMetricsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
@@ -113,6 +120,7 @@ export interface FileRoutesByTo {
   '/command': typeof AuthenticatedCommandRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
+  '/metrics': typeof AuthenticatedMetricsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
@@ -129,6 +137,7 @@ export interface FileRoutesById {
   '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
+  '/_authenticated/metrics': typeof AuthenticatedMetricsRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
@@ -145,6 +154,7 @@ export interface FileRouteTypes {
     | '/command'
     | '/decisions'
     | '/meetings'
+    | '/metrics'
     | '/tasks'
     | '/today'
     | '/agents/$agentId'
@@ -159,6 +169,7 @@ export interface FileRouteTypes {
     | '/command'
     | '/decisions'
     | '/meetings'
+    | '/metrics'
     | '/tasks'
     | '/today'
     | '/agents/$agentId'
@@ -174,6 +185,7 @@ export interface FileRouteTypes {
     | '/_authenticated/command'
     | '/_authenticated/decisions'
     | '/_authenticated/meetings'
+    | '/_authenticated/metrics'
     | '/_authenticated/tasks'
     | '/_authenticated/today'
     | '/_authenticated/agents/$agentId'
@@ -252,6 +264,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMeetingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/metrics': {
+      id: '/_authenticated/metrics'
+      path: '/metrics'
+      fullPath: '/metrics'
+      preLoaderRoute: typeof AuthenticatedMetricsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/tasks': {
       id: '/_authenticated/tasks'
       path: '/tasks'
@@ -301,6 +320,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
+  AuthenticatedMetricsRoute: typeof AuthenticatedMetricsRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
 }
@@ -312,6 +332,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
+  AuthenticatedMetricsRoute: AuthenticatedMetricsRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
 }
