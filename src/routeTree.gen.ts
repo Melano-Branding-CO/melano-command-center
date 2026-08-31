@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as ApiPublicCronDailyMeetingRouteImport } from './routes/api/public/cron/daily-meeting'
@@ -29,6 +30,11 @@ const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedAgentsRoute = AuthenticatedAgentsRouteImport.update({
+  id: '/agents',
+  path: '/agents',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
   id: '/command',
@@ -50,6 +56,7 @@ const ApiPublicCronDailyMeetingRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agents': typeof AuthenticatedAgentsRoute
   '/command': typeof AuthenticatedCommandRoute
   '/today': typeof AuthenticatedTodayRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
@@ -57,6 +64,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/agents': typeof AuthenticatedAgentsRoute
   '/command': typeof AuthenticatedCommandRoute
   '/today': typeof AuthenticatedTodayRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
@@ -66,6 +74,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_authenticated/agents': typeof AuthenticatedAgentsRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
@@ -73,14 +82,26 @@ export interface FileRoutesById {
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/auth' | '/command' | '/today' | '/api/public/cron/daily-meeting'
+    | '/'
+    | '/auth'
+    | '/agents'
+    | '/command'
+    | '/today'
+    | '/api/public/cron/daily-meeting'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/command' | '/today' | '/api/public/cron/daily-meeting'
+  to:
+    | '/'
+    | '/auth'
+    | '/agents'
+    | '/command'
+    | '/today'
+    | '/api/public/cron/daily-meeting'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/_authenticated/agents'
     | '/_authenticated/command'
     | '/_authenticated/today'
     | '/api/public/cron/daily-meeting'
@@ -116,6 +137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/agents': {
+      id: '/_authenticated/agents'
+      path: '/agents'
+      fullPath: '/agents'
+      preLoaderRoute: typeof AuthenticatedAgentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/command': {
       id: '/_authenticated/command'
       path: '/command'
@@ -141,11 +169,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedAgentsRoute: AuthenticatedAgentsRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
 }
