@@ -323,6 +323,10 @@ function LeadsPage() {
         <Button variant="outline" size="sm" onClick={() => setCreating((v) => !v)}>
           {creating ? "Cancelar" : "Nuevo lead"}
         </Button>
+        <Button variant="outline" size="sm" onClick={() => setImporting((v) => !v)}>
+          {importing ? "Cerrar importación" : "Importar lista"}
+        </Button>
+
         <span className="text-xs text-muted-foreground">
           {filtered.length} lead{filtered.length === 1 ? "" : "s"} en la cohorte
         </span>
