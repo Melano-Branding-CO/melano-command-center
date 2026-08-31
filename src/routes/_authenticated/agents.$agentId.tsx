@@ -194,15 +194,9 @@ function AgentDetail() {
                   {r.error ? (
                     <p className="mt-2 text-xs text-destructive">{r.error}</p>
                   ) : r.output ? (
-                    <details className="mt-2">
-                      <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
-                        Ver output real
-                      </summary>
-                      <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded bg-muted/40 p-2 text-[11px] leading-relaxed">
-                        {JSON.stringify(r.output, null, 2)}
-                      </pre>
-                    </details>
+                    <RunOutput output={r.output} />
                   ) : null}
+
                 </li>
               ))}
             </ul>
