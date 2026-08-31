@@ -61,6 +61,59 @@ function durationOf(r: Run) {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
+/** El modelo a veces devuelve objetos anidados: los aplanamos a texto legible. */
+function asText(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value.trim();
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) return value.map(asText).filter(Boolean).join(" · ");
+  if (typeof value === "object") {
+    return Object.entries(value as Record<string, unknown>)
+      .map(([k, v]) => `${k}: ${asText(v)}`)
+      .filter(Boolean)
+      .join("\n");
+  }
+  return String(value);
+}
+
+const OUTPUT_FIELDS = [
+  ["Situación", "situation"],
+  ["Cambios", "changes"],
+  ["Problemas", "problems"],
+  ["Oportunidades", "opportunities"],
+  ["Métricas", "metrics"],
+  ["Acción propuesta", "proposed_action"],
+] as const;
+
+function RunOutput({ output }: { output: Record<string, unknown> }) {
+  const blocks = OUTPUT_FIELDS.map(([label, key]) => [label, asText(output[key])] as const).filter(
+    ([, text]) => text.length > 0,
+  );
+  return (
+    <div className="mt-3 space-y-2">
+      {blocks.length === 0 ? (
+        <p className="whitespace-pre-wrap text-xs text-foreground">{asText(output)}</p>
+      ) : (
+        blocks.map(([label, text]) => (
+          <div key={label}>
+            <p className="text-[10px] uppercase tracking-wide text-muted-foreground">{label}</p>
+            <p className="whitespace-pre-wrap text-xs leading-relaxed text-foreground">{text}</p>
+          </div>
+        ))
+      )}
+      <details>
+        <summary className="cursor-pointer text-[11px] text-muted-foreground hover:text-foreground">
+          Ver JSON crudo
+        </summary>
+        <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded bg-muted/40 p-2 text-[11px] leading-relaxed">
+          {JSON.stringify(output, null, 2)}
+        </pre>
+      </details>
+    </div>
+  );
+}
+
+
 function AgentDetail() {
   const { agentId } = Route.useParams();
   const { data: org } = useOrg();
@@ -141,15 +194,9 @@ function AgentDetail() {
                   {r.error ? (
                     <p className="mt-2 text-xs text-destructive">{r.error}</p>
                   ) : r.output ? (
-                    <details className="mt-2">
-                      <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground">
-                        Ver output real
-                      </summary>
-                      <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded bg-muted/40 p-2 text-[11px] leading-relaxed">
-                        {JSON.stringify(r.output, null, 2)}
-                      </pre>
-                    </details>
+                    <RunOutput output={r.output} />
                   ) : null}
+
                 </li>
               ))}
             </ul>
