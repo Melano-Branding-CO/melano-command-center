@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { fmtDate, useOrg } from "@/lib/melano";
-import { useOrgRows } from "@/lib/melano-queries";
+import { useTenantRows } from "@/integrations/supabase/canonical";
 
 export const Route = createFileRoute("/_authenticated/activity")({
   head: () => ({
@@ -18,16 +18,16 @@ export const Route = createFileRoute("/_authenticated/activity")({
 
 type Log = {
   id: string;
-  action: string;
+  event_type: string;
   actor_type: string;
-  entity_type: string | null;
+  message: string;
   created_at: string | null;
   trace_id: string | null;
 };
 
 function ActivityPage() {
   const { data: org } = useOrg();
-  const { data: logs, isLoading } = useOrgRows<Log>("activity_logs", org?.id, {
+  const { data: logs, isLoading } = useTenantRows<Log>("automation_logs", org?.id, {
     order: "created_at",
     limit: 200,
   });
@@ -45,9 +45,9 @@ function ActivityPage() {
             {(logs ?? []).map((l) => (
               <li key={l.id} className="flex flex-wrap items-center gap-2 py-2">
                 <span className="text-xs text-muted-foreground">{fmtDate(l.created_at)}</span>
-                <span className="flex-1 truncate text-foreground">{l.action}</span>
+                <span className="flex-1 truncate text-foreground">{l.message}</span>
                 <span className="text-[11px] uppercase text-muted-foreground">
-                  {l.actor_type} · {l.entity_type ?? "—"}
+                  {l.actor_type} · {l.event_type}
                 </span>
               </li>
             ))}
