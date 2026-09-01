@@ -473,7 +473,7 @@ function ClientsPage() {
               {clients.isLoading ? (
                 <p className="text-sm text-muted-foreground">Cargando…</p>
               ) : !list.length ? (
-                <Empty title="Sin clientes en esta etapa" />
+                <Empty text="Sin clientes en esta etapa" />
               ) : (
                 <ul className="grid gap-2">
                   {list.map((c) => (
