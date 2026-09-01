@@ -24,11 +24,17 @@ export const Route = createFileRoute("/auth")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  validateSearch: (search: Record<string, unknown>) => {
+    const raw = typeof search["next"] === "string" ? search["next"] : "";
+    // Solo rutas relativas del mismo origen.
+    return { next: /^\/(?!\/)/.test(raw) ? raw : "" };
+  },
   component: AuthPage,
 });
 
 export function AuthPage() {
   const navigate = useNavigate();
+  const { next } = Route.useSearch();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -38,19 +44,21 @@ export function AuthPage() {
 
   useEffect(() => {
     let active = true;
+    const go = () => {
+      if (next) window.location.replace(next);
+      else navigate({ to: "/command", replace: true });
+    };
     supabase.auth.getSession().then(({ data }) => {
-      if (active && data.session) navigate({ to: "/command", replace: true });
+      if (active && data.session) go();
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
-        navigate({ to: "/command", replace: true });
-      }
+      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) go();
     });
     return () => {
       active = false;
       sub.subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, next]);
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();
@@ -61,7 +69,7 @@ export function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: next ? window.location.origin + next : window.location.origin,
             data: { full_name: fullName || email.split("@")[0] },
           },
         });
