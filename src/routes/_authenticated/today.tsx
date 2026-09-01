@@ -78,6 +78,10 @@ function TodayPage() {
           ))}
         </div>
       )}
+
+      <div className="mt-4">
+        <McpN8nLog orgId={org?.id} />
+      </div>
     </>
   );
 }
