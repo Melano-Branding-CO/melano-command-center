@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database, Tables } from "@/integrations/supabase/types";
+import { canonicalDb, mapTenant } from "@/integrations/supabase/canonical";
 
 export type Org = Tables<"organizations">;
 export type Agent = Tables<"agents">;
@@ -44,9 +45,9 @@ export function useOrg() {
   return useQuery({
     queryKey: ["organization"],
     queryFn: async (): Promise<Org | null> => {
-      const { data, error } = await supabase.from("organizations").select("*").limit(1);
+      const { data, error } = await canonicalDb().from("tenants").select("id,name,slug,created_at").limit(1);
       if (error) throw error;
-      return data?.[0] ?? null;
+      return data?.[0] ? (mapTenant(data[0]) as Org) : null;
     },
   });
 }
@@ -60,9 +61,9 @@ export function useMyRole(orgId?: string) {
       const uid = userData.user?.id;
       if (!uid || !orgId) return null;
       const { data, error } = await supabase
-        .from("organization_members")
+        .from("tenant_members")
         .select("role")
-        .eq("organization_id", orgId)
+        .eq("tenant_id", orgId)
         .eq("user_id", uid)
         .maybeSingle();
       if (error) throw error;
@@ -79,8 +80,8 @@ export function useAgents(orgId?: string) {
       const { data, error } = await supabase
         .from("agents")
         .select("*")
-        .eq("organization_id", orgId!)
-        .order("sort_order");
+        .eq("tenant_id", orgId!)
+        .order("name");
       if (error) throw error;
       return data;
     },
