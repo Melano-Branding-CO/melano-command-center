@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge } from "@/components/melano/badges";
 import { fmtDate, useOrg } from "@/lib/melano";
-import { useOrgRows } from "@/lib/melano-queries";
+import { useTenantRows } from "@/integrations/supabase/canonical";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   head: () => ({
@@ -21,13 +21,14 @@ type Meeting = {
   id: string;
   status: string;
   started_at: string | null;
-  finished_at: string | null;
-  summary: string | null;
+  completed_at: string | null;
+  summary: Record<string, unknown> | null;
+  trace_id: string;
 };
 
 function MeetingsPage() {
   const { data: org } = useOrg();
-  const { data: meetings, isLoading } = useOrgRows<Meeting>("executive_meetings", org?.id, {
+  const { data: meetings, isLoading } = useTenantRows<Meeting>("meeting_runs", org?.id, {
     order: "started_at",
   });
 
@@ -42,9 +43,9 @@ function MeetingsPage() {
         <div className="grid gap-4">
           {(meetings ?? []).map((m) => (
             <Panel key={m.id} title={fmtDate(m.started_at)} action={<StatusBadge status={m.status} />}>
-              <p className="whitespace-pre-line text-sm text-muted-foreground">{m.summary ?? "—"}</p>
+              <p className="whitespace-pre-line text-sm text-muted-foreground">{m.summary ? JSON.stringify(m.summary, null, 2) : "—"}</p>
               <p className="mt-2 text-[11px] text-muted-foreground">
-                Finalizada: {fmtDate(m.finished_at)}
+                Finalizada: {fmtDate(m.completed_at)}
               </p>
             </Panel>
           ))}
