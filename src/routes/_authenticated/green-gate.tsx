@@ -133,7 +133,7 @@ const LEAD_STATUSES = [
 
 function GreenGatePage() {
   const { data: org } = useOrg();
-  useRealtime(["tasks", "metrics", "agent_runs", "agents"]);
+  useRealtime(["tasks", "metrics", "agent_runs", "agents", "leads"]);
   const { data: agents } = useAgents(org?.id);
   const luxia = (agents ?? []).find((a) => a.code === "LUXIA");
 
