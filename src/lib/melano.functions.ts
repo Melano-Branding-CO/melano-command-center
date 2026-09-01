@@ -1186,6 +1186,7 @@ async function dispatchN8nEvent(
         entity_type: entity.type,
         entity_id: entity.id,
         callback_url: (await import("./n8n-callback")).n8nCallbackUrl(),
+        callback_token: await (await import("./n8n-callback")).n8nCallbackToken(traceId),
         ...payload,
       }),
     });

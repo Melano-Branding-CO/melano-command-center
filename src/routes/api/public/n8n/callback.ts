@@ -27,9 +27,6 @@ type Body = {
 };
 
 async function handle(request: Request) {
-  const unauthorized = await authenticateCronRequest(request);
-  if (unauthorized) return unauthorized;
-
   let body: Body = {};
   try {
     body = (await request.json()) as Body;
@@ -39,6 +36,15 @@ async function handle(request: Request) {
 
   const traceId = String(body.trace_id ?? "").trim();
   if (!traceId) return Response.json({ ok: false, error: "trace_id requerido" }, { status: 400 });
+
+  // Autenticación: secreto de cron completo, o token HMAC firmado para ese trace.
+  const bearer = /^Bearer ([^\s,]+)$/.exec(request.headers.get("authorization") ?? "")?.[1] ?? "";
+  const { verifyN8nCallbackToken } = await import("@/lib/n8n-callback");
+  const traceTokenOk = await verifyN8nCallbackToken(traceId, bearer);
+  if (!traceTokenOk) {
+    const unauthorized = await authenticateCronRequest(request);
+    if (unauthorized) return unauthorized;
+  }
 
   const ok = String(body.status ?? "SUCCESS").toUpperCase() !== "FAILED" && !body.error;
   const outcome = (body.outcome ?? body.result ?? "").toString().slice(0, 4000) || null;
