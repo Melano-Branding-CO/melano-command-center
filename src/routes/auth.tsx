@@ -24,10 +24,10 @@ export const Route = createFileRoute("/auth")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>) => {
+  validateSearch: (search: Record<string, unknown>): { next?: string } => {
     const raw = typeof search["next"] === "string" ? search["next"] : "";
     // Solo rutas relativas del mismo origen.
-    return { next: /^\/(?!\/)/.test(raw) ? raw : "" };
+    return /^\/(?!\/)/.test(raw) ? { next: raw } : {};
   },
   component: AuthPage,
 });

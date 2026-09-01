@@ -25,5 +25,5 @@ export default defineMcp({
     listPendingApprovals,
     listAgents,
     latestMeetingBrief,
-  ],
+  ] as unknown as Parameters<typeof defineMcp>[0]["tools"],
 });
