@@ -77,7 +77,7 @@ export function useAgents(orgId?: string) {
     queryKey: ["agents", orgId],
     enabled: !!orgId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await canonicalDb()
         .from("agents")
         .select("*")
         .eq("tenant_id", orgId!)
