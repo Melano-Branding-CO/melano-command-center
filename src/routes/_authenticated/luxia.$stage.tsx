@@ -54,6 +54,14 @@ type StageConfig = {
   label: string;
   title: string;
   subtitle: string;
+  /** Qué se busca en esta etapa. */
+  objective: string;
+  /** Acciones concretas que debe ejecutar el operador. */
+  actions: string[];
+  /** Criterio que debe cumplirse para avanzar. */
+  exitCriteria: string[];
+  /** Ejemplos de notas/evidencia válidas. */
+  examples: string[];
   /** Estados que pertenecen a esta etapa del embudo LUXIA. */
   from: LeadStatus[];
   /** Estado y fase al avanzar. */
