@@ -55,44 +55,53 @@ export const decideApproval = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data, context }) => {
-    const { data: approval, error } = await context.supabase
+    const db = context.supabase as unknown as { from: (table: string) => any };
+    const nextStatus = data.approve ? "approved" : "rejected";
+    const decidedAt = new Date().toISOString();
+
+    const { data: approval, error } = await db
       .from("approvals")
       .update({
-        status: data.approve ? "APPROVED" : "REJECTED",
+        status: nextStatus,
         decided_by: context.userId,
-        decided_at: new Date().toISOString(),
+        decided_at: decidedAt,
         decision_note: data.note ?? null,
       })
       .eq("id", data.approvalId)
-      .eq("status", "PENDING")
+      .eq("status", "pending")
       .select("*")
       .maybeSingle();
     if (error) throw error;
     if (!approval) throw new Error("Aprobación no encontrada o ya resuelta");
 
     if (approval.decision_id) {
-      await context.supabase
+      const { error: decisionError } = await db
         .from("decisions")
         .update({
-          status: data.approve ? "APPROVED" : "REJECTED",
-          approved_by: context.userId,
-          approved_at: new Date().toISOString(),
+          state: nextStatus,
+          decided_by: context.userId,
+          decided_at: decidedAt,
         })
-        .eq("id", approval.decision_id);
+        .eq("id", approval.decision_id)
+        .eq("tenant_id", approval.tenant_id);
+      if (decisionError) throw decisionError;
     }
 
-    await context.supabase.from("activity_logs").insert({
-      organization_id: approval.organization_id,
-      actor_type: "human",
-      actor_user: context.userId,
-      action: data.approve ? "approval.approved" : "approval.rejected",
-      entity_type: "approval",
-      entity_id: approval.id,
-      detail: { action: approval.action, note: data.note ?? null },
+    const { error: logError } = await db.from("automation_logs").insert({
+      tenant_id: approval.tenant_id,
       trace_id: approval.trace_id,
+      decision_id: approval.decision_id,
+      approval_id: approval.id,
+      event_type: data.approve ? "approval.approved" : "approval.rejected",
+      actor_type: "human",
+      actor_id: context.userId,
+      status: "info",
+      message: data.approve ? "Aprobación autorizada" : "Aprobación rechazada",
+      payload: { action_type: approval.action_type, note: data.note ?? null },
     });
+    if (logError) throw logError;
 
-    return { status: approval.status };
+    return { status: nextStatus };
   });
 
 export const clearDemoData = createServerFn({ method: "POST" })
