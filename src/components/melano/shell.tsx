@@ -45,6 +45,10 @@ const NAV = [
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
+const OPERATOR_NAV = [
+  { to: "/operador", label: "Mi cartera", icon: Users },
+] as const;
+
 const ADMIN_NAV = [
   { to: "/leads", label: "Leads · LUXIA", icon: Users },
   { to: "/luxia/$stage", label: "Pipeline LUXIA", icon: GitBranch, params: { stage: "reunion" } },
@@ -140,6 +144,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <nav className="flex flex-col gap-0.5 overflow-y-auto p-2">
           {[
             ...NAV,
+            ...(role === "CEO" || role === "ADMIN" || role === "OPERATOR" ? OPERATOR_NAV : []),
             ...(role === "CEO" || role === "ADMIN" ? ADMIN_NAV : []),
             ...(role === "CEO" ? CEO_NAV : []),
           ].map((item) => {
