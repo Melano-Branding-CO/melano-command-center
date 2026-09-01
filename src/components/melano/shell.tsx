@@ -137,7 +137,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         </div>
         <nav className="flex flex-col gap-0.5 overflow-y-auto p-2">
-          {[...NAV, ...(role === "CEO" || role === "ADMIN" ? ADMIN_NAV : [])].map(({ to, label, icon: Icon }) => (
+          {[
+            ...NAV,
+            ...(role === "CEO" || role === "ADMIN" ? ADMIN_NAV : []),
+            ...(role === "CEO" ? CEO_NAV : []),
+          ].map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
               to={to}
