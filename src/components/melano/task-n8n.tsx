@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { runTaskInN8n } from "@/lib/melano.functions";
 import { useOrgRows } from "@/lib/melano-queries";
-import { fmtDateTime } from "@/lib/melano";
+import { fmtDate } from "@/lib/melano";
 
 export type TaskN8nLog = {
   id: string;
@@ -83,7 +83,7 @@ export function TaskN8nLogList({ logs }: { logs: TaskN8nLog[] }) {
               </span>
               <span className="flex-1 truncate text-foreground">{l.detail?.task ?? "Tarea"}</span>
               <span className="text-xs text-muted-foreground">
-                {l.detail?.workflow ?? l.detail?.rule ?? "n8n"} · {fmtDateTime(l.created_at)}
+                {l.detail?.workflow ?? l.detail?.rule ?? "n8n"} · {fmtDate(l.created_at)}
               </span>
             </div>
             {l.detail?.error ? (
