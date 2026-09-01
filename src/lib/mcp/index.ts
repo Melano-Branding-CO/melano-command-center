@@ -5,6 +5,8 @@ import createTask from "./tools/create-task";
 import listPendingApprovals from "./tools/list-pending-approvals";
 import listAgents from "./tools/list-agents";
 import latestMeetingBrief from "./tools/latest-meeting-brief";
+import runTaskInN8n from "./tools/run-task-in-n8n";
+import runDecisionInN8n from "./tools/run-decision-in-n8n";
 
 const projectRef = import.meta.env["VITE_SUPABASE_PROJECT_ID"] ?? "project-ref-unset";
 
