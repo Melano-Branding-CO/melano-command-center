@@ -90,7 +90,7 @@ export async function dispatchN8n(
   let output = "";
   let errorText: string | null = null;
   try {
-    const res = await fetch(rule.n8n_webhook_url as string, {
+    const res = await fetch(webhookUrl, {
       method: "POST",
       headers: n8nWebhookHeaders(),
       body: JSON.stringify({
