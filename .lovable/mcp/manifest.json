@@ -161,6 +161,66 @@
           "properties": {}
         },
         "outputSchema": null
+      },
+      {
+        "name": "run_task_in_n8n",
+        "title": "Ejecutar tarea en n8n",
+        "description": "Ejecuta una tarea del Command Center en el workflow de n8n activo. Actualiza el estado de la tarea y deja run + log auditables visibles en /today y /meetings.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "task_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "ID de la tarea a ejecutar."
+            },
+            "note": {
+              "description": "Nota o instrucción extra para el workflow.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "task_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "run_decision_in_n8n",
+        "title": "Ejecutar decisión en n8n",
+        "description": "Ejecuta una decisión en el workflow de n8n activo. Si la decisión requiere aprobación y aún no fue aprobada, no ejecuta: sólo notifica a Bruno. Deja run + log auditables visibles en /today y /meetings.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "decision_id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "description": "ID de la decisión."
+            },
+            "note": {
+              "description": "Contexto adicional para el workflow.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "decision_id"
+          ]
+        },
+        "outputSchema": null
       }
     ]
   }

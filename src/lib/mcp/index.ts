@@ -15,7 +15,7 @@ export default defineMcp({
   title: "Melano Command Center",
   version: "0.1.0",
   instructions:
-    "Herramientas del Autonomous Command Center de MELANO INC. Consultá prioridades del día, tareas, aprobaciones pendientes, estado de los agentes y el último brief ejecutivo; podés crear tareas operativas. Los datos son reales y están aislados por organización.",
+    "Herramientas del Autonomous Command Center de MELANO INC. Consultá prioridades del día, tareas, aprobaciones pendientes, estado de los agentes y el último brief ejecutivo; podés crear tareas y ejecutar tareas o decisiones en el workflow de n8n activo. Toda ejecución queda registrada con trace_id y es visible en /today y /meetings. Las decisiones que requieren aprobación no se ejecutan: sólo se notifica a Bruno. Los datos son reales y están aislados por organización.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
@@ -27,5 +27,7 @@ export default defineMcp({
     listPendingApprovals,
     listAgents,
     latestMeetingBrief,
+    runTaskInN8n,
+    runDecisionInN8n,
   ] as unknown as Parameters<typeof defineMcp>[0]["tools"],
 });
