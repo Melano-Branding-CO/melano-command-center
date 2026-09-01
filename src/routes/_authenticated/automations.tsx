@@ -241,6 +241,8 @@ function AutomationsPage() {
       />
 
       <div className="grid gap-4">
+        <IntegracionesPanel rules={rules ?? []} runs={runs ?? []} />
+
         {isAdmin ? (
           <Panel title="Conectar un workflow de n8n">
             <div className="grid gap-3 md:grid-cols-2">
