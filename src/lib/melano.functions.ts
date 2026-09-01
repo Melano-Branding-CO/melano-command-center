@@ -868,3 +868,150 @@ export const updateMyAssignment = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+/* ────────────────────────────── n8n (bidireccional) ────────────────────────────── */
+
+type N8nRuleInput = {
+  organizationId: string;
+  id?: string;
+  name: string;
+  description?: string | null;
+  webhookUrl?: string | null;
+  workflow?: string | null;
+  enabled?: boolean;
+};
+
+/** Alta/edición de una automatización conectada a un workflow de n8n. Sólo CEO/ADMIN. */
+export const saveN8nAutomation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: N8nRuleInput) => {
+    if (!input?.organizationId) throw new Error("organizationId requerido");
+    if (!input?.name?.trim()) throw new Error("El nombre es obligatorio");
+    const url = input.webhookUrl?.trim() || null;
+    if (url && !/^https:\/\/[^\s]+$/i.test(url)) {
+      throw new Error("La URL del webhook debe ser https://");
+    }
+    return { ...input, name: input.name.trim(), webhookUrl: url };
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context, data.organizationId);
+    const payload = {
+      organization_id: data.organizationId,
+      name: data.name,
+      description: data.description ?? null,
+      n8n_webhook_url: data.webhookUrl ?? null,
+      n8n_workflow: data.workflow?.trim() || null,
+      enabled: data.enabled ?? true,
+      trigger: "webhook" as const,
+      action: "n8n_webhook",
+    };
+    if (data.id) {
+      const { error } = await context.supabase
+        .from("automation_rules")
+        .update(payload)
+        .eq("id", data.id)
+        .eq("organization_id", data.organizationId);
+      if (error) throw new Error(error.message);
+      return { id: data.id };
+    }
+    const { data: row, error } = await context.supabase
+      .from("automation_rules")
+      .insert(payload)
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    return { id: row.id as string };
+  });
+
+/** Ejecuta el workflow de n8n de una automatización y deja run + log auditables. */
+export const runN8nAutomation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string; ruleId: string; payload?: Serializable }) => {
+    if (!input?.organizationId || !input?.ruleId) throw new Error("Parámetros inválidos");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context, data.organizationId);
+    const { data: rule, error } = await context.supabase
+      .from("automation_rules")
+      .select("id, name, n8n_webhook_url, enabled")
+      .eq("id", data.ruleId)
+      .eq("organization_id", data.organizationId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!rule) throw new Error("Automatización no encontrada");
+    if (!rule.n8n_webhook_url) throw new Error("Esta automatización no tiene webhook de n8n");
+    if (!rule.enabled) throw new Error("La automatización está pausada");
+
+    const traceId = crypto.randomUUID();
+    const startedAt = new Date().toISOString();
+    const { data: run } = await context.supabase
+      .from("automation_runs")
+      .insert({
+        organization_id: data.organizationId,
+        rule_id: rule.id,
+        status: "RUNNING",
+        started_at: startedAt,
+        trace_id: traceId,
+      })
+      .select("id")
+      .single();
+
+    let status: "SUCCESS" | "FAILED" = "SUCCESS";
+    let output = "";
+    let errorText: string | null = null;
+    try {
+      const res = await fetch(rule.n8n_webhook_url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "melano-command-center",
+          organization_id: data.organizationId,
+          rule_id: rule.id,
+          rule_name: rule.name,
+          trace_id: traceId,
+          triggered_by: context.userId,
+          triggered_at: startedAt,
+          payload: data.payload ?? null,
+        }),
+      });
+      output = (await res.text()).slice(0, 4000);
+      if (!res.ok) {
+        status = "FAILED";
+        errorText = `HTTP ${res.status}`;
+      }
+    } catch (err) {
+      status = "FAILED";
+      errorText = err instanceof Error ? err.message : String(err);
+    }
+
+    const finishedAt = new Date().toISOString();
+    if (run?.id) {
+      await context.supabase
+        .from("automation_runs")
+        .update({ status, finished_at: finishedAt, output, error: errorText })
+        .eq("id", run.id);
+    }
+    await context.supabase
+      .from("automation_rules")
+      .update({
+        last_run_at: finishedAt,
+        last_result: status === "SUCCESS" ? output.slice(0, 500) || "OK" : null,
+        last_error: errorText,
+        status: status === "SUCCESS" ? "OK" : "ERROR",
+      })
+      .eq("id", rule.id);
+    await context.supabase.from("activity_logs").insert({
+      organization_id: data.organizationId,
+      actor_type: "user",
+      actor_user: context.userId,
+      action: "n8n.trigger",
+      entity_type: "automation_rules",
+      entity_id: rule.id,
+      trace_id: traceId,
+      detail: { rule: rule.name, status, error: errorText } as never,
+    });
+
+    if (status === "FAILED") throw new Error(errorText ?? "Error llamando a n8n");
+    return { traceId, output };
+  });
