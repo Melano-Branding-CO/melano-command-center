@@ -6,6 +6,12 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
+import { N8nWorkflowsPanel } from "@/components/melano/n8n-panel";
+import { N8nRunsHistory } from "@/components/melano/n8n-runs-history";
+import { McpPanel } from "@/components/melano/mcp-panel";
+import { MomentumPanel } from "@/components/melano/momentum";
+
+
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { runMeetingNow } from "@/lib/runtime.functions";
@@ -56,6 +62,7 @@ function CommandCenter() {
     "approvals",
     "alerts",
     "automation_rules",
+    "automation_runs",
     "metrics",
     "agents",
   ]);
@@ -85,12 +92,6 @@ function CommandCenter() {
     org?.id,
     { eq: { status: "OPEN" }, order: "created_at" },
   );
-  const { data: automations } = useOrgRows<{
-    id: string;
-    name: string;
-    status: string;
-    next_run_at: string | null;
-  }>("automation_rules", org?.id, { order: "created_at" });
   const { data: revenueMetrics } = useOrgRows<{
     id: string;
     label: string;
@@ -113,6 +114,7 @@ function CommandCenter() {
     }
   }
 
+
   return (
     <>
       <PageHeader
@@ -125,7 +127,10 @@ function CommandCenter() {
         }
       />
 
+      <MomentumPanel className="mb-4" />
+
       <div className="grid gap-4 lg:grid-cols-3">
+
         <Panel
           title="Hoy — Top 3"
           className="lg:col-span-2"
@@ -256,20 +261,12 @@ function CommandCenter() {
           )}
         </Panel>
 
-        <Panel title="Automatizaciones">
-          {(automations ?? []).length === 0 ? (
-            <Empty text="Sin automatizaciones configuradas." />
-          ) : (
-            <ul className="space-y-2 text-sm">
-              {(automations ?? []).map((r) => (
-                <li key={r.id} className="flex items-center justify-between gap-2">
-                  <span className="truncate text-foreground">{r.name}</span>
-                  <span className="text-xs text-muted-foreground">{fmtDate(r.next_run_at)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
+        <N8nWorkflowsPanel className="lg:col-span-3" />
+
+        <McpPanel className="lg:col-span-3" />
+
+
+        <N8nRunsHistory className="lg:col-span-3" />
 
         <Panel title="Alertas">
           {(alerts ?? []).length === 0 ? (

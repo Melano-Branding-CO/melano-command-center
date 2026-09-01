@@ -3,6 +3,7 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
+import { McpN8nLog } from "@/components/melano/mcp-n8n-log";
 
 export const Route = createFileRoute("/_authenticated/today")({
   head: () => ({
@@ -31,6 +32,10 @@ type Task = {
   assigned_agent: string | null;
   deadline: string | null;
   description: string | null;
+  result: string | null;
+  error: string | null;
+  completed_at: string | null;
+  trace_id: string | null;
 };
 
 function TodayPage() {
@@ -74,10 +79,29 @@ function TodayPage() {
                 <Field label="Success metric" value={t.success_metric} />
                 <Field label="Deadline" value={t.deadline ? fmtDate(t.deadline) : null} />
               </dl>
+              {t.result ? (
+                <div className="mt-3 rounded-md border border-border/60 bg-muted/30 p-3">
+                  <p className="label-caps">
+                    Outcome{t.completed_at ? ` · ${fmtDate(t.completed_at)}` : ""}
+                    {t.trace_id ? ` · trace ${t.trace_id.slice(0, 8)}` : ""}
+                  </p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{t.result}</p>
+                </div>
+              ) : null}
+              {t.error ? (
+                <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/10 p-3">
+                  <p className="label-caps">Error</p>
+                  <p className="mt-1 whitespace-pre-wrap text-sm text-foreground">{t.error}</p>
+                </div>
+              ) : null}
             </Panel>
           ))}
         </div>
       )}
+
+      <div className="mt-4">
+        <McpN8nLog orgId={org?.id} />
+      </div>
     </>
   );
 }

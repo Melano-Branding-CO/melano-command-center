@@ -12,7 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PublicoRouteImport } from './routes/publico'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
@@ -25,6 +28,7 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedDashboardsRouteImport } from './routes/_authenticated/dashboards'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
+import { Route as AuthenticatedEjecucionesRouteImport } from './routes/_authenticated/ejecuciones'
 import { Route as AuthenticatedGreenGateRouteImport } from './routes/_authenticated/green-gate'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
@@ -36,11 +40,14 @@ import { Route as AuthenticatedRevenueRouteImport } from './routes/_authenticate
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
 import { Route as AuthenticatedLuxiaStageRouteImport } from './routes/_authenticated/luxia.$stage'
 import { Route as AuthenticatedMeetingsIndexRouteImport } from './routes/_authenticated/meetings.index'
 import { Route as AuthenticatedMeetingsMeetingIdRouteImport } from './routes/_authenticated/meetings.$meetingId'
 import { Route as ApiPublicCronDailyMeetingRouteImport } from './routes/api/public/cron/daily-meeting'
+import { Route as ApiPublicN8nCallbackRouteImport } from './routes/api/public/n8n/callback'
 import { Route as ApiPublicN8nDispatchRouteImport } from './routes/api/public/n8n/dispatch'
 
 const IndexRoute = IndexRouteImport.update({
@@ -57,11 +64,28 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PublicoRoute = PublicoRouteImport.update({
   id: '/publico',
   path: '/publico',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
@@ -124,6 +148,12 @@ const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
   path: '/decisions',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEjecucionesRoute =
+  AuthenticatedEjecucionesRouteImport.update({
+    id: '/ejecuciones',
+    path: '/ejecuciones',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGreenGateRoute = AuthenticatedGreenGateRouteImport.update({
   id: '/green-gate',
   path: '/green-gate',
@@ -180,6 +210,17 @@ const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   path: '/today',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedAgentsAgentIdRoute =
   AuthenticatedAgentsAgentIdRouteImport.update({
     id: '/$agentId',
@@ -209,6 +250,11 @@ const ApiPublicCronDailyMeetingRoute =
     path: '/api/public/cron/daily-meeting',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicN8nCallbackRoute = ApiPublicN8nCallbackRouteImport.update({
+  id: '/api/public/n8n/callback',
+  path: '/api/public/n8n/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicN8nDispatchRoute = ApiPublicN8nDispatchRouteImport.update({
   id: '/api/public/n8n/dispatch',
   path: '/api/public/n8n/dispatch',
@@ -218,7 +264,10 @@ const ApiPublicN8nDispatchRoute = ApiPublicN8nDispatchRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
   '/publico': typeof PublicoRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/activity': typeof AuthenticatedActivityRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
@@ -231,6 +280,7 @@ export interface FileRoutesByFullPath {
   '/command': typeof AuthenticatedCommandRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
+  '/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/metas': typeof AuthenticatedMetasRoute
@@ -242,17 +292,23 @@ export interface FileRoutesByFullPath {
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
   '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/meetings/': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
+  '/api/public/n8n/callback': typeof ApiPublicN8nCallbackRoute
   '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
   '/publico': typeof PublicoRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/activity': typeof AuthenticatedActivityRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
@@ -265,6 +321,7 @@ export interface FileRoutesByTo {
   '/command': typeof AuthenticatedCommandRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
+  '/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/metas': typeof AuthenticatedMetasRoute
@@ -276,11 +333,14 @@ export interface FileRoutesByTo {
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
   '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/meetings': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
+  '/api/public/n8n/callback': typeof ApiPublicN8nCallbackRoute
   '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRoutesById {
@@ -288,7 +348,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
   '/publico': typeof PublicoRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/agents': typeof AuthenticatedAgentsRouteWithChildren
@@ -301,6 +364,7 @@ export interface FileRoutesById {
   '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/dashboards': typeof AuthenticatedDashboardsRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
+  '/_authenticated/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/_authenticated/green-gate': typeof AuthenticatedGreenGateRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
@@ -312,11 +376,14 @@ export interface FileRoutesById {
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/_authenticated/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
   '/_authenticated/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/_authenticated/meetings/': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
+  '/api/public/n8n/callback': typeof ApiPublicN8nCallbackRoute
   '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRouteTypes {
@@ -324,7 +391,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/mcp'
     | '/publico'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/activity'
     | '/admin'
     | '/agents'
@@ -337,6 +407,7 @@ export interface FileRouteTypes {
     | '/command'
     | '/dashboards'
     | '/decisions'
+    | '/ejecuciones'
     | '/green-gate'
     | '/leads'
     | '/metas'
@@ -348,17 +419,23 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tasks'
     | '/today'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/agents/$agentId'
     | '/luxia/$stage'
     | '/meetings/$meetingId'
     | '/meetings/'
     | '/api/public/cron/daily-meeting'
+    | '/api/public/n8n/callback'
     | '/api/public/n8n/dispatch'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
+    | '/mcp'
     | '/publico'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/activity'
     | '/admin'
     | '/agents'
@@ -371,6 +448,7 @@ export interface FileRouteTypes {
     | '/command'
     | '/dashboards'
     | '/decisions'
+    | '/ejecuciones'
     | '/green-gate'
     | '/leads'
     | '/metas'
@@ -382,18 +460,24 @@ export interface FileRouteTypes {
     | '/settings'
     | '/tasks'
     | '/today'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/agents/$agentId'
     | '/luxia/$stage'
     | '/meetings/$meetingId'
     | '/meetings'
     | '/api/public/cron/daily-meeting'
+    | '/api/public/n8n/callback'
     | '/api/public/n8n/dispatch'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/mcp'
     | '/publico'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/activity'
     | '/_authenticated/admin'
     | '/_authenticated/agents'
@@ -406,6 +490,7 @@ export interface FileRouteTypes {
     | '/_authenticated/command'
     | '/_authenticated/dashboards'
     | '/_authenticated/decisions'
+    | '/_authenticated/ejecuciones'
     | '/_authenticated/green-gate'
     | '/_authenticated/leads'
     | '/_authenticated/metas'
@@ -417,11 +502,14 @@ export interface FileRouteTypes {
     | '/_authenticated/settings'
     | '/_authenticated/tasks'
     | '/_authenticated/today'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/agents/$agentId'
     | '/_authenticated/luxia/$stage'
     | '/_authenticated/meetings/$meetingId'
     | '/_authenticated/meetings/'
     | '/api/public/cron/daily-meeting'
+    | '/api/public/n8n/callback'
     | '/api/public/n8n/dispatch'
   fileRoutesById: FileRoutesById
 }
@@ -429,8 +517,14 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  McpRoute: typeof McpRoute
   PublicoRoute: typeof PublicoRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicCronDailyMeetingRoute: typeof ApiPublicCronDailyMeetingRoute
+  ApiPublicN8nCallbackRoute: typeof ApiPublicN8nCallbackRoute
   ApiPublicN8nDispatchRoute: typeof ApiPublicN8nDispatchRoute
 }
 
@@ -457,11 +551,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/publico': {
       id: '/publico'
       path: '/publico'
       fullPath: '/publico'
       preLoaderRoute: typeof PublicoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/activity': {
@@ -548,6 +663,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDecisionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/ejecuciones': {
+      id: '/_authenticated/ejecuciones'
+      path: '/ejecuciones'
+      fullPath: '/ejecuciones'
+      preLoaderRoute: typeof AuthenticatedEjecucionesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/green-gate': {
       id: '/_authenticated/green-gate'
       path: '/green-gate'
@@ -625,6 +747,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/agents/$agentId': {
       id: '/_authenticated/agents/$agentId'
       path: '/$agentId'
@@ -658,6 +794,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/cron/daily-meeting'
       fullPath: '/api/public/cron/daily-meeting'
       preLoaderRoute: typeof ApiPublicCronDailyMeetingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/n8n/callback': {
+      id: '/api/public/n8n/callback'
+      path: '/api/public/n8n/callback'
+      fullPath: '/api/public/n8n/callback'
+      preLoaderRoute: typeof ApiPublicN8nCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/n8n/dispatch': {
@@ -694,6 +837,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedDashboardsRoute: typeof AuthenticatedDashboardsRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
+  AuthenticatedEjecucionesRoute: typeof AuthenticatedEjecucionesRoute
   AuthenticatedGreenGateRoute: typeof AuthenticatedGreenGateRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
@@ -723,6 +867,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedDashboardsRoute: AuthenticatedDashboardsRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
+  AuthenticatedEjecucionesRoute: AuthenticatedEjecucionesRoute,
   AuthenticatedGreenGateRoute: AuthenticatedGreenGateRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
@@ -746,8 +891,15 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  McpRoute: McpRoute,
   PublicoRoute: PublicoRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicCronDailyMeetingRoute: ApiPublicCronDailyMeetingRoute,
+  ApiPublicN8nCallbackRoute: ApiPublicN8nCallbackRoute,
   ApiPublicN8nDispatchRoute: ApiPublicN8nDispatchRoute,
 }
 export const routeTree = rootRouteImport
