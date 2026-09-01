@@ -9,6 +9,8 @@ import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
 import { N8nWorkflowsPanel } from "@/components/melano/n8n-panel";
 import { N8nRunsHistory } from "@/components/melano/n8n-runs-history";
 import { McpPanel } from "@/components/melano/mcp-panel";
+import { MomentumPanel } from "@/components/melano/momentum";
+
 
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
@@ -125,7 +127,10 @@ function CommandCenter() {
         }
       />
 
+      <MomentumPanel className="mb-4" />
+
       <div className="grid gap-4 lg:grid-cols-3">
+
         <Panel
           title="Hoy — Top 3"
           className="lg:col-span-2"
