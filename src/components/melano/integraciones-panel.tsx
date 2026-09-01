@@ -89,8 +89,7 @@ export function IntegracionesPanel({
         </div>
       ) : (
         <ul className="mt-3 grid gap-2 md:grid-cols-2">
-          {known.map((r) => {
-            const meta = CATALOG[r.n8n_workflow as string];
+          {known.map(({ rule: r, meta }) => {
             const lastRun = runs.find((x) => x.rule_id === r.id);
             const state = integrationState(r);
             return (
