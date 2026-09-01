@@ -62,9 +62,18 @@ function TasksPage() {
                   {t.assigned_agent ? (map.get(t.assigned_agent)?.code ?? "—") : "—"} ·{" "}
                   {fmtDate(t.deadline)}
                 </span>
+                <RunTaskInN8nButton organizationId={org?.id} taskId={t.id} />
               </li>
             ))}
           </ul>
+        )}
+      </Panel>
+
+      <Panel title="Ejecuciones en n8n">
+        {(logs ?? []).length === 0 ? (
+          <Empty text="Sin ejecuciones de tareas en n8n todavía." />
+        ) : (
+          <TaskN8nLogList logs={logs ?? []} />
         )}
       </Panel>
     </>
