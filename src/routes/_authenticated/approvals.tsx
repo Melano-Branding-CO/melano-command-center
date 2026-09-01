@@ -8,7 +8,11 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge } from "@/components/melano/badges";
 import { fmtDate, useOrg } from "@/lib/melano";
 import { useOrgRows } from "@/lib/melano-queries";
-import { decideApproval } from "@/lib/melano.functions";
+import {
+  decideApproval,
+  notifyApprovalInN8n,
+  notifyApprovalDecisionInN8n,
+} from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/approvals")({
   head: () => ({
