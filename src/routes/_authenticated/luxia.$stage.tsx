@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { ChevronDown } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,6 +55,14 @@ type StageConfig = {
   label: string;
   title: string;
   subtitle: string;
+  /** Qué se busca en esta etapa. */
+  objective: string;
+  /** Acciones concretas que debe ejecutar el operador. */
+  actions: string[];
+  /** Criterio que debe cumplirse para avanzar. */
+  exitCriteria: string[];
+  /** Ejemplos de notas/evidencia válidas. */
+  examples: string[];
   /** Estados que pertenecen a esta etapa del embudo LUXIA. */
   from: LeadStatus[];
   /** Estado y fase al avanzar. */
@@ -71,6 +80,23 @@ const STAGES: StageConfig[] = [
     title: "LUXIA · Reunión",
     subtitle:
       "Contacto inicial y reunión de diagnóstico. Al registrar la reunión, el lead avanza a propuesta.",
+    objective:
+      "Validar que la inmobiliaria tiene necesidades reales que LUXIA puede resolver y obtener datos para diseñar una propuesta.",
+    actions: [
+      "Contactar al lead por WhatsApp, mail o llamada.",
+      "Agendar y realizar reunión de diagnóstico.",
+      "Relevar: cantidad de propiedades, zonas, CRM actual, dolor principal, decisores.",
+      "Registrar evidencia de la reunión en la nota antes de avanzar.",
+    ],
+    exitCriteria: [
+      "Se completó la reunión.",
+      "Se identificó el problema y el decisor.",
+      "El lead acepta recibir propuesta.",
+    ],
+    examples: [
+      "Reunión 30/8: 120 propiedades en Guemes y La Perla, sin CRM unificado. Decisor: Gerente Comercial.",
+      "Contacto por WhatsApp: interesados en automatizar publicación de avisos.",
+    ],
     from: ["NUEVO", "CONTACTADO"],
     toStatus: "CALIFICADO",
     toPhase: "FASE_0_14",
@@ -84,6 +110,22 @@ const STAGES: StageConfig[] = [
     title: "LUXIA · Propuesta",
     subtitle:
       "Propuesta económica y alcance enviados. Al enviarla, el lead pasa a negociación y fase 15–45.",
+    objective:
+      "Presentar una propuesta de valor clara con alcance, inversión y plazo, y conseguir apertura a negociar.",
+    actions: [
+      "Preparar propuesta personalizada en base a la reunión.",
+      "Enviar propuesta por mail con PDF y seguimiento.",
+      "Agendar llamada de feedback dentro de 48–72 hs.",
+      "Registrar respuesta, objeciones y próximo contacto.",
+    ],
+    exitCriteria: [
+      "Propuesta enviada y confirmada de recepción.",
+      "El lead está dispuesto a negociar términos.",
+    ],
+    examples: [
+      "Propuesta enviada: plan LUXIA Professional, USD 890/mes, onboarding 14 días.",
+      "Cliente pide ajustar alcance de integración con portales.",
+    ],
     from: ["CALIFICADO"],
     toStatus: "NEGOCIACION",
     toPhase: "FASE_15_45",
@@ -97,6 +139,22 @@ const STAGES: StageConfig[] = [
     title: "LUXIA · Aprobación",
     subtitle:
       "Confirmación comercial del cliente. Requiere evidencia registrada antes de pasar a contrato.",
+    objective:
+      "Obtener la aprobación verbal o escrita del cliente y destrabar objeciones para pasar a contrato.",
+    actions: [
+      "Negociar términos, precio y forma de pago.",
+      "Resolver objeciones técnicas o comerciales.",
+      "Solicitar aprobación formal (mail, PO, conformidad).",
+      "Subir o registrar evidencia de la aprobación.",
+    ],
+    exitCriteria: [
+      "El cliente confirmó la aprobación por escrito o mail.",
+      "Se acordó el contrato y la fecha de inicio.",
+    ],
+    examples: [
+      "Aprobación por mail del Gerente Comercial para iniciar el 15/9.",
+      "Orden de compra interna aprobada por dirección.",
+    ],
     from: ["NEGOCIACION"],
     toStatus: "GANADO",
     toPhase: "FASE_15_45",
@@ -110,6 +168,23 @@ const STAGES: StageConfig[] = [
     title: "LUXIA · Contrato",
     subtitle:
       "Firma y alta operativa. Al firmar, el lead queda en fase 46–90 para onboarding y revenue recurrente.",
+    objective:
+      "Convertir la aprobación en contrato firmado, facturación recurrente y onboarding operativo.",
+    actions: [
+      "Enviar contrato/servicio para firma.",
+      "Coordinar alta operativa y kick-off de implementación.",
+      "Cargar cliente en sistema de facturación.",
+      "Programar seguimiento de onboarding y primeros 90 días.",
+    ],
+    exitCriteria: [
+      "Contrato firmado por ambas partes.",
+      "Alta operativa iniciada.",
+      "Primer pago / MRR confirmado.",
+    ],
+    examples: [
+      "Contrato firmado el 05/9. Kick-off programado para el 10/9.",
+      "MRR USD 890 confirmado. Onboarding: 2 semanas.",
+    ],
     from: ["GANADO"],
     toStatus: "GANADO",
     toPhase: "FASE_46_90",
@@ -154,6 +229,67 @@ export const Route = createFileRoute("/_authenticated/luxia/$stage")({
 
 function db() {
   return supabase as unknown as { from: (t: string) => any };
+}
+
+function PlaybookPanel({ stage }: { stage: StageConfig }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="mb-6 rounded-lg border border-border bg-muted/30 p-4">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between text-left"
+      >
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">
+            Playbook de la fase · {stage.label}
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Qué abarca, qué hacer y cuándo avanzar.
+          </p>
+        </div>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 text-muted-foreground transition-transform",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+
+      {open && (
+        <div className="mt-4 grid gap-4 text-xs sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <h3 className="label-caps mb-1.5">Objetivo</h3>
+            <p className="text-foreground leading-relaxed">{stage.objective}</p>
+          </div>
+          <div>
+            <h3 className="label-caps mb-1.5">Acciones esperadas</h3>
+            <ul className="list-disc space-y-1 pl-4 text-foreground">
+              {stage.actions.map((a, i) => (
+                <li key={i}>{a}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="label-caps mb-1.5">Criterios para avanzar</h3>
+            <ul className="list-disc space-y-1 pl-4 text-foreground">
+              {stage.exitCriteria.map((c, i) => (
+                <li key={i}>{c}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="label-caps mb-1.5">Ejemplos de evidencia</h3>
+            <ul className="list-disc space-y-1 pl-4 text-foreground">
+              {stage.examples.map((e, i) => (
+                <li key={i}>{e}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function StageGuarded() {
@@ -327,6 +463,8 @@ function StagePage() {
           </Link>
         ))}
       </nav>
+
+      <PlaybookPanel stage={stage} />
 
       {isLoading ? (
         <Empty text="Cargando leads de la etapa…" />
