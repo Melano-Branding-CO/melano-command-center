@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
-import { agentMap, fmtDate, useAgents, useOrg, type Agent } from "@/lib/melano";
-import { useOrgRows } from "@/lib/melano-queries";
+import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
+import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { runMeetingNow } from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/command")({
@@ -50,8 +50,18 @@ function CommandCenter() {
   const [busy, setBusy] = useState(false);
   const runMeeting = useServerFn(runMeetingNow);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const { data: todayTasks } = useOrgRows<Task>("tasks", org?.id, {
+  useRealtime([
+    "tasks",
+    "decisions",
+    "approvals",
+    "alerts",
+    "automation_rules",
+    "metrics",
+    "agents",
+  ]);
+
+  const today = todayKey(org?.timezone ?? undefined);
+  const { data: todayTasks, isLoading: loadingToday } = useOrgRows<Task>("tasks", org?.id, {
     eq: { is_today_priority: true, today_date: today },
     order: "priority",
     asc: true,
@@ -125,7 +135,9 @@ function CommandCenter() {
             </Link>
           }
         >
-          {(todayTasks ?? []).length === 0 ? (
+          {loadingToday ? (
+            <Empty text="Cargando prioridades desde la base…" />
+          ) : (todayTasks ?? []).length === 0 ? (
             <Empty text="Sin prioridades definidas hoy. Ejecutá la reunión ejecutiva para generarlas." />
           ) : (
             <ul className="space-y-3">

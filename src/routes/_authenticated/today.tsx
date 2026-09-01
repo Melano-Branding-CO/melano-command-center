@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
-import { agentMap, fmtDate, useAgents, useOrg, type Agent } from "@/lib/melano";
-import { useOrgRows } from "@/lib/melano-queries";
+import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
+import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 
 export const Route = createFileRoute("/_authenticated/today")({
   head: () => ({
@@ -37,8 +37,9 @@ function TodayPage() {
   const { data: org } = useOrg();
   const { data: agents } = useAgents(org?.id);
   const map = agentMap(agents as Agent[] | undefined);
-  const today = new Date().toISOString().slice(0, 10);
-  const { data: tasks, isLoading } = useOrgRows<Task>("tasks", org?.id, {
+  useRealtime(["tasks"]);
+  const today = todayKey(org?.timezone ?? undefined);
+  const { data: tasks, isLoading, error } = useOrgRows<Task>("tasks", org?.id, {
     eq: { is_today_priority: true, today_date: today },
     order: "priority",
     asc: true,
@@ -46,9 +47,11 @@ function TodayPage() {
 
   return (
     <>
-      <PageHeader title="Today" subtitle="Máximo 3 prioridades. Nada más." />
+      <PageHeader title="Today" subtitle={`Máximo 3 prioridades. Nada más. · ${today}`} />
       {isLoading ? (
-        <Empty text="Cargando…" />
+        <Empty text="Cargando prioridades desde la base…" />
+      ) : error ? (
+        <Empty text={`No se pudieron leer las prioridades: ${error instanceof Error ? error.message : "error desconocido"}`} />
       ) : (tasks ?? []).length === 0 ? (
         <Empty text="Sin prioridades para hoy. Ejecutá la reunión ejecutiva desde el Command Center." />
       ) : (
