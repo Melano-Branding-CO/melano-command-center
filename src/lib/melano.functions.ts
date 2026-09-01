@@ -93,8 +93,110 @@ export const decideApproval = createServerFn({ method: "POST" })
       trace_id: approval.trace_id,
     });
 
-    return { status: approval.status };
+    // L2/L3: al aprobar, se ejecuta automáticamente en el workflow real de n8n
+    // y se cierra el ciclo (decisión COMPLETED + tarea DONE con outcome real).
+    let execution: {
+      executed: boolean;
+      traceId: string | null;
+      workflow: string | null;
+      outcome: string | null;
+      error: string | null;
+    } = { executed: false, traceId: null, workflow: null, outcome: null, error: null };
+
+    if (data.approve && approval.decision_id) {
+      const { data: decision } = await context.supabase
+        .from("decisions")
+        .select(
+          "id,title,description,status,priority,risk,expected_impact,confidence,requires_approval,meeting_id",
+        )
+        .eq("id", approval.decision_id)
+        .maybeSingle();
+
+      if (decision) {
+        const { dispatchN8n } = await import("./mcp/n8n");
+        await context.supabase
+          .from("decisions")
+          .update({ status: "EXECUTING" })
+          .eq("id", decision.id);
+
+        const res = await dispatchN8n(
+          context.supabase as never,
+          context.userId,
+          approval.organization_id,
+          "n8n.decision.run",
+          { type: "decision", id: decision.id, meetingId: decision.meeting_id },
+          {
+            decision,
+            approval: { id: approval.id, action: approval.action, category: approval.category },
+            note: data.note ?? null,
+            title: decision.title,
+            stage: "approved_execute",
+            autonomy: "L2",
+          },
+        );
+
+        const finishedAt = new Date().toISOString();
+        const outcome = res.ok
+          ? (res.output?.slice(0, 2000) || "Ejecutada automáticamente tras aprobación")
+          : null;
+
+        await context.supabase
+          .from("decisions")
+          .update({
+            status: res.ok ? "COMPLETED" : "FAILED",
+            outcome: outcome ?? res.error,
+            outcome_at: finishedAt,
+            ...(res.traceId ? { trace_id: res.traceId } : {}),
+          })
+          .eq("id", decision.id);
+
+        // Cierra la tarea vinculada (por approval.task_id o por decision_id)
+        const taskFilter = context.supabase
+          .from("tasks")
+          .update({
+            status: res.ok ? "DONE" : "FAILED",
+            result: outcome,
+            error: res.error,
+            completed_at: res.ok ? finishedAt : null,
+            ...(res.traceId ? { trace_id: res.traceId } : {}),
+          })
+          .eq("organization_id", approval.organization_id);
+        if (approval.task_id) {
+          await taskFilter.eq("id", approval.task_id);
+        } else {
+          await taskFilter.eq("decision_id", decision.id).neq("status", "DONE");
+        }
+
+        await context.supabase.from("activity_logs").insert({
+          organization_id: approval.organization_id,
+          actor_type: "system",
+          actor_user: context.userId,
+          action: "approval.auto_execute",
+          entity_type: "decision",
+          entity_id: decision.id,
+          trace_id: res.traceId,
+          detail: {
+            approval_id: approval.id,
+            workflow: res.rule,
+            status: res.ok ? "SUCCESS" : res.status,
+            outcome,
+            error: res.error,
+          } as never,
+        });
+
+        execution = {
+          executed: res.ok,
+          traceId: res.traceId,
+          workflow: res.rule,
+          outcome,
+          error: res.error,
+        };
+      }
+    }
+
+    return { status: approval.status, execution };
   });
+
 
 export const clearDemoData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

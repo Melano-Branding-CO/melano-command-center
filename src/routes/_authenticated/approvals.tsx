@@ -53,11 +53,17 @@ function ApprovalsPage() {
     if (!org?.id) return;
     setBusy(approvalId);
     try {
-      await decide({ data: { approvalId, approve } });
+      const decided = await decide({ data: { approvalId, approve } });
       toast.success(approve ? "Aprobado" : "Rechazado");
+      const exec = decided.execution;
+      if (approve && exec) {
+        if (exec.executed) toast.success(`Ejecutada en n8n · cerrada en DONE (${exec.workflow ?? "workflow"})`);
+        else if (exec.error) toast.warning(`No se pudo ejecutar automáticamente: ${exec.error}`);
+      }
       const res = await notifyDecided({ data: { organizationId: org.id, approvalId } });
       if (res.ok) toast.success("Pipeline actualizado en n8n");
       else if (res.error) toast.warning(`n8n: ${res.error}`);
+
       await qc.invalidateQueries();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al decidir");
