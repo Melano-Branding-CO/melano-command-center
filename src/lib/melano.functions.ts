@@ -708,7 +708,7 @@ const TASK_STATUS = ["BACKLOG", "READY", "RUNNING", "BLOCKED", "REVIEW", "DONE",
 
 type AssignmentInput = {
   organizationId: string;
-  id?: string;
+  id?: string | undefined;
   title: string;
   description?: string | null;
   successMetric?: string | null;
@@ -781,7 +781,7 @@ export const saveAssignment = createServerFn({ method: "POST" })
       today_date: data.isTodayPriority ? new Date().toISOString().slice(0, 10) : null,
       execution_mode: "MANUAL",
     };
-    if (!data.id) payload.created_by = context.userId;
+    if (!data.id) payload['created_by'] = context.userId;
 
     const query = data.id
       ? context.supabase
@@ -841,10 +841,10 @@ export const updateMyAssignment = createServerFn({ method: "POST" })
     const update: Record<string, Serializable> = { status: data.status };
     const nextAction = clean(data.nextAction);
     const result = clean(data.result);
-    if (nextAction) update.next_action = nextAction;
-    if (result) update.result = result;
-    if (data.status === "RUNNING") update.started_at = new Date().toISOString();
-    if (data.status === "DONE") update.completed_at = new Date().toISOString();
+    if (nextAction) update['next_action'] = nextAction;
+    if (result) update['result'] = result;
+    if (data.status === "RUNNING") update['started_at'] = new Date().toISOString();
+    if (data.status === "DONE") update['completed_at'] = new Date().toISOString();
 
     const { data: row, error } = await context.supabase
       .from("tasks")
