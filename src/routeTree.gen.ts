@@ -41,6 +41,7 @@ import { Route as AuthenticatedLuxiaStageRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMeetingsIndexRouteImport } from './routes/_authenticated/meetings.index'
 import { Route as AuthenticatedMeetingsMeetingIdRouteImport } from './routes/_authenticated/meetings.$meetingId'
 import { Route as ApiPublicCronDailyMeetingRouteImport } from './routes/api/public/cron/daily-meeting'
+import { Route as ApiPublicN8nDispatchRouteImport } from './routes/api/public/n8n/dispatch'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -208,6 +209,11 @@ const ApiPublicCronDailyMeetingRoute =
     path: '/api/public/cron/daily-meeting',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicN8nDispatchRoute = ApiPublicN8nDispatchRouteImport.update({
+  id: '/api/public/n8n/dispatch',
+  path: '/api/public/n8n/dispatch',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/meetings/': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
+  '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -274,6 +281,7 @@ export interface FileRoutesByTo {
   '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/meetings': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
+  '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -309,6 +317,7 @@ export interface FileRoutesById {
   '/_authenticated/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/_authenticated/meetings/': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
+  '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -344,6 +353,7 @@ export interface FileRouteTypes {
     | '/meetings/$meetingId'
     | '/meetings/'
     | '/api/public/cron/daily-meeting'
+    | '/api/public/n8n/dispatch'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -377,6 +387,7 @@ export interface FileRouteTypes {
     | '/meetings/$meetingId'
     | '/meetings'
     | '/api/public/cron/daily-meeting'
+    | '/api/public/n8n/dispatch'
   id:
     | '__root__'
     | '/'
@@ -411,6 +422,7 @@ export interface FileRouteTypes {
     | '/_authenticated/meetings/$meetingId'
     | '/_authenticated/meetings/'
     | '/api/public/cron/daily-meeting'
+    | '/api/public/n8n/dispatch'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -419,6 +431,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PublicoRoute: typeof PublicoRoute
   ApiPublicCronDailyMeetingRoute: typeof ApiPublicCronDailyMeetingRoute
+  ApiPublicN8nDispatchRoute: typeof ApiPublicN8nDispatchRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -647,6 +660,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronDailyMeetingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/n8n/dispatch': {
+      id: '/api/public/n8n/dispatch'
+      path: '/api/public/n8n/dispatch'
+      fullPath: '/api/public/n8n/dispatch'
+      preLoaderRoute: typeof ApiPublicN8nDispatchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -728,6 +748,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PublicoRoute: PublicoRoute,
   ApiPublicCronDailyMeetingRoute: ApiPublicCronDailyMeetingRoute,
+  ApiPublicN8nDispatchRoute: ApiPublicN8nDispatchRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
