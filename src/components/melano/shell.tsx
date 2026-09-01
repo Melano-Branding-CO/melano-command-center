@@ -47,6 +47,7 @@ const NAV = [
 
 const ADMIN_NAV = [
   { to: "/leads", label: "Leads · LUXIA", icon: Users },
+  { to: "/luxia/$stage", label: "Pipeline LUXIA", icon: GitBranch, params: { stage: "reunion" } },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/admin", label: "Administración", icon: ShieldCheck },
 ] as const;
@@ -141,10 +142,14 @@ export function AppShell({ children }: { children: ReactNode }) {
             ...NAV,
             ...(role === "CEO" || role === "ADMIN" ? ADMIN_NAV : []),
             ...(role === "CEO" ? CEO_NAV : []),
-          ].map(({ to, label, icon: Icon }) => (
+          ].map((item) => {
+            const { to, label, icon: Icon } = item;
+            const params = "params" in item ? item.params : undefined;
+            return (
             <Link
               key={to}
               to={to}
+              params={params as never}
               onClick={() => setOpen(false)}
               className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
               activeProps={{
@@ -159,7 +164,8 @@ export function AppShell({ children }: { children: ReactNode }) {
                 </span>
               ) : null}
             </Link>
-          ))}
+            );
+          })}
         </nav>
         <div className="border-t border-sidebar-border p-2">
           <button
