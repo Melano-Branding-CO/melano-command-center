@@ -261,6 +261,9 @@ function CommandCenter() {
 
         <N8nWorkflowsPanel className="lg:col-span-3" />
 
+        <McpPanel className="lg:col-span-3" />
+
+
         <N8nRunsHistory className="lg:col-span-3" />
 
         <Panel title="Alertas">
