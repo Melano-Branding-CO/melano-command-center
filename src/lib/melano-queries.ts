@@ -16,12 +16,16 @@ const TABLE_MAP: Record<string, string> = {
   meeting_outputs: "agent_runs",
   activity_logs: "automation_logs",
   metrics: "kpi_snapshot",
+  alerts: "critical_actions",
+  automation_rules: "routing_rules",
+  products: "luxia_health",
 };
 
 const COLUMN_MAP: Record<string, Record<string, string>> = {
   executive_meetings: {
     finished_at: "completed_at",
     trigger: "trigger_source",
+    created_at: "created_at",
   },
   meeting_outputs: {
     meeting_id: "meeting_run_id",
@@ -29,6 +33,7 @@ const COLUMN_MAP: Record<string, Record<string, string>> = {
   decisions: {
     meeting_id: "meeting_run_id",
     status: "state",
+    created_at: "updated_at",
   },
   tasks: {
     meeting_id: "meeting_run_id",
@@ -38,6 +43,20 @@ const COLUMN_MAP: Record<string, Record<string, string>> = {
   activity_logs: {
     meeting_id: "meeting_run_id",
   },
+  metrics: {
+    captured_at: "updated_at",
+  },
+  alerts: {
+    created_at: "updated_at",
+  },
+  automation_rules: {
+    created_at: "updated_at",
+  },
+};
+
+const VIRTUAL_FIELDS: Record<string, Set<string>> = {
+  tasks: new Set(["is_today_priority", "today_date"]),
+  metrics: new Set(["category"]),
 };
 
 function mappedTable(table: string) {
@@ -48,10 +67,27 @@ function mappedColumn(table: string, column: string) {
   return COLUMN_MAP[table]?.[column] ?? column;
 }
 
+function mappedValue(table: string, column: string, value: unknown) {
+  if (typeof value !== "string") return value;
+  if (table === "tasks" && column === "status") return value.toLowerCase();
+  if (table === "approvals" && column === "status") return value.toLowerCase();
+  if (table === "decisions" && column === "status") {
+    if (value.toUpperCase() === "PROPOSED") return "pending";
+    return value.toLowerCase();
+  }
+  if (table === "alerts" && column === "status") return value.toLowerCase();
+  return value;
+}
+
 function objectValue(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : {};
+}
+
+function inferMetricCategory(key: unknown, label: unknown) {
+  const text = `${String(key ?? "")} ${String(label ?? "")}`.toLowerCase();
+  return /(mrr|revenue|ingreso|caja|cash|cliente|ticket|pipeline)/.test(text) ? "revenue" : "general";
 }
 
 function normalizeRow(table: string, row: Record<string, unknown>): Record<string, unknown> {
@@ -59,6 +95,7 @@ function normalizeRow(table: string, row: Record<string, unknown>): Record<strin
     const summaryObject = objectValue(row.summary);
     return {
       ...row,
+      organization_id: row.tenant_id,
       title: summaryObject.title ?? "Reunión ejecutiva",
       trigger: row.trigger_source,
       finished_at: row.completed_at,
@@ -76,6 +113,7 @@ function normalizeRow(table: string, row: Record<string, unknown>): Record<strin
     const output = objectValue(row.output);
     return {
       ...row,
+      organization_id: row.tenant_id,
       meeting_id: row.meeting_run_id,
       situation: output.situation ?? null,
       changes: output.changes ?? null,
@@ -118,6 +156,7 @@ function normalizeRow(table: string, row: Record<string, unknown>): Record<strin
       confidence: fields.confidence ?? null,
       source_agent: fields.source_agent ?? row.owner ?? null,
       requires_approval: row.approval_required,
+      created_at: row.decided_at ?? row.updated_at,
     };
   }
 
@@ -148,6 +187,8 @@ function normalizeRow(table: string, row: Record<string, unknown>): Record<strin
     return {
       ...row,
       organization_id: row.tenant_id,
+      id: row.key,
+      category: inferMetricCategory(row.key, row.label),
       unit: null,
       captured_at: row.updated_at,
     };
@@ -167,7 +208,46 @@ function normalizeRow(table: string, row: Record<string, unknown>): Record<strin
     };
   }
 
+  if (table === "alerts") {
+    return {
+      ...row,
+      organization_id: row.tenant_id,
+      severity: row.priority,
+      status: row.status ?? "open",
+      created_at: row.updated_at,
+    };
+  }
+
+  if (table === "automation_rules") {
+    return {
+      ...row,
+      organization_id: row.tenant_id,
+      name: row.title,
+      status: row.state,
+      next_run_at: null,
+      created_at: row.updated_at,
+    };
+  }
+
+  if (table === "products") {
+    return {
+      ...row,
+      organization_id: row.tenant_id,
+      code: "LUXIA",
+      name: "LUXIA",
+      priority: "P0",
+    };
+  }
+
   return { ...row, organization_id: row.tenant_id ?? row.organization_id };
+}
+
+function matchesVirtualFilters(
+  table: string,
+  row: Record<string, unknown>,
+  filters: Record<string, string | boolean | number | null>,
+) {
+  return Object.entries(filters).every(([key, expected]) => row[key] === expected);
 }
 
 /**
@@ -189,9 +269,15 @@ export function useOrgRows<T = Record<string, unknown>>(
         .select("*")
         .eq("tenant_id", orgId);
 
+      const virtualFilters: Record<string, string | boolean | number | null> = {};
       for (const [k, v] of Object.entries(opts.eq ?? {})) {
+        if (VIRTUAL_FIELDS[table]?.has(k)) {
+          virtualFilters[k] = v;
+          continue;
+        }
         const physicalColumn = mappedColumn(table, k);
-        q = v === null ? q.is(physicalColumn, null) : q.eq(physicalColumn, v);
+        const physicalValue = mappedValue(table, k, v);
+        q = physicalValue === null ? q.is(physicalColumn, null) : q.eq(physicalColumn, physicalValue);
       }
       if (opts.order) {
         q = q.order(mappedColumn(table, opts.order), { ascending: opts.asc ?? false });
@@ -200,7 +286,11 @@ export function useOrgRows<T = Record<string, unknown>>(
 
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []).map((row: Record<string, unknown>) => normalizeRow(table, row)) as T[];
+      let rows = (data ?? []).map((row: Record<string, unknown>) => normalizeRow(table, row));
+      if (Object.keys(virtualFilters).length) {
+        rows = rows.filter((row) => matchesVirtualFilters(table, row, virtualFilters));
+      }
+      return rows as T[];
     },
   });
 }
