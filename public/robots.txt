@@ -1,14 +1,5 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
+# MELANO INC — Autonomous Command Center (sistema privado)
+# Acceso restringido: ninguna ruta debe ser rastreada ni indexada.
 
 User-agent: *
-Allow: /
+Disallow: /
