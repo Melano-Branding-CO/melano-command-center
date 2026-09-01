@@ -91,6 +91,46 @@ const NEXT_STATUS: Record<string, string> = {
 
 const LEAD_MATCH = /lead|prospect|contacto/i;
 
+type Lead = {
+  id: string;
+  full_name: string;
+  phase: string;
+  status: string;
+  next_follow_up_at: string | null;
+};
+
+const LEAD_PHASES = [
+  {
+    key: "FASE_0_14",
+    stage: "reunion",
+    label: "Fase 0–14 · Contacto y reunión",
+    desc: "Primer contacto, calificación y reunión agendada.",
+  },
+  {
+    key: "FASE_15_45",
+    stage: "propuesta",
+    label: "Fase 15–45 · Propuesta",
+    desc: "Propuesta enviada, negociación y aprobación comercial.",
+  },
+  {
+    key: "FASE_46_90",
+    stage: "contrato",
+    label: "Fase 46–90 · Contrato",
+    desc: "Contrato firmado, onboarding y revenue recurrente.",
+  },
+] as const;
+
+const LEAD_STATUSES = [
+  "NUEVO",
+  "CONTACTADO",
+  "CALIFICADO",
+  "NEGOCIACION",
+  "GANADO",
+  "PERDIDO",
+  "DESCARTADO",
+] as const;
+
+
 function GreenGatePage() {
   const { data: org } = useOrg();
   useRealtime(["tasks", "metrics", "agent_runs", "agents"]);
