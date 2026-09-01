@@ -42,7 +42,8 @@ function TodayPage() {
   const { data: org } = useOrg();
   const { data: agents } = useAgents(org?.id);
   const map = agentMap(agents as Agent[] | undefined);
-  useRealtime(["tasks"]);
+  useRealtime(["tasks", "activity_logs"]);
+  const { data: n8nLogs } = useTaskN8nLogs(org?.id, 30);
   const today = todayKey(org?.timezone ?? undefined);
   const { data: tasks, isLoading, error } = useOrgRows<Task>("tasks", org?.id, {
     eq: { is_today_priority: true, today_date: today },
