@@ -124,6 +124,12 @@ function MeetingDetail() {
   });
   const { data: agents } = useOrgRows<AgentRow>("agents", org?.id, { order: "sort_order", asc: true });
   const byAgent = agentMap(agents as never);
+  const { data: n8nLogs } = useTaskN8nLogs(org?.id, 100);
+  const n8nByTask = new Map<string, TaskN8nLog[]>();
+  for (const log of n8nLogs ?? []) {
+    if (!log.entity_id) continue;
+    n8nByTask.set(log.entity_id, [...(n8nByTask.get(log.entity_id) ?? []), log]);
+  }
 
   if (isLoading) return <Empty text="Cargando…" />;
   if (!meeting) return <Empty text="Reunión no encontrada." />;
