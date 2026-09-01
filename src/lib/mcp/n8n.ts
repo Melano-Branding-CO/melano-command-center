@@ -107,6 +107,7 @@ export async function dispatchN8n(
         entity_type: entity.type,
         entity_id: entity.id,
         meeting_id: entity.meetingId ?? null,
+        callback_url: (await import("../n8n-callback")).n8nCallbackUrl(),
         ...payload,
       }),
     });
