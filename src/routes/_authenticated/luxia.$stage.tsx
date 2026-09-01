@@ -231,6 +231,67 @@ function db() {
   return supabase as unknown as { from: (t: string) => any };
 }
 
+function PlaybookPanel({ stage }: { stage: StageConfig }) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div className="mb-6 rounded-lg border border-border bg-muted/30 p-4">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="flex w-full items-center justify-between text-left"
+      >
+        <div>
+          <h2 className="text-sm font-semibold text-foreground">
+            Playbook de la fase · {stage.label}
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Qué abarca, qué hacer y cuándo avanzar.
+          </p>
+        </div>
+        <ChevronDown
+          className={cn(
+            "h-4 w-4 text-muted-foreground transition-transform",
+            open && "rotate-180",
+          )}
+        />
+      </button>
+
+      {open && (
+        <div className="mt-4 grid gap-4 text-xs sm:grid-cols-2 lg:grid-cols-4">
+          <div>
+            <h3 className="label-caps mb-1.5">Objetivo</h3>
+            <p className="text-foreground leading-relaxed">{stage.objective}</p>
+          </div>
+          <div>
+            <h3 className="label-caps mb-1.5">Acciones esperadas</h3>
+            <ul className="list-disc space-y-1 pl-4 text-foreground">
+              {stage.actions.map((a, i) => (
+                <li key={i}>{a}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="label-caps mb-1.5">Criterios para avanzar</h3>
+            <ul className="list-disc space-y-1 pl-4 text-foreground">
+              {stage.exitCriteria.map((c, i) => (
+                <li key={i}>{c}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="label-caps mb-1.5">Ejemplos de evidencia</h3>
+            <ul className="list-disc space-y-1 pl-4 text-foreground">
+              {stage.examples.map((e, i) => (
+                <li key={i}>{e}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function StageGuarded() {
   return (
     <RoleGate allow={["CEO", "ADMIN"]}>
