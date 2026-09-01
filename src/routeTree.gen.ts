@@ -39,6 +39,7 @@ import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
 import { Route as AuthenticatedLuxiaStageRouteImport } from './routes/_authenticated/luxia.$stage'
+import { Route as AuthenticatedMeetingsMeetingIdRouteImport } from './routes/_authenticated/meetings.$meetingId'
 import { Route as ApiPublicCronDailyMeetingRouteImport } from './routes/api/public/cron/daily-meeting'
 
 const IndexRoute = IndexRouteImport.update({
@@ -194,6 +195,12 @@ const AuthenticatedLuxiaStageRoute = AuthenticatedLuxiaStageRouteImport.update({
   path: '/luxia/$stage',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMeetingsMeetingIdRoute =
+  AuthenticatedMeetingsMeetingIdRouteImport.update({
+    id: '/$meetingId',
+    path: '/$meetingId',
+    getParentRoute: () => AuthenticatedMeetingsRoute,
+  } as any)
 const ApiPublicCronDailyMeetingRoute =
   ApiPublicCronDailyMeetingRouteImport.update({
     id: '/api/public/cron/daily-meeting',
@@ -219,7 +226,7 @@ export interface FileRoutesByFullPath {
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
-  '/meetings': typeof AuthenticatedMeetingsRoute
+  '/meetings': typeof AuthenticatedMeetingsRouteWithChildren
   '/metas': typeof AuthenticatedMetasRoute
   '/metrics': typeof AuthenticatedMetricsRoute
   '/operador': typeof AuthenticatedOperadorRoute
@@ -231,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/today': typeof AuthenticatedTodayRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
+  '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRoutesByTo {
@@ -251,7 +259,7 @@ export interface FileRoutesByTo {
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
-  '/meetings': typeof AuthenticatedMeetingsRoute
+  '/meetings': typeof AuthenticatedMeetingsRouteWithChildren
   '/metas': typeof AuthenticatedMetasRoute
   '/metrics': typeof AuthenticatedMetricsRoute
   '/operador': typeof AuthenticatedOperadorRoute
@@ -263,6 +271,7 @@ export interface FileRoutesByTo {
   '/today': typeof AuthenticatedTodayRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
+  '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRoutesById {
@@ -285,7 +294,7 @@ export interface FileRoutesById {
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/green-gate': typeof AuthenticatedGreenGateRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
-  '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
+  '/_authenticated/meetings': typeof AuthenticatedMeetingsRouteWithChildren
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/metrics': typeof AuthenticatedMetricsRoute
   '/_authenticated/operador': typeof AuthenticatedOperadorRoute
@@ -297,6 +306,7 @@ export interface FileRoutesById {
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
   '/_authenticated/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
+  '/_authenticated/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRouteTypes {
@@ -331,6 +341,7 @@ export interface FileRouteTypes {
     | '/today'
     | '/agents/$agentId'
     | '/luxia/$stage'
+    | '/meetings/$meetingId'
     | '/api/public/cron/daily-meeting'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -363,6 +374,7 @@ export interface FileRouteTypes {
     | '/today'
     | '/agents/$agentId'
     | '/luxia/$stage'
+    | '/meetings/$meetingId'
     | '/api/public/cron/daily-meeting'
   id:
     | '__root__'
@@ -396,6 +408,7 @@ export interface FileRouteTypes {
     | '/_authenticated/today'
     | '/_authenticated/agents/$agentId'
     | '/_authenticated/luxia/$stage'
+    | '/_authenticated/meetings/$meetingId'
     | '/api/public/cron/daily-meeting'
   fileRoutesById: FileRoutesById
 }
@@ -619,6 +632,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLuxiaStageRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/meetings/$meetingId': {
+      id: '/_authenticated/meetings/$meetingId'
+      path: '/$meetingId'
+      fullPath: '/meetings/$meetingId'
+      preLoaderRoute: typeof AuthenticatedMeetingsMeetingIdRouteImport
+      parentRoute: typeof AuthenticatedMeetingsRoute
+    }
     '/api/public/cron/daily-meeting': {
       id: '/api/public/cron/daily-meeting'
       path: '/api/public/cron/daily-meeting'
@@ -640,6 +660,19 @@ const AuthenticatedAgentsRouteChildren: AuthenticatedAgentsRouteChildren = {
 const AuthenticatedAgentsRouteWithChildren =
   AuthenticatedAgentsRoute._addFileChildren(AuthenticatedAgentsRouteChildren)
 
+interface AuthenticatedMeetingsRouteChildren {
+  AuthenticatedMeetingsMeetingIdRoute: typeof AuthenticatedMeetingsMeetingIdRoute
+}
+
+const AuthenticatedMeetingsRouteChildren: AuthenticatedMeetingsRouteChildren = {
+  AuthenticatedMeetingsMeetingIdRoute: AuthenticatedMeetingsMeetingIdRoute,
+}
+
+const AuthenticatedMeetingsRouteWithChildren =
+  AuthenticatedMeetingsRoute._addFileChildren(
+    AuthenticatedMeetingsRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
@@ -655,7 +688,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedGreenGateRoute: typeof AuthenticatedGreenGateRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
-  AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
+  AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRouteWithChildren
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedMetricsRoute: typeof AuthenticatedMetricsRoute
   AuthenticatedOperadorRoute: typeof AuthenticatedOperadorRoute
@@ -683,7 +716,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedGreenGateRoute: AuthenticatedGreenGateRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
-  AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
+  AuthenticatedMeetingsRoute: AuthenticatedMeetingsRouteWithChildren,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedMetricsRoute: AuthenticatedMetricsRoute,
   AuthenticatedOperadorRoute: AuthenticatedOperadorRoute,
