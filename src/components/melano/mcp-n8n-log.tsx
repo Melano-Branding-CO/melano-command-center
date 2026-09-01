@@ -35,9 +35,9 @@ export function McpN8nLog({
   meetingId,
   limit = 12,
 }: {
-  orgId?: string;
-  meetingId?: string;
-  limit?: number;
+  orgId?: string | undefined;
+  meetingId?: string | undefined;
+  limit?: number | undefined;
 }) {
   useRealtime(["activity_logs"]);
   const { data, isLoading, error } = useQuery({
