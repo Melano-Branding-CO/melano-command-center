@@ -36,9 +36,12 @@ function TasksPage() {
   const { data: org } = useOrg();
   const { data: agents } = useAgents(org?.id);
   const map = agentMap(agents as Agent[] | undefined);
+  useRealtime(["tasks", "activity_logs"]);
   const { data: tasks, isLoading } = useOrgRows<Task>("tasks", org?.id, {
     order: "created_at",
   });
+  const { data: logs } = useTaskN8nLogs(org?.id, 30);
+
 
   return (
     <>
