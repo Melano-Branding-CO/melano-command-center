@@ -137,7 +137,9 @@ function CeoDashboard() {
         <Empty text="Cargando indicadores…" />
       ) : (
         <div className="space-y-6">
+          <MomentumPanel />
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+
             <Kpi
               label="Clientes activos"
               value={activeClients.length}
