@@ -402,6 +402,53 @@ export type Database = {
           },
         ]
       }
+      annual_goals: {
+        Row: {
+          approvals_target: number
+          contracts_target: number
+          created_at: string
+          id: string
+          leads_target: number
+          mrr_target: number
+          notes: string | null
+          organization_id: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          approvals_target?: number
+          contracts_target?: number
+          created_at?: string
+          id?: string
+          leads_target?: number
+          mrr_target?: number
+          notes?: string | null
+          organization_id: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          approvals_target?: number
+          contracts_target?: number
+          created_at?: string
+          id?: string
+          leads_target?: number
+          mrr_target?: number
+          notes?: string | null
+          organization_id?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "annual_goals_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approvals: {
         Row: {
           action: string
