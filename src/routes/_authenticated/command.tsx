@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
 import { N8nWorkflowsPanel } from "@/components/melano/n8n-panel";
+import { N8nRunsHistory } from "@/components/melano/n8n-runs-history";
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { runMeetingNow } from "@/lib/melano.functions";
