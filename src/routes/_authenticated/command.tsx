@@ -58,6 +58,7 @@ function CommandCenter() {
     "approvals",
     "alerts",
     "automation_rules",
+    "automation_runs",
     "metrics",
     "agents",
   ]);
