@@ -31,7 +31,6 @@ const NAV = [
   { to: "/dashboards", label: "Dashboards", icon: ChartNoAxesColumn },
   { to: "/bruno", label: "Bruno", icon: ShieldCheck },
   { to: "/green-gate", label: "Green Gate", icon: BadgeCheck },
-  { to: "/leads", label: "Leads · LUXIA", icon: Users },
   { to: "/today", label: "Today", icon: Sun },
   { to: "/revenue", label: "Revenue", icon: Wallet },
   { to: "/agents", label: "Agents", icon: Bot },
@@ -47,9 +46,41 @@ const NAV = [
 ] as const;
 
 const ADMIN_NAV = [
+  { to: "/leads", label: "Leads · LUXIA", icon: Users },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/admin", label: "Administración", icon: ShieldCheck },
 ] as const;
+
+const CEO_NAV = [{ to: "/ceo", label: "CEO Dashboard", icon: ChartNoAxesColumn }] as const;
+
+/** Restringe una pantalla a los roles indicados (la RLS del backend vuelve a validar). */
+export function RoleGate({
+  allow,
+  children,
+}: {
+  allow: readonly ("CEO" | "ADMIN" | "OPERATOR" | "VIEWER" | "AGENT")[];
+  children: ReactNode;
+}) {
+  const { data: org, isLoading: orgLoading } = useOrg();
+  const { data: role, isLoading: roleLoading } = useMyRole(org?.id);
+
+  if (orgLoading || roleLoading || (org?.id && role === undefined)) {
+    return <Empty text="Verificando permisos…" />;
+  }
+  if (!role || !allow.includes(role)) {
+    return (
+      <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-6">
+        <h1 className="text-sm font-semibold text-destructive">Acceso restringido</h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Esta pantalla está disponible solo para {allow.join(" y ")}. Tu rol actual es{" "}
+          {role ?? "sin rol asignado"}.
+        </p>
+      </div>
+    );
+  }
+  return <>{children}</>;
+}
+
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -106,7 +137,11 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         </div>
         <nav className="flex flex-col gap-0.5 overflow-y-auto p-2">
-          {[...NAV, ...(role === "CEO" || role === "ADMIN" ? ADMIN_NAV : [])].map(({ to, label, icon: Icon }) => (
+          {[
+            ...NAV,
+            ...(role === "CEO" || role === "ADMIN" ? ADMIN_NAV : []),
+            ...(role === "CEO" ? CEO_NAV : []),
+          ].map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
               to={to}
