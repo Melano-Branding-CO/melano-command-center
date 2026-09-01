@@ -8,7 +8,7 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
-import { runMeetingNow } from "@/lib/melano.functions";
+import { runMeetingNow, runN8nAutomation } from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({
