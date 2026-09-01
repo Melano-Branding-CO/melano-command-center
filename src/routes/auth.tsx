@@ -29,12 +29,16 @@ export const Route = createFileRoute("/auth")({
     // Solo rutas relativas del mismo origen.
     return /^\/(?!\/)/.test(raw) ? { next: raw } : {};
   },
-  component: AuthPage,
+  component: AuthRoute,
 });
 
-export function AuthPage() {
-  const navigate = useNavigate();
+function AuthRoute() {
   const { next } = Route.useSearch();
+  return <AuthPage {...(next ? { next } : {})} />;
+}
+
+export function AuthPage({ next }: { next?: string }) {
+  const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
