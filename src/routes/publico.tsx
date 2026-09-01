@@ -367,6 +367,10 @@ function PublicPage() {
                   value={`${data.totals.approvalsResolved} / ${data.totals.approvals}`}
                 />
                 <Kpi
+                  label="Clientes en seguimiento LUXIA"
+                  value={`${data.totals.clientsActive} / ${data.totals.clients}`}
+                />
+                <Kpi
                   label="Ejecuciones de agentes"
                   value={`${data.totals.agentRunsSuccess} / ${data.totals.agentRuns}`}
                 />
@@ -385,6 +389,14 @@ function PublicPage() {
                 <ChartCard title="Leads por fase comercial">
                   <PieBlock
                     data={data.leadsByPhase.map((d) => ({ ...d, name: PHASE_LABEL[d.name] ?? d.name }))}
+                  />
+                </ChartCard>
+                <ChartCard title="Clientes por etapa LUXIA">
+                  <PieBlock
+                    data={data.clientsByStage.map((d) => ({
+                      ...d,
+                      name: PHASE_LABEL[d.name] ?? d.name,
+                    }))}
                   />
                 </ChartCard>
                 <ChartCard title="Actividad de los últimos 14 días" className="lg:col-span-2">
