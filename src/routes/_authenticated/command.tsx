@@ -89,8 +89,22 @@ function CommandCenter() {
     id: string;
     name: string;
     status: string;
+    enabled: boolean;
+    n8n_workflow: string | null;
+    n8n_webhook_url: string | null;
+    last_run_at: string | null;
+    last_result: string | null;
+    last_error: string | null;
     next_run_at: string | null;
   }>("automation_rules", org?.id, { order: "created_at" });
+  const { data: automationRuns } = useOrgRows<{
+    id: string;
+    rule_id: string;
+    status: string;
+    started_at: string;
+    trace_id: string | null;
+    error: string | null;
+  }>("automation_runs", org?.id, { order: "started_at", limit: 40 });
   const { data: revenueMetrics } = useOrgRows<{
     id: string;
     label: string;
