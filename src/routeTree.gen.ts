@@ -30,6 +30,7 @@ import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedMetricsRouteImport } from './routes/_authenticated/metrics'
 import { Route as AuthenticatedOperadorRouteImport } from './routes/_authenticated/operador'
+import { Route as AuthenticatedOperadorDashboardRouteImport } from './routes/_authenticated/operador-dashboard'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedRevenueRouteImport } from './routes/_authenticated/revenue'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
@@ -145,6 +146,12 @@ const AuthenticatedOperadorRoute = AuthenticatedOperadorRouteImport.update({
   path: '/operador',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedOperadorDashboardRoute =
+  AuthenticatedOperadorDashboardRouteImport.update({
+    id: '/operador-dashboard',
+    path: '/operador-dashboard',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -209,6 +216,7 @@ export interface FileRoutesByFullPath {
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/metrics': typeof AuthenticatedMetricsRoute
   '/operador': typeof AuthenticatedOperadorRoute
+  '/operador-dashboard': typeof AuthenticatedOperadorDashboardRoute
   '/products': typeof AuthenticatedProductsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -239,6 +247,7 @@ export interface FileRoutesByTo {
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/metrics': typeof AuthenticatedMetricsRoute
   '/operador': typeof AuthenticatedOperadorRoute
+  '/operador-dashboard': typeof AuthenticatedOperadorDashboardRoute
   '/products': typeof AuthenticatedProductsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
   '/settings': typeof AuthenticatedSettingsRoute
@@ -271,6 +280,7 @@ export interface FileRoutesById {
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/metrics': typeof AuthenticatedMetricsRoute
   '/_authenticated/operador': typeof AuthenticatedOperadorRoute
+  '/_authenticated/operador-dashboard': typeof AuthenticatedOperadorDashboardRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/revenue': typeof AuthenticatedRevenueRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
@@ -303,6 +313,7 @@ export interface FileRouteTypes {
     | '/meetings'
     | '/metrics'
     | '/operador'
+    | '/operador-dashboard'
     | '/products'
     | '/revenue'
     | '/settings'
@@ -333,6 +344,7 @@ export interface FileRouteTypes {
     | '/meetings'
     | '/metrics'
     | '/operador'
+    | '/operador-dashboard'
     | '/products'
     | '/revenue'
     | '/settings'
@@ -364,6 +376,7 @@ export interface FileRouteTypes {
     | '/_authenticated/meetings'
     | '/_authenticated/metrics'
     | '/_authenticated/operador'
+    | '/_authenticated/operador-dashboard'
     | '/_authenticated/products'
     | '/_authenticated/revenue'
     | '/_authenticated/settings'
@@ -531,6 +544,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOperadorRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/operador-dashboard': {
+      id: '/_authenticated/operador-dashboard'
+      path: '/operador-dashboard'
+      fullPath: '/operador-dashboard'
+      preLoaderRoute: typeof AuthenticatedOperadorDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/products': {
       id: '/_authenticated/products'
       path: '/products'
@@ -619,6 +639,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
   AuthenticatedMetricsRoute: typeof AuthenticatedMetricsRoute
   AuthenticatedOperadorRoute: typeof AuthenticatedOperadorRoute
+  AuthenticatedOperadorDashboardRoute: typeof AuthenticatedOperadorDashboardRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
   AuthenticatedRevenueRoute: typeof AuthenticatedRevenueRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
@@ -645,6 +666,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
   AuthenticatedMetricsRoute: AuthenticatedMetricsRoute,
   AuthenticatedOperadorRoute: AuthenticatedOperadorRoute,
+  AuthenticatedOperadorDashboardRoute: AuthenticatedOperadorDashboardRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedRevenueRoute: AuthenticatedRevenueRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
