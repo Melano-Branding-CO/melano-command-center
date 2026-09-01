@@ -50,8 +50,18 @@ function CommandCenter() {
   const [busy, setBusy] = useState(false);
   const runMeeting = useServerFn(runMeetingNow);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const { data: todayTasks } = useOrgRows<Task>("tasks", org?.id, {
+  useRealtime([
+    "tasks",
+    "decisions",
+    "approvals",
+    "alerts",
+    "automation_rules",
+    "metrics",
+    "agents",
+  ]);
+
+  const today = todayKey(org?.timezone ?? undefined);
+  const { data: todayTasks, isLoading: loadingToday } = useOrgRows<Task>("tasks", org?.id, {
     eq: { is_today_priority: true, today_date: today },
     order: "priority",
     asc: true,
