@@ -68,6 +68,12 @@ const NAV_GROUPS: NavGroup[] = [
         icon: Users,
         roles: ["CEO", "ADMIN", "OPERATOR"],
       },
+      {
+        to: "/operador-dashboard",
+        label: "Dashboard operador",
+        icon: ChartNoAxesColumn,
+        roles: ["CEO", "ADMIN", "OPERATOR"],
+      },
       { to: "/revenue", label: "Revenue", icon: Wallet },
     ],
   },
@@ -87,6 +93,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     title: "Sistema",
     items: [
+      { to: "/metas", label: "Metas anuales", icon: ChartNoAxesColumn, roles: ["CEO", "ADMIN"] },
       { to: "/metrics", label: "Metrics", icon: ChartNoAxesColumn },
       { to: "/activity", label: "Activity", icon: Activity },
       { to: "/admin", label: "Administración", icon: ShieldCheck, roles: ["CEO", "ADMIN"] },
