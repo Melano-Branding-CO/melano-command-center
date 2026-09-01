@@ -71,7 +71,7 @@ export function N8nWorkflowsPanel({ className }: { className?: string }) {
   return (
     <Panel
       title="n8n · Workflows"
-      className={className}
+      className={cn(className)}
       action={
         <Link to="/automations" className="text-xs text-muted-foreground hover:text-foreground">
           Configurar en Automations
