@@ -270,6 +270,10 @@ function MeetingDetail() {
           </Panel>
         </div>
       </div>
+
+      <div className="mt-4">
+        <McpN8nLog orgId={org?.id} meetingId={meetingId} limit={20} />
+      </div>
     </>
   );
 }
