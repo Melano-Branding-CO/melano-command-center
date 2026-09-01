@@ -57,6 +57,108 @@ type Run = {
 
 const INBOUND_PATH = "/api/public/n8n/dispatch";
 
+const N8N_BASE = "https://melanoincorporated.app.n8n.cloud/webhook";
+
+/** Integraciones recomendadas para el Command Center. El webhook es una sugerencia de path:
+ *  hay que crear el workflow en n8n y pegar su Production URL real antes de ejecutar. */
+const INTEGRATIONS: {
+  slug: string;
+  name: string;
+  category: string;
+  description: string;
+}[] = [
+  {
+    slug: "gmail-luxia-followup",
+    name: "Gmail · Follow-up LUXIA",
+    category: "Comercial",
+    description: "Envía el seguimiento por email a leads con próximo contacto vencido.",
+  },
+  {
+    slug: "whatsapp-cloud-outreach",
+    name: "WhatsApp Cloud API · Outreach",
+    category: "Comercial",
+    description: "Primer contacto y recordatorios a inmobiliarias por WhatsApp.",
+  },
+  {
+    slug: "google-calendar-reuniones",
+    name: "Google Calendar · Reuniones",
+    category: "Comercial",
+    description: "Agenda la reunión de fase 1 y sincroniza el próximo contacto del lead.",
+  },
+  {
+    slug: "google-sheets-relevamiento",
+    name: "Google Sheets · Relevamiento",
+    category: "Datos",
+    description: "Importa relevamientos de inmobiliarias y los envía a create_task o leads.",
+  },
+  {
+    slug: "slack-alertas",
+    name: "Slack · Alertas ejecutivas",
+    category: "Operación",
+    description: "Publica alertas críticas y decisiones aprobadas en el canal de dirección.",
+  },
+  {
+    slug: "telegram-bruno",
+    name: "Telegram · Aprobaciones Bruno",
+    category: "Gobernanza",
+    description: "Notifica aprobaciones pendientes y devuelve la decisión al Command Center.",
+  },
+  {
+    slug: "supabase-sync",
+    name: "Supabase · Sync operacional",
+    category: "Datos",
+    description: "Lee y escribe tablas operativas desde workflows con el rol correspondiente.",
+  },
+  {
+    slug: "http-dispatch",
+    name: "HTTP Request · Dispatch entrante",
+    category: "Núcleo",
+    description: "Invoca run_meeting, run_agent, create_task o log en el Command Center.",
+  },
+  {
+    slug: "schedule-0600",
+    name: "Schedule Trigger · Ciclo 06:00",
+    category: "Núcleo",
+    description: "Respaldo del cron diario: dispara la reunión ejecutiva si falla el worker.",
+  },
+  {
+    slug: "openai-enriquecimiento",
+    name: "OpenAI · Enriquecimiento de leads",
+    category: "IA",
+    description: "Normaliza y puntúa datos de contacto antes de crearlos como lead.",
+  },
+  {
+    slug: "hubspot-crm",
+    name: "HubSpot · CRM espejo",
+    category: "Comercial",
+    description: "Refleja clientes y etapas LUXIA en el CRM comercial.",
+  },
+  {
+    slug: "notion-actas",
+    name: "Notion · Actas de reunión",
+    category: "Operación",
+    description: "Guarda el brief ejecutivo y las decisiones como documentación interna.",
+  },
+  {
+    slug: "github-deploys",
+    name: "GitHub · Deploys y salud",
+    category: "Producto",
+    description: "Reporta commits y estados de deploy como señales para el agente CTO.",
+  },
+  {
+    slug: "stripe-mrr",
+    name: "Stripe · MRR y cobros",
+    category: "Finanzas",
+    description: "Actualiza MRR y alerta pagos fallidos para el agente CFO.",
+  },
+  {
+    slug: "drive-propuestas",
+    name: "Google Drive · Propuestas",
+    category: "Comercial",
+    description: "Genera y archiva la propuesta de fase 2 con enlace en el lead.",
+  },
+];
+
 function AutomationsPage() {
   const { data: org } = useOrg();
   const { data: role } = useMyRole(org?.id);
@@ -278,6 +380,48 @@ function AutomationsPage() {
             })}
           </div>
         )}
+
+        <RoleGate allow={["CEO", "ADMIN"]}>
+          <Panel title="15 integraciones disponibles en n8n">
+            <p className="text-sm text-muted-foreground">
+              Elegí una integración: se precarga el formulario de arriba con nombre, workflow y un
+              path sugerido. Creá el workflow en n8n y reemplazá el webhook por su{" "}
+              <strong>Production URL</strong> real antes de ejecutar.
+            </p>
+            <ul className="mt-3 grid gap-2 md:grid-cols-2">
+              {INTEGRATIONS.map((i) => (
+                <li
+                  key={i.slug}
+                  className="flex items-start justify-between gap-3 rounded-md border border-border/60 p-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{i.name}</p>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      {i.category}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{i.description}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      setForm({
+                        id: "",
+                        name: i.name,
+                        description: i.description,
+                        workflow: i.slug,
+                        webhookUrl: `${N8N_BASE}/${i.slug}`,
+                        enabled: true,
+                      })
+                    }
+                  >
+                    Usar
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        </RoleGate>
 
         <RoleGate allow={["CEO", "ADMIN"]}>
           <Panel title="Entrada desde n8n (n8n → Command Center)">
