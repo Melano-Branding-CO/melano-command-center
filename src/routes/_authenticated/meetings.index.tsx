@@ -4,7 +4,7 @@ import { StatusBadge } from "@/components/melano/badges";
 import { fmtDate, useOrg } from "@/lib/melano";
 import { useOrgRows } from "@/lib/melano-queries";
 
-export const Route = createFileRoute("/_authenticated/meetings")({
+export const Route = createFileRoute("/_authenticated/meetings/")({
   head: () => ({
     meta: [
       { title: "Meetings — MELANO INC" },
