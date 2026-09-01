@@ -8,7 +8,7 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
-import { runMeetingNow } from "@/lib/melano.functions";
+import { runMeetingNow } from "@/lib/runtime.functions";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({
@@ -217,10 +217,7 @@ function CommandCenter() {
             <ul className="space-y-2 text-sm">
               {(decisions ?? []).map((d) => (
                 <li key={d.id} className="flex items-center justify-between gap-2">
-                  <Link
-                    to="/decisions"
-                    className="truncate text-foreground hover:underline"
-                  >
+                  <Link to="/decisions" className="truncate text-foreground hover:underline">
                     {d.title}
                   </Link>
                   <PriorityBadge priority={d.priority} />
@@ -253,9 +250,7 @@ function CommandCenter() {
           ) : (
             <ul className="space-y-2 text-sm">
               {(blocked ?? []).map((t) => (
-                <li key={t.id} className="text-foreground">
-                  {t.title}
-                </li>
+                <li key={t.id} className="text-foreground">{t.title}</li>
               ))}
             </ul>
           )}
