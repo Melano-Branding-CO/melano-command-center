@@ -48,7 +48,9 @@ function CommandCenter() {
   const map = agentMap(agents as Agent[] | undefined);
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
+  const [n8nBusy, setN8nBusy] = useState<string | null>(null);
   const runMeeting = useServerFn(runMeetingNow);
+  const runWorkflow = useServerFn(runN8nAutomation);
 
   useRealtime([
     "tasks",
