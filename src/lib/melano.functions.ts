@@ -446,6 +446,7 @@ export type ClientInput = {
   lastContactAt?: string | null;
   nextFollowUpAt?: string | null;
   notes?: string | null;
+  ownerUser?: string | null;
 };
 
 const CLIENT_STATUS = ["PROSPECTO", "ONBOARDING", "ACTIVO", "PAUSADO", "CERRADO"];
