@@ -28,20 +28,49 @@ export async function dispatchN8n(
     .select("id, name, n8n_webhook_url, n8n_workflow")
     .eq("organization_id", organizationId)
     .eq("enabled", true)
-    .not("n8n_webhook_url", "is", null)
+    .order("n8n_webhook_url", { ascending: false, nullsFirst: false })
     .order("created_at")
     .limit(1);
   const rule = rules?.[0];
-  if (!rule?.n8n_webhook_url) {
+  if (!rule) {
     return {
       ok: false,
       traceId: null,
       rule: null,
       status: "SKIPPED",
       output: "",
-      error: "No hay workflow de n8n activo. Configuralo en Automations.",
+      error: "No hay automatización de n8n activa. Configurala en Automations.",
     };
   }
+
+  // Respaldo: si la regla no tiene webhook cargado, lo resolvemos con la API de n8n.
+  let webhookUrl = (rule.n8n_webhook_url as string | null) ?? null;
+  if (!webhookUrl) {
+    const { resolveActiveWebhookUrl } = await import("../n8n-api");
+    try {
+      const resolved = await resolveActiveWebhookUrl(rule.n8n_workflow as string | null);
+      if (resolved) {
+        webhookUrl = resolved.url;
+        await db
+          .from("automation_rules")
+          .update({ n8n_webhook_url: resolved.url, n8n_workflow: rule.n8n_workflow ?? resolved.workflow })
+          .eq("id", rule.id);
+      }
+    } catch {
+      // seguimos con el error de configuración de abajo
+    }
+  }
+  if (!webhookUrl) {
+    return {
+      ok: false,
+      traceId: null,
+      rule: (rule.n8n_workflow ?? rule.name) as string,
+      status: "SKIPPED",
+      output: "",
+      error: "No se pudo resolver el webhook del workflow activo de n8n.",
+    };
+  }
+
 
   const traceId = crypto.randomUUID();
   const startedAt = new Date().toISOString();
