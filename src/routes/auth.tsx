@@ -93,7 +93,7 @@ export function AuthPage() {
   async function handleGoogle() {
     setBusy(true);
     try {
-      const { error } = await signInWithGoogle();
+      const { error } = await signInWithGoogle(next);
       if (error) throw error;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo iniciar con Google");
