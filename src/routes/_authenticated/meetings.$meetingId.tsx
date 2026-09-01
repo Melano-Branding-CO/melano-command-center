@@ -3,12 +3,6 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge, PriorityBadge } from "@/components/melano/badges";
 import { fmtDate, useOrg, agentMap } from "@/lib/melano";
 import { useOrgRows, useRowById } from "@/lib/melano-queries";
-import {
-  RunTaskInN8nButton,
-  TaskN8nLogList,
-  useTaskN8nLogs,
-  type TaskN8nLog,
-} from "@/components/melano/task-n8n";
 
 export const Route = createFileRoute("/_authenticated/meetings/$meetingId")({
   head: () => ({
@@ -130,12 +124,6 @@ function MeetingDetail() {
   });
   const { data: agents } = useOrgRows<AgentRow>("agents", org?.id, { order: "sort_order", asc: true });
   const byAgent = agentMap(agents as never);
-  const { data: n8nLogs } = useTaskN8nLogs(org?.id, 100);
-  const n8nByTask = new Map<string, TaskN8nLog[]>();
-  for (const log of n8nLogs ?? []) {
-    if (!log.entity_id) continue;
-    n8nByTask.set(log.entity_id, [...(n8nByTask.get(log.entity_id) ?? []), log]);
-  }
 
   if (isLoading) return <Empty text="Cargando…" />;
   if (!meeting) return <Empty text="Reunión no encontrada." />;
@@ -274,10 +262,6 @@ function MeetingDetail() {
                       <p className="text-[11px] text-muted-foreground">
                         Agente: {t.assigned_agent ? (byAgent.get(t.assigned_agent)?.name ?? "—") : "—"}
                       </p>
-                      <RunTaskInN8nButton organizationId={org?.id} taskId={t.id} />
-                      {n8nByTask.get(t.id)?.length ? (
-                        <TaskN8nLogList logs={n8nByTask.get(t.id) ?? []} />
-                      ) : null}
                     </div>
                   </li>
                 ))}
