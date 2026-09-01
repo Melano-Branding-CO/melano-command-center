@@ -135,7 +135,9 @@ function CommandCenter() {
             </Link>
           }
         >
-          {(todayTasks ?? []).length === 0 ? (
+          {loadingToday ? (
+            <Empty text="Cargando prioridades desde la base…" />
+          ) : (todayTasks ?? []).length === 0 ? (
             <Empty text="Sin prioridades definidas hoy. Ejecutá la reunión ejecutiva para generarlas." />
           ) : (
             <ul className="space-y-3">
