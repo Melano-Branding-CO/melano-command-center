@@ -6,13 +6,14 @@ import { supabase } from "@/integrations/supabase/client";
  * We intentionally avoid the Lovable OAuth broker here so preview, custom
  * domain and production use the same provider configuration and callback.
  */
-export async function signInWithGoogle(): Promise<{ error: Error | null }> {
+export async function signInWithGoogle(next?: string): Promise<{ error: Error | null }> {
   const origin = window.location.origin;
+  const target = next && /^\/(?!\/)/.test(next) ? next : "/command";
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${origin}/command`,
+      redirectTo: `${origin}${target}`,
     },
   });
 
