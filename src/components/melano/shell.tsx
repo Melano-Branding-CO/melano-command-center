@@ -178,37 +178,42 @@ export function AppShell({ children }: { children: ReactNode }) {
             <X className="size-4" />
           </button>
         </div>
-        <nav className="flex flex-col gap-0.5 overflow-y-auto p-2">
-          {[
-            ...NAV,
-            ...(role === "CEO" || role === "ADMIN" || role === "OPERATOR" ? OPERATOR_NAV : []),
-            ...(role === "CEO" || role === "ADMIN" ? ADMIN_NAV : []),
-            ...(role === "CEO" ? CEO_NAV : []),
-          ].map((item) => {
-            const { to, label, icon: Icon } = item;
-            const params = "params" in item ? item.params : undefined;
+        <nav className="flex max-h-[calc(100vh-7rem)] flex-col gap-4 overflow-y-auto p-2 pb-4">
+          {NAV_GROUPS.map((group) => {
+            const items = group.items.filter(
+              (item) => !item.roles || (role ? item.roles.includes(role as Role) : false),
+            );
+            if (items.length === 0) return null;
             return (
-            <Link
-              key={to}
-              to={to}
-              params={params as never}
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              activeProps={{
-                className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-              }}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span className="flex-1">{label}</span>
-              {to === "/approvals" && (pendingApprovals?.length ?? 0) > 0 ? (
-                <span className="rounded bg-warning/20 px-1.5 text-[11px] font-semibold text-warning">
-                  {pendingApprovals?.length}
-                </span>
-              ) : null}
-            </Link>
+              <div key={group.title} className="flex flex-col gap-0.5">
+                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
+                  {group.title}
+                </p>
+                {items.map(({ to, label, icon: Icon, params }) => (
+                  <Link
+                    key={to}
+                    to={to}
+                    params={params as never}
+                    onClick={() => setOpen(false)}
+                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                    activeProps={{
+                      className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                    }}
+                  >
+                    <Icon className="size-4 shrink-0" />
+                    <span className="flex-1">{label}</span>
+                    {to === "/approvals" && (pendingApprovals?.length ?? 0) > 0 ? (
+                      <span className="rounded bg-warning/20 px-1.5 text-[11px] font-semibold text-warning">
+                        {pendingApprovals?.length}
+                      </span>
+                    ) : null}
+                  </Link>
+                ))}
+              </div>
             );
           })}
         </nav>
+
         <div className="border-t border-sidebar-border p-2">
           <button
             onClick={signOut}
