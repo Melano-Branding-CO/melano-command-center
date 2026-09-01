@@ -46,6 +46,8 @@ const NAV = [
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
+const ADMIN_NAV = [{ to: "/admin", label: "Administración", icon: ShieldCheck }] as const;
+
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const { data: org } = useOrg();
@@ -101,7 +103,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         </div>
         <nav className="flex flex-col gap-0.5 overflow-y-auto p-2">
-          {NAV.map(({ to, label, icon: Icon }) => (
+          {[...NAV, ...(role === "CEO" || role === "ADMIN" ? ADMIN_NAV : [])].map(({ to, label, icon: Icon }) => (
             <Link
               key={to}
               to={to}
