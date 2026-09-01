@@ -2,7 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
 import { agentMap, fmtDate, useAgents, useOrg, type Agent } from "@/lib/melano";
-import { useOrgRows } from "@/lib/melano-queries";
+import { useOrgRows, useRealtime } from "@/lib/melano-queries";
+import {
+  RunTaskInN8nButton,
+  TaskN8nLogList,
+  useTaskN8nLogs,
+} from "@/components/melano/task-n8n";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   head: () => ({
