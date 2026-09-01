@@ -873,12 +873,12 @@ export const updateMyAssignment = createServerFn({ method: "POST" })
 
 type N8nRuleInput = {
   organizationId: string;
-  id?: string;
+  id?: string | undefined;
   name: string;
-  description?: string | null;
-  webhookUrl?: string | null;
-  workflow?: string | null;
-  enabled?: boolean;
+  description?: string | null | undefined;
+  webhookUrl?: string | null | undefined;
+  workflow?: string | null | undefined;
+  enabled?: boolean | undefined;
 };
 
 /** Alta/edición de una automatización conectada a un workflow de n8n. Sólo CEO/ADMIN. */
@@ -926,7 +926,7 @@ export const saveN8nAutomation = createServerFn({ method: "POST" })
 /** Ejecuta el workflow de n8n de una automatización y deja run + log auditables. */
 export const runN8nAutomation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { organizationId: string; ruleId: string; payload?: Serializable }) => {
+  .inputValidator((input: { organizationId: string; ruleId: string; payload?: Serializable | undefined }) => {
     if (!input?.organizationId || !input?.ruleId) throw new Error("Parámetros inválidos");
     return input;
   })
