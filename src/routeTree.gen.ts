@@ -47,6 +47,7 @@ import { Route as AuthenticatedLuxiaStageRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMeetingsIndexRouteImport } from './routes/_authenticated/meetings.index'
 import { Route as AuthenticatedMeetingsMeetingIdRouteImport } from './routes/_authenticated/meetings.$meetingId'
 import { Route as ApiPublicCronDailyMeetingRouteImport } from './routes/api/public/cron/daily-meeting'
+import { Route as ApiPublicN8nCallbackRouteImport } from './routes/api/public/n8n/callback'
 import { Route as ApiPublicN8nDispatchRouteImport } from './routes/api/public/n8n/dispatch'
 
 const IndexRoute = IndexRouteImport.update({
@@ -249,6 +250,11 @@ const ApiPublicCronDailyMeetingRoute =
     path: '/api/public/cron/daily-meeting',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicN8nCallbackRoute = ApiPublicN8nCallbackRouteImport.update({
+  id: '/api/public/n8n/callback',
+  path: '/api/public/n8n/callback',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicN8nDispatchRoute = ApiPublicN8nDispatchRouteImport.update({
   id: '/api/public/n8n/dispatch',
   path: '/api/public/n8n/dispatch',
@@ -293,6 +299,7 @@ export interface FileRoutesByFullPath {
   '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/meetings/': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
+  '/api/public/n8n/callback': typeof ApiPublicN8nCallbackRoute
   '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRoutesByTo {
@@ -333,6 +340,7 @@ export interface FileRoutesByTo {
   '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/meetings': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
+  '/api/public/n8n/callback': typeof ApiPublicN8nCallbackRoute
   '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRoutesById {
@@ -375,6 +383,7 @@ export interface FileRoutesById {
   '/_authenticated/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
   '/_authenticated/meetings/': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
+  '/api/public/n8n/callback': typeof ApiPublicN8nCallbackRoute
   '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRouteTypes {
@@ -417,6 +426,7 @@ export interface FileRouteTypes {
     | '/meetings/$meetingId'
     | '/meetings/'
     | '/api/public/cron/daily-meeting'
+    | '/api/public/n8n/callback'
     | '/api/public/n8n/dispatch'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -457,6 +467,7 @@ export interface FileRouteTypes {
     | '/meetings/$meetingId'
     | '/meetings'
     | '/api/public/cron/daily-meeting'
+    | '/api/public/n8n/callback'
     | '/api/public/n8n/dispatch'
   id:
     | '__root__'
@@ -498,6 +509,7 @@ export interface FileRouteTypes {
     | '/_authenticated/meetings/$meetingId'
     | '/_authenticated/meetings/'
     | '/api/public/cron/daily-meeting'
+    | '/api/public/n8n/callback'
     | '/api/public/n8n/dispatch'
   fileRoutesById: FileRoutesById
 }
@@ -512,6 +524,7 @@ export interface RootRouteChildren {
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicCronDailyMeetingRoute: typeof ApiPublicCronDailyMeetingRoute
+  ApiPublicN8nCallbackRoute: typeof ApiPublicN8nCallbackRoute
   ApiPublicN8nDispatchRoute: typeof ApiPublicN8nDispatchRoute
 }
 
@@ -783,6 +796,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCronDailyMeetingRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/n8n/callback': {
+      id: '/api/public/n8n/callback'
+      path: '/api/public/n8n/callback'
+      fullPath: '/api/public/n8n/callback'
+      preLoaderRoute: typeof ApiPublicN8nCallbackRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/n8n/dispatch': {
       id: '/api/public/n8n/dispatch'
       path: '/api/public/n8n/dispatch'
@@ -879,6 +899,7 @@ const rootRouteChildren: RootRouteChildren = {
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicCronDailyMeetingRoute: ApiPublicCronDailyMeetingRoute,
+  ApiPublicN8nCallbackRoute: ApiPublicN8nCallbackRoute,
   ApiPublicN8nDispatchRoute: ApiPublicN8nDispatchRoute,
 }
 export const routeTree = rootRouteImport
