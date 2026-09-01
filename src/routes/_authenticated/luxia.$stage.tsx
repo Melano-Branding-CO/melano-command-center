@@ -79,6 +79,23 @@ const STAGES: StageConfig[] = [
     title: "LUXIA · Reunión",
     subtitle:
       "Contacto inicial y reunión de diagnóstico. Al registrar la reunión, el lead avanza a propuesta.",
+    objective:
+      "Validar que la inmobiliaria tiene necesidades reales que LUXIA puede resolver y obtener datos para diseñar una propuesta.",
+    actions: [
+      "Contactar al lead por WhatsApp, mail o llamada.",
+      "Agendar y realizar reunión de diagnóstico.",
+      "Relevar: cantidad de propiedades, zonas, CRM actual, dolor principal, decisores.",
+      "Registrar evidencia de la reunión en la nota antes de avanzar.",
+    ],
+    exitCriteria: [
+      "Se completó la reunión.",
+      "Se identificó el problema y el decisor.",
+      "El lead acepta recibir propuesta.",
+    ],
+    examples: [
+      "Reunión 30/8: 120 propiedades en Guemes y La Perla, sin CRM unificado. Decisor: Gerente Comercial.",
+      "Contacto por WhatsApp: interesados en automatizar publicación de avisos.",
+    ],
     from: ["NUEVO", "CONTACTADO"],
     toStatus: "CALIFICADO",
     toPhase: "FASE_0_14",
@@ -92,6 +109,22 @@ const STAGES: StageConfig[] = [
     title: "LUXIA · Propuesta",
     subtitle:
       "Propuesta económica y alcance enviados. Al enviarla, el lead pasa a negociación y fase 15–45.",
+    objective:
+      "Presentar una propuesta de valor clara con alcance, inversión y plazo, y conseguir apertura a negociar.",
+    actions: [
+      "Preparar propuesta personalizada en base a la reunión.",
+      "Enviar propuesta por mail con PDF y seguimiento.",
+      "Agendar llamada de feedback dentro de 48–72 hs.",
+      "Registrar respuesta, objeciones y próximo contacto.",
+    ],
+    exitCriteria: [
+      "Propuesta enviada y confirmada de recepción.",
+      "El lead está dispuesto a negociar términos.",
+    ],
+    examples: [
+      "Propuesta enviada: plan LUXIA Professional, USD 890/mes, onboarding 14 días.",
+      "Cliente pide ajustar alcance de integración con portales.",
+    ],
     from: ["CALIFICADO"],
     toStatus: "NEGOCIACION",
     toPhase: "FASE_15_45",
@@ -105,6 +138,22 @@ const STAGES: StageConfig[] = [
     title: "LUXIA · Aprobación",
     subtitle:
       "Confirmación comercial del cliente. Requiere evidencia registrada antes de pasar a contrato.",
+    objective:
+      "Obtener la aprobación verbal o escrita del cliente y destrabar objeciones para pasar a contrato.",
+    actions: [
+      "Negociar términos, precio y forma de pago.",
+      "Resolver objeciones técnicas o comerciales.",
+      "Solicitar aprobación formal (mail, PO, conformidad).",
+      "Subir o registrar evidencia de la aprobación.",
+    ],
+    exitCriteria: [
+      "El cliente confirmó la aprobación por escrito o mail.",
+      "Se acordó el contrato y la fecha de inicio.",
+    ],
+    examples: [
+      "Aprobación por mail del Gerente Comercial para iniciar el 15/9.",
+      "Orden de compra interna aprobada por dirección.",
+    ],
     from: ["NEGOCIACION"],
     toStatus: "GANADO",
     toPhase: "FASE_15_45",
@@ -118,6 +167,23 @@ const STAGES: StageConfig[] = [
     title: "LUXIA · Contrato",
     subtitle:
       "Firma y alta operativa. Al firmar, el lead queda en fase 46–90 para onboarding y revenue recurrente.",
+    objective:
+      "Convertir la aprobación en contrato firmado, facturación recurrente y onboarding operativo.",
+    actions: [
+      "Enviar contrato/servicio para firma.",
+      "Coordinar alta operativa y kick-off de implementación.",
+      "Cargar cliente en sistema de facturación.",
+      "Programar seguimiento de onboarding y primeros 90 días.",
+    ],
+    exitCriteria: [
+      "Contrato firmado por ambas partes.",
+      "Alta operativa iniciada.",
+      "Primer pago / MRR confirmado.",
+    ],
+    examples: [
+      "Contrato firmado el 05/9. Kick-off programado para el 10/9.",
+      "MRR USD 890 confirmado. Onboarding: 2 semanas.",
+    ],
     from: ["GANADO"],
     toStatus: "GANADO",
     toPhase: "FASE_46_90",
