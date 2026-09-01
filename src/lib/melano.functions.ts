@@ -1,3 +1,4 @@
+import { n8nWebhookHeaders } from "@/lib/n8n-headers";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -963,7 +964,7 @@ export const runN8nAutomation = createServerFn({ method: "POST" })
     try {
       const res = await fetch(rule.n8n_webhook_url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: n8nWebhookHeaders(),
         body: JSON.stringify({
           source: "melano-command-center",
           organization_id: data.organizationId,
@@ -1069,7 +1070,7 @@ async function dispatchN8nEvent(
   try {
     const res = await fetch(rule.n8n_webhook_url as string, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: n8nWebhookHeaders(),
       body: JSON.stringify({
         source: "melano-command-center",
         event,
