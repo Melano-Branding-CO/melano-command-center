@@ -80,6 +80,15 @@ function TodayPage() {
                 <Field label="Success metric" value={t.success_metric} />
                 <Field label="Deadline" value={t.deadline ? fmtDate(t.deadline) : null} />
               </dl>
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <RunTaskInN8nButton organizationId={org?.id} taskId={t.id} />
+              </div>
+              {(n8nLogs ?? []).filter((l) => l.entity_id === t.id).length > 0 ? (
+                <div className="mt-3 border-t border-border pt-2">
+                  <p className="label-caps">Ejecuciones n8n</p>
+                  <TaskN8nLogList logs={(n8nLogs ?? []).filter((l) => l.entity_id === t.id)} />
+                </div>
+              ) : null}
             </Panel>
           ))}
         </div>
