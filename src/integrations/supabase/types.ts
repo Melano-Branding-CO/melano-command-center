@@ -556,6 +556,8 @@ export type Database = {
           last_error: string | null
           last_result: string | null
           last_run_at: string | null
+          n8n_webhook_url: string | null
+          n8n_workflow: string | null
           name: string
           next_run_at: string | null
           organization_id: string
@@ -575,6 +577,8 @@ export type Database = {
           last_error?: string | null
           last_result?: string | null
           last_run_at?: string | null
+          n8n_webhook_url?: string | null
+          n8n_workflow?: string | null
           name: string
           next_run_at?: string | null
           organization_id: string
@@ -594,6 +598,8 @@ export type Database = {
           last_error?: string | null
           last_result?: string | null
           last_run_at?: string | null
+          n8n_webhook_url?: string | null
+          n8n_workflow?: string | null
           name?: string
           next_run_at?: string | null
           organization_id?: string
