@@ -1,3 +1,4 @@
+import { n8nWebhookHeaders } from "../n8n-headers";
 // Puente MCP → n8n: usa el workflow activo de la organización y deja traza auditable
 // en automation_runs + activity_logs (visibles en /today y /meetings).
 import type { Authed } from "./supabase";
@@ -62,7 +63,7 @@ export async function dispatchN8n(
   try {
     const res = await fetch(rule.n8n_webhook_url as string, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: n8nWebhookHeaders(),
       body: JSON.stringify({
         source: "melano-command-center",
         channel: "mcp",
