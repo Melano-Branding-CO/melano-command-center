@@ -146,6 +146,8 @@ function GreenGatePage() {
     order: "started_at",
     limit: 5,
   });
+  const { data: leads } = useOrgRows<Lead>("leads", org?.id, { order: "created_at" });
+
 
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
