@@ -1015,3 +1015,152 @@ export const runN8nAutomation = createServerFn({ method: "POST" })
     if (status === "FAILED") throw new Error(errorText ?? "Error llamando a n8n");
     return { traceId, output };
   });
+
+/* ──────────────────── Ejecución de tareas en n8n (task → workflow) ──────────────────── */
+
+const TASK_RUN_ROLES = ["CEO", "ADMIN", "OPERATOR"];
+
+/**
+ * Envía una tarea a un workflow de n8n y deja traza auditable:
+ * automation_runs + activity_logs (n8n.task) + estado/resultado en la tarea.
+ */
+export const runTaskInN8n = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string; taskId: string; ruleId?: string | undefined }) => {
+    if (!input?.organizationId || !input?.taskId) throw new Error("Parámetros inválidos");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    const { data: member } = await context.supabase
+      .from("organization_members")
+      .select("role")
+      .eq("organization_id", data.organizationId)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (!member || !TASK_RUN_ROLES.includes(member.role)) {
+      throw new Error("Sin permisos para ejecutar tareas en n8n");
+    }
+
+    const { data: task, error: taskError } = await context.supabase
+      .from("tasks")
+      .select(
+        "id, title, description, priority, status, next_action, success_metric, why_now, deadline, meeting_id, decision_id, assigned_agent, assigned_user, trace_id",
+      )
+      .eq("id", data.taskId)
+      .eq("organization_id", data.organizationId)
+      .maybeSingle();
+    if (taskError) throw new Error(taskError.message);
+    if (!task) throw new Error("Tarea no encontrada");
+
+    let ruleQuery = context.supabase
+      .from("automation_rules")
+      .select("id, name, n8n_webhook_url, n8n_workflow, enabled")
+      .eq("organization_id", data.organizationId)
+      .eq("enabled", true)
+      .not("n8n_webhook_url", "is", null);
+    if (data.ruleId) ruleQuery = ruleQuery.eq("id", data.ruleId);
+    const { data: rules, error: ruleError } = await ruleQuery.order("created_at").limit(1);
+    if (ruleError) throw new Error(ruleError.message);
+    const rule = rules?.[0];
+    if (!rule?.n8n_webhook_url) {
+      throw new Error("No hay workflow de n8n activo. Configuralo en Automations.");
+    }
+
+    const traceId = crypto.randomUUID();
+    const startedAt = new Date().toISOString();
+    const { data: run } = await context.supabase
+      .from("automation_runs")
+      .insert({
+        organization_id: data.organizationId,
+        rule_id: rule.id,
+        status: "RUNNING",
+        started_at: startedAt,
+        trace_id: traceId,
+      })
+      .select("id")
+      .single();
+
+    let status: "SUCCESS" | "FAILED" = "SUCCESS";
+    let output = "";
+    let errorText: string | null = null;
+    try {
+      const res = await fetch(rule.n8n_webhook_url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "melano-command-center",
+          event: "task.execute",
+          organization_id: data.organizationId,
+          rule_id: rule.id,
+          rule_name: rule.name,
+          workflow: rule.n8n_workflow,
+          trace_id: traceId,
+          triggered_by: context.userId,
+          triggered_at: startedAt,
+          task,
+        }),
+      });
+      output = (await res.text()).slice(0, 4000);
+      if (!res.ok) {
+        status = "FAILED";
+        errorText = `HTTP ${res.status}`;
+      }
+    } catch (err) {
+      status = "FAILED";
+      errorText = err instanceof Error ? err.message : String(err);
+    }
+
+    const finishedAt = new Date().toISOString();
+    if (run?.id) {
+      await context.supabase
+        .from("automation_runs")
+        .update({ status, finished_at: finishedAt, output, error: errorText })
+        .eq("id", run.id);
+    }
+    await context.supabase
+      .from("automation_rules")
+      .update({
+        last_run_at: finishedAt,
+        last_result: status === "SUCCESS" ? output.slice(0, 500) || "OK" : null,
+        last_error: errorText,
+        status: status === "SUCCESS" ? "OK" : "ERROR",
+      })
+      .eq("id", rule.id);
+
+    await context.supabase
+      .from("tasks")
+      .update(
+        status === "SUCCESS"
+          ? {
+              status: "RUNNING",
+              started_at: task.status === "RUNNING" ? undefined : startedAt,
+              trace_id: traceId,
+              result: `n8n · ${rule.n8n_workflow ?? rule.name}: ${output.slice(0, 300) || "OK"}`,
+              error: null,
+            }
+          : { trace_id: traceId, error: `n8n · ${errorText}` },
+      )
+      .eq("id", task.id)
+      .eq("organization_id", data.organizationId);
+
+    await context.supabase.from("activity_logs").insert({
+      organization_id: data.organizationId,
+      actor_type: "user",
+      actor_user: context.userId,
+      action: "n8n.task",
+      entity_type: "task",
+      entity_id: task.id,
+      trace_id: traceId,
+      detail: {
+        task: task.title,
+        rule: rule.name,
+        workflow: rule.n8n_workflow,
+        status,
+        error: errorText,
+        output: output.slice(0, 500),
+      } as never,
+    });
+
+    if (status === "FAILED") throw new Error(errorText ?? "Error llamando a n8n");
+    return { traceId, output, rule: rule.n8n_workflow ?? rule.name };
+  });
