@@ -262,6 +262,10 @@ function MeetingDetail() {
                       <p className="text-[11px] text-muted-foreground">
                         Agente: {t.assigned_agent ? (byAgent.get(t.assigned_agent)?.name ?? "—") : "—"}
                       </p>
+                      <RunTaskInN8nButton organizationId={org?.id} taskId={t.id} />
+                      {n8nByTask.get(t.id)?.length ? (
+                        <TaskN8nLogList logs={n8nByTask.get(t.id) ?? []} />
+                      ) : null}
                     </div>
                   </li>
                 ))}
