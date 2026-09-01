@@ -10,6 +10,8 @@ export type PublicStats = {
     approvals: number;
     approvalsResolved: number;
     leads: number;
+    clients: number;
+    clientsActive: number;
     agentRuns: number;
     agentRunsSuccess: number;
   };
@@ -17,6 +19,7 @@ export type PublicStats = {
   decisionsByStatus: { name: string; value: number }[];
   approvalsByStatus: { name: string; value: number }[];
   leadsByPhase: { name: string; value: number }[];
+  clientsByStage: { name: string; value: number }[];
   activityByDay: { day: string; tareas: number; decisiones: number }[];
 };
 
@@ -53,6 +56,8 @@ export const getPublicStats = createServerFn({ method: "GET" }).handler(async ()
       approvals: 0,
       approvalsResolved: 0,
       leads: 0,
+      clients: 0,
+      clientsActive: 0,
       agentRuns: 0,
       agentRunsSuccess: 0,
     },
@@ -60,16 +65,18 @@ export const getPublicStats = createServerFn({ method: "GET" }).handler(async ()
     decisionsByStatus: [],
     approvalsByStatus: [],
     leadsByPhase: [],
+    clientsByStage: [],
     activityByDay: [],
   };
 
   if (!org) return empty;
 
-  const [tasks, decisions, approvals, leads, runs] = await Promise.all([
+  const [tasks, decisions, approvals, leads, clients, runs] = await Promise.all([
     supabaseAdmin.from("tasks").select("status,created_at").eq("organization_id", org.id),
     supabaseAdmin.from("decisions").select("status,created_at").eq("organization_id", org.id),
     supabaseAdmin.from("approvals").select("status").eq("organization_id", org.id),
     supabaseAdmin.from("leads").select("phase").eq("organization_id", org.id),
+    supabaseAdmin.from("clients").select("status,luxia_stage").eq("organization_id", org.id),
     supabaseAdmin.from("agent_runs").select("status").eq("organization_id", org.id),
   ]);
 
@@ -77,6 +84,7 @@ export const getPublicStats = createServerFn({ method: "GET" }).handler(async ()
   const decisionRows = decisions.data ?? [];
   const approvalRows = approvals.data ?? [];
   const leadRows = leads.data ?? [];
+  const clientRows = (clients.data ?? []) as { status: string; luxia_stage: string }[];
   const runRows = runs.data ?? [];
 
   const days: string[] = [];
@@ -100,6 +108,8 @@ export const getPublicStats = createServerFn({ method: "GET" }).handler(async ()
       approvals: approvalRows.length,
       approvalsResolved: approvalRows.filter((a) => a.status !== "PENDING").length,
       leads: leadRows.length,
+      clients: clientRows.length,
+      clientsActive: clientRows.filter((c) => c.status === "ACTIVO").length,
       agentRuns: runRows.length,
       agentRunsSuccess: runRows.filter((r) => r.status === "SUCCESS").length,
     },
@@ -107,6 +117,7 @@ export const getPublicStats = createServerFn({ method: "GET" }).handler(async ()
     decisionsByStatus: tally(decisionRows, "status"),
     approvalsByStatus: tally(approvalRows, "status"),
     leadsByPhase: tally(leadRows, "phase"),
+    clientsByStage: tally(clientRows, "luxia_stage"),
     activityByDay,
   };
 });
