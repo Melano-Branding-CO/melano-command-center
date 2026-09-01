@@ -17,7 +17,12 @@ import {
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge } from "@/components/melano/badges";
 import { fmtDate, useMyRole, useOrg } from "@/lib/melano";
-import { deleteClient, listClients, saveClient } from "@/lib/melano.functions";
+import {
+  deleteClient,
+  listAssignableOperators,
+  listClients,
+  saveClient,
+} from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/clientes")({
   head: () => ({
@@ -63,6 +68,7 @@ type Client = {
   last_contact_at: string | null;
   next_follow_up_at: string | null;
   notes: string | null;
+  owner_user: string | null;
   created_at: string;
 };
 
@@ -106,6 +112,7 @@ const EMPTY_FORM = {
   lastContactAt: "",
   nextFollowUpAt: "",
   notes: "",
+  ownerUser: "",
 };
 
 type FormState = typeof EMPTY_FORM;
@@ -131,6 +138,7 @@ function toForm(c: Client): FormState {
     lastContactAt: (c.last_contact_at ?? "").slice(0, 10),
     nextFollowUpAt: (c.next_follow_up_at ?? "").slice(0, 10),
     notes: c.notes ?? "",
+    ownerUser: c.owner_user ?? "",
   };
 }
 
@@ -150,6 +158,7 @@ function ClientsPage() {
   const load = useServerFn(listClients);
   const save = useServerFn(saveClient);
   const remove = useServerFn(deleteClient);
+  const loadOperators = useServerFn(listAssignableOperators);
 
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [busy, setBusy] = useState(false);
@@ -162,6 +171,21 @@ function ClientsPage() {
       return res.clients as unknown as Client[];
     },
   });
+
+  const operators = useQuery({
+    queryKey: ["assignable-operators", org?.id],
+    enabled: !!org?.id && isAdmin,
+    queryFn: async () => {
+      const res = await loadOperators({ data: { organizationId: org!.id } });
+      return res.operators;
+    },
+  });
+
+  const operatorLabel = (userId: string | null) => {
+    if (!userId) return "Sin asignar";
+    const op = (operators.data ?? []).find((o) => o.userId === userId);
+    return op ? `${op.fullName ?? op.email ?? op.userId} · ${op.role}` : "Asignado";
+  };
 
   const rows = useMemo(() => clients.data ?? [], [clients.data]);
   const totals = useMemo(() => {
@@ -204,6 +228,7 @@ function ClientsPage() {
           lastContactAt: form.lastContactAt || null,
           nextFollowUpAt: form.nextFollowUpAt || null,
           notes: form.notes,
+          ownerUser: form.ownerUser || null,
         },
       });
       toast.success(form.id ? "Cliente actualizado" : "Cliente creado");
@@ -257,6 +282,7 @@ function ClientsPage() {
           lastContactAt: new Date().toISOString(),
           nextFollowUpAt: client.next_follow_up_at,
           notes: client.notes,
+          ownerUser: client.owner_user,
         },
       });
       toast.success("Etapa LUXIA actualizada");
@@ -438,6 +464,25 @@ function ClientsPage() {
               onChange={(e) => set("nextAction", e.target.value)}
             />
           </div>
+          <div className="grid gap-1.5">
+            <Label>Responsable asignado</Label>
+            <Select
+              value={form.ownerUser || "NONE"}
+              onValueChange={(v) => set("ownerUser", v === "NONE" ? "" : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sin asignar" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="NONE">Sin asignar</SelectItem>
+                {(operators.data ?? []).map((o) => (
+                  <SelectItem key={o.userId} value={o.userId}>
+                    {(o.fullName ?? o.email ?? o.userId) + " · " + o.role}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           <div className="grid gap-1.5 md:col-span-3">
             <Label htmlFor="c-notes">Notas</Label>
             <Textarea
@@ -497,6 +542,7 @@ function ClientsPage() {
                           </div>
                           <div>Último contacto: {fmtDate(c.last_contact_at)}</div>
                           <div>Próximo: {fmtDate(c.next_follow_up_at)}</div>
+                          <div>Responsable: {operatorLabel(c.owner_user)}</div>
                         </div>
                       </div>
                       {c.next_action ? (
