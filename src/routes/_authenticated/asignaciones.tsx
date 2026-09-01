@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -94,9 +94,8 @@ function AssignmentsPage() {
   const { data: tasks, isLoading } = useOrgRows<Task>("tasks", org?.id, { order: "created_at" });
 
   const [me, setMe] = useState<string | null>(null);
-  useMemo(() => {
+  useEffect(() => {
     supabase.auth.getUser().then(({ data }) => setMe(data.user?.id ?? null));
-    return null;
   }, []);
 
   const membersFn = useServerFn(listOrgMembers);

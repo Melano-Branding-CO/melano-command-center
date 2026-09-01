@@ -74,6 +74,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     title: "Operación",
     items: [
+      { to: "/asignaciones", label: "Asignaciones", icon: ListChecks },
       { to: "/tasks", label: "Tasks", icon: ListChecks },
       { to: "/decisions", label: "Decisions", icon: GitBranch },
       { to: "/approvals", label: "Approvals", icon: ShieldCheck },

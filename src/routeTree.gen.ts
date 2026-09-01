@@ -17,6 +17,7 @@ import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
+import { Route as AuthenticatedAsignacionesRouteImport } from './routes/_authenticated/asignaciones'
 import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
 import { Route as AuthenticatedBrunoRouteImport } from './routes/_authenticated/bruno'
 import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ceo'
@@ -77,6 +78,12 @@ const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
   path: '/approvals',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAsignacionesRoute =
+  AuthenticatedAsignacionesRouteImport.update({
+    id: '/asignaciones',
+    path: '/asignaciones',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAutomationsRoute =
   AuthenticatedAutomationsRouteImport.update({
     id: '/automations',
@@ -189,6 +196,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/approvals': typeof AuthenticatedApprovalsRoute
+  '/asignaciones': typeof AuthenticatedAsignacionesRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/bruno': typeof AuthenticatedBrunoRoute
   '/ceo': typeof AuthenticatedCeoRoute
@@ -218,6 +226,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/approvals': typeof AuthenticatedApprovalsRoute
+  '/asignaciones': typeof AuthenticatedAsignacionesRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/bruno': typeof AuthenticatedBrunoRoute
   '/ceo': typeof AuthenticatedCeoRoute
@@ -249,6 +258,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
+  '/_authenticated/asignaciones': typeof AuthenticatedAsignacionesRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
   '/_authenticated/bruno': typeof AuthenticatedBrunoRoute
   '/_authenticated/ceo': typeof AuthenticatedCeoRoute
@@ -280,6 +290,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/agents'
     | '/approvals'
+    | '/asignaciones'
     | '/automations'
     | '/bruno'
     | '/ceo'
@@ -309,6 +320,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/agents'
     | '/approvals'
+    | '/asignaciones'
     | '/automations'
     | '/bruno'
     | '/ceo'
@@ -339,6 +351,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/agents'
     | '/_authenticated/approvals'
+    | '/_authenticated/asignaciones'
     | '/_authenticated/automations'
     | '/_authenticated/bruno'
     | '/_authenticated/ceo'
@@ -425,6 +438,13 @@ declare module '@tanstack/react-router' {
       path: '/approvals'
       fullPath: '/approvals'
       preLoaderRoute: typeof AuthenticatedApprovalsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/asignaciones': {
+      id: '/_authenticated/asignaciones'
+      path: '/asignaciones'
+      fullPath: '/asignaciones'
+      preLoaderRoute: typeof AuthenticatedAsignacionesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/automations': {
@@ -586,6 +606,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRouteWithChildren
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
+  AuthenticatedAsignacionesRoute: typeof AuthenticatedAsignacionesRoute
   AuthenticatedAutomationsRoute: typeof AuthenticatedAutomationsRoute
   AuthenticatedBrunoRoute: typeof AuthenticatedBrunoRoute
   AuthenticatedCeoRoute: typeof AuthenticatedCeoRoute
@@ -611,6 +632,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAgentsRoute: AuthenticatedAgentsRouteWithChildren,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
+  AuthenticatedAsignacionesRoute: AuthenticatedAsignacionesRoute,
   AuthenticatedAutomationsRoute: AuthenticatedAutomationsRoute,
   AuthenticatedBrunoRoute: AuthenticatedBrunoRoute,
   AuthenticatedCeoRoute: AuthenticatedCeoRoute,
