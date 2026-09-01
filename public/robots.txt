@@ -1,5 +1,3 @@
-# MELANO INC — Autonomous Command Center (sistema privado)
-# Acceso restringido: ninguna ruta debe ser rastreada ni indexada.
-
 User-agent: *
+Allow: /publico
 Disallow: /
