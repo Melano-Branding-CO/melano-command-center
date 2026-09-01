@@ -296,8 +296,10 @@ function LeadsPage() {
           email: email || null,
           phone: phone || null,
           zone: zone || null,
-          source: source || "Inmobiliarias Mar del Plata",
+          source: source || "Relevamiento inmobiliarias Mar del Plata",
           cohort: "LUXIA",
+          phase: "FASE_0_14" as const,
+          status: "NUEVO" as const,
           assigned_agent: luxia?.id ?? null,
           owner_user: session?.user?.id ?? null,
         };
