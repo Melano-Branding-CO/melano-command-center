@@ -1213,3 +1213,103 @@ export const notifyApprovalDecisionInN8n = createServerFn({ method: "POST" })
     );
     return { ok: res.ok, traceId: res.traceId ?? null, error: res.error ?? null };
   });
+
+/* ──────────────── Panel MCP → n8n (mismo puente que el endpoint /mcp) ──────────────── */
+
+async function assertMcpActor(context: { supabase: any; userId: string }, organizationId: string) {
+  const { data: member } = await context.supabase
+    .from("organization_members")
+    .select("role")
+    .eq("organization_id", organizationId)
+    .eq("user_id", context.userId)
+    .maybeSingle();
+  if (!member || !["CEO", "ADMIN", "OPERATOR"].includes(member.role)) {
+    throw new Error("Sin permisos para ejecutar desde el panel MCP");
+  }
+}
+
+/** Ejecuta una tarea en el workflow real de n8n usando el puente del endpoint /mcp. */
+export const runTaskViaMcp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string; taskId: string; note?: string | undefined }) => {
+    if (!input?.organizationId || !input?.taskId) throw new Error("Parámetros inválidos");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertMcpActor(context as never, data.organizationId);
+    const { data: task, error } = await context.supabase
+      .from("tasks")
+      .select(
+        "id,title,description,status,priority,why_now,next_action,success_metric,assigned_agent,meeting_id,deadline",
+      )
+      .eq("id", data.taskId)
+      .eq("organization_id", data.organizationId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!task) throw new Error("Tarea no encontrada");
+
+    const { dispatchN8n } = await import("./mcp/n8n");
+    await context.supabase.from("tasks").update({ status: "RUNNING" }).eq("id", task.id);
+    const res = await dispatchN8n(
+      context.supabase as never,
+      context.userId,
+      data.organizationId,
+      "n8n.task.run",
+      { type: "task", id: task.id, meetingId: task.meeting_id },
+      { task, note: data.note ?? null, title: task.title },
+    );
+    await context.supabase
+      .from("tasks")
+      .update({
+        status: res.ok ? "REVIEW" : res.status === "SKIPPED" ? "READY" : "FAILED",
+        ...(res.traceId ? { trace_id: res.traceId } : {}),
+      })
+      .eq("id", task.id);
+    if (!res.ok) throw new Error(res.error ?? "Error llamando a n8n");
+    return { traceId: res.traceId, workflow: res.rule, output: res.output.slice(0, 1000) };
+  });
+
+/** Ejecuta una decisión en n8n; si requiere aprobación, sólo notifica a Bruno. */
+export const runDecisionViaMcp = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string; decisionId: string; note?: string | undefined }) => {
+    if (!input?.organizationId || !input?.decisionId) throw new Error("Parámetros inválidos");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertMcpActor(context as never, data.organizationId);
+    const { data: decision, error } = await context.supabase
+      .from("decisions")
+      .select(
+        "id,title,description,status,priority,risk,expected_impact,confidence,requires_approval,meeting_id",
+      )
+      .eq("id", data.decisionId)
+      .eq("organization_id", data.organizationId)
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!decision) throw new Error("Decisión no encontrada");
+
+    const blocked = decision.requires_approval && decision.status !== "APPROVED";
+    const { dispatchN8n } = await import("./mcp/n8n");
+    const res = await dispatchN8n(
+      context.supabase as never,
+      context.userId,
+      data.organizationId,
+      blocked ? "n8n.decision.approval_required" : "n8n.decision.run",
+      { type: "decision", id: decision.id, meetingId: decision.meeting_id },
+      {
+        decision,
+        note: data.note ?? null,
+        title: decision.title,
+        notify: blocked ? "bruno" : null,
+        stage: blocked ? "pending_approval" : "execute",
+      },
+    );
+    if (!res.ok) throw new Error(res.error ?? "Error llamando a n8n");
+    return {
+      traceId: res.traceId,
+      workflow: res.rule,
+      executed: !blocked,
+      output: res.output.slice(0, 1000),
+    };
+  });
