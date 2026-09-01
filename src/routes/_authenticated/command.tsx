@@ -6,8 +6,8 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
-import { agentMap, fmtDate, useAgents, useOrg, type Agent } from "@/lib/melano";
-import { useOrgRows } from "@/lib/melano-queries";
+import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
+import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { runMeetingNow } from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/command")({
