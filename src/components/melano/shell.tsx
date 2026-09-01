@@ -26,37 +26,74 @@ import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { StatusBadge } from "@/components/melano/badges";
 import { cn } from "@/lib/utils";
 
-const NAV = [
-  { to: "/command", label: "Command Center", icon: LayoutDashboard },
-  { to: "/dashboards", label: "Dashboards", icon: ChartNoAxesColumn },
-  { to: "/bruno", label: "Bruno", icon: ShieldCheck },
-  { to: "/green-gate", label: "Green Gate", icon: BadgeCheck },
-  { to: "/today", label: "Today", icon: Sun },
-  { to: "/revenue", label: "Revenue", icon: Wallet },
-  { to: "/agents", label: "Agents", icon: Bot },
-  { to: "/meetings", label: "Meetings", icon: CalendarClock },
-  { to: "/decisions", label: "Decisions", icon: GitBranch },
-  { to: "/tasks", label: "Tasks", icon: ListChecks },
-  { to: "/automations", label: "Automations", icon: BadgeCheck },
-  { to: "/products", label: "Products", icon: Package },
-  { to: "/approvals", label: "Approvals", icon: ShieldCheck },
-  { to: "/activity", label: "Activity", icon: Activity },
-  { to: "/metrics", label: "Metrics", icon: ChartNoAxesColumn },
-  { to: "/settings", label: "Settings", icon: Settings },
-] as const;
+type Role = "CEO" | "ADMIN" | "OPERATOR" | "VIEWER" | "AGENT";
 
-const OPERATOR_NAV = [
-  { to: "/operador", label: "Mi cartera", icon: Users },
-] as const;
+type NavItem = {
+  to: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  params?: Record<string, string>;
+  roles?: Role[];
+};
 
-const ADMIN_NAV = [
-  { to: "/leads", label: "Leads · LUXIA", icon: Users },
-  { to: "/luxia/$stage", label: "Pipeline LUXIA", icon: GitBranch, params: { stage: "reunion" } },
-  { to: "/clientes", label: "Clientes", icon: Users },
-  { to: "/admin", label: "Administración", icon: ShieldCheck },
-] as const;
+type NavGroup = { title: string; items: NavItem[] };
 
-const CEO_NAV = [{ to: "/ceo", label: "CEO Dashboard", icon: ChartNoAxesColumn }] as const;
+const NAV_GROUPS: NavGroup[] = [
+  {
+    title: "Ejecutivo",
+    items: [
+      { to: "/command", label: "Command Center", icon: LayoutDashboard },
+      { to: "/today", label: "Today", icon: Sun },
+      { to: "/ceo", label: "CEO Dashboard", icon: ChartNoAxesColumn, roles: ["CEO"] },
+      { to: "/bruno", label: "Bruno", icon: ShieldCheck },
+      { to: "/green-gate", label: "Green Gate", icon: BadgeCheck },
+      { to: "/dashboards", label: "Dashboards", icon: ChartNoAxesColumn },
+    ],
+  },
+  {
+    title: "Comercial",
+    items: [
+      { to: "/leads", label: "Leads · LUXIA", icon: Users, roles: ["CEO", "ADMIN"] },
+      {
+        to: "/luxia/$stage",
+        label: "Pipeline LUXIA",
+        icon: GitBranch,
+        params: { stage: "reunion" },
+        roles: ["CEO", "ADMIN"],
+      },
+      { to: "/clientes", label: "Clientes", icon: Users, roles: ["CEO", "ADMIN"] },
+      {
+        to: "/operador",
+        label: "Mi cartera",
+        icon: Users,
+        roles: ["CEO", "ADMIN", "OPERATOR"],
+      },
+      { to: "/revenue", label: "Revenue", icon: Wallet },
+    ],
+  },
+  {
+    title: "Operación",
+    items: [
+      { to: "/tasks", label: "Tasks", icon: ListChecks },
+      { to: "/decisions", label: "Decisions", icon: GitBranch },
+      { to: "/approvals", label: "Approvals", icon: ShieldCheck },
+      { to: "/meetings", label: "Meetings", icon: CalendarClock },
+      { to: "/automations", label: "Automations", icon: BadgeCheck },
+      { to: "/agents", label: "Agents", icon: Bot },
+      { to: "/products", label: "Products", icon: Package },
+    ],
+  },
+  {
+    title: "Sistema",
+    items: [
+      { to: "/metrics", label: "Metrics", icon: ChartNoAxesColumn },
+      { to: "/activity", label: "Activity", icon: Activity },
+      { to: "/admin", label: "Administración", icon: ShieldCheck, roles: ["CEO", "ADMIN"] },
+      { to: "/settings", label: "Settings", icon: Settings },
+    ],
+  },
+];
+
 
 /** Restringe una pantalla a los roles indicados (la RLS del backend vuelve a validar). */
 export function RoleGate({
