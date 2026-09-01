@@ -562,3 +562,131 @@ export const deleteClient = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+/* ------------------------------------------------------------------ */
+/* Cartera del operador (clientes asignados)                           */
+/* ------------------------------------------------------------------ */
+
+/** Miembros con rol OPERATOR, para que CEO/ADMIN asignen cartera. */
+export const listAssignableOperators = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string }) => {
+    if (!input?.organizationId) throw new Error("organizationId requerido");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context, data.organizationId);
+    const { data: members, error } = await context.supabase
+      .from("organization_members")
+      .select("user_id, role")
+      .eq("organization_id", data.organizationId)
+      .in("role", ["OPERATOR", "ADMIN", "CEO"]);
+    if (error) throw new Error(error.message);
+
+    const ids = (members ?? []).map((m) => m.user_id);
+    const { data: profiles } = ids.length
+      ? await context.supabase.from("profiles").select("id, email, full_name").in("id", ids)
+      : { data: [] as { id: string; email: string | null; full_name: string | null }[] };
+
+    return {
+      operators: (members ?? []).map((m) => {
+        const p = (profiles ?? []).find((row) => row.id === m.user_id);
+        return {
+          userId: m.user_id as string,
+          role: m.role as string,
+          email: p?.email ?? null,
+          fullName: p?.full_name ?? null,
+        };
+      }),
+    };
+  });
+
+/** Clientes asignados al usuario autenticado (RLS también lo restringe). */
+export const listMyClients = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string }) => {
+    if (!input?.organizationId) throw new Error("organizationId requerido");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    const { data: rows, error } = await context.supabase
+      .from("clients")
+      .select("*")
+      .eq("organization_id", data.organizationId)
+      .eq("owner_user", context.userId)
+      .order("next_follow_up_at", { ascending: true, nullsFirst: false });
+    if (error) throw new Error(error.message);
+
+    const ids = (rows ?? []).map((r) => r.id);
+    const { data: logs } = ids.length
+      ? await context.supabase
+          .from("activity_logs")
+          .select("id, action, detail, created_at, entity_id")
+          .eq("organization_id", data.organizationId)
+          .eq("entity_type", "client")
+          .in("entity_id", ids)
+          .order("created_at", { ascending: false })
+          .limit(120)
+      : { data: [] as Record<string, unknown>[] };
+
+    return {
+      clients: (rows ?? []) as unknown as Record<string, Serializable>[],
+      logs: (logs ?? []) as unknown as Record<string, Serializable>[],
+      me: context.userId,
+    };
+  });
+
+/** Registro de seguimiento sobre un cliente asignado: actualiza y audita. */
+export const logClientTouch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      organizationId: string;
+      clientId: string;
+      note: string;
+      nextAction?: string | null;
+      nextFollowUpAt?: string | null;
+      status?: string;
+    }) => {
+      if (!input?.organizationId || !input?.clientId) throw new Error("Parámetros inválidos");
+      if (!(input.note ?? "").trim()) throw new Error("La nota de seguimiento es obligatoria");
+      if (input.status && !CLIENT_STATUS.includes(input.status)) throw new Error("Estado inválido");
+      return input;
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const update: Record<string, unknown> = { last_contact_at: new Date().toISOString() };
+    if (clean(data.nextAction) !== null) update["next_action"] = clean(data.nextAction);
+    if (clean(data.nextFollowUpAt) !== null) update["next_follow_up_at"] = clean(data.nextFollowUpAt);
+    if (data.status) update["status"] = data.status;
+
+    const { data: row, error } = await context.supabase
+      .from("clients")
+      .update(update)
+      .eq("id", data.clientId)
+      .eq("organization_id", data.organizationId)
+      .eq("owner_user", context.userId)
+      .select("id, name, luxia_stage, status")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("El cliente no está asignado a tu cartera");
+
+    const { error: logError } = await context.supabase.from("activity_logs").insert({
+      organization_id: data.organizationId,
+      actor_type: "human",
+      actor_user: context.userId,
+      action: "client.follow_up",
+      entity_type: "client",
+      entity_id: row.id,
+      detail: {
+        name: row.name,
+        note: data.note.trim(),
+        luxia_stage: row.luxia_stage,
+        status: row.status,
+        next_action: update["next_action"] ?? null,
+        next_follow_up_at: update["next_follow_up_at"] ?? null,
+      },
+    });
+    if (logError) throw new Error(logError.message);
+    return { ok: true };
+  });
