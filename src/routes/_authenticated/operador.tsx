@@ -142,7 +142,7 @@ function OperatorPage() {
           note,
           nextAction: nextAction || null,
           nextFollowUpAt: nextFollowUp || null,
-          status: status || undefined,
+          ...(status ? { status } : {}),
         },
       });
       toast.success("Seguimiento registrado");

@@ -658,10 +658,17 @@ export const logClientTouch = createServerFn({ method: "POST" })
     },
   )
   .handler(async ({ data, context }) => {
-    const update: Record<string, unknown> = { last_contact_at: new Date().toISOString() };
-    if (clean(data.nextAction) !== null) update["next_action"] = clean(data.nextAction);
-    if (clean(data.nextFollowUpAt) !== null) update["next_follow_up_at"] = clean(data.nextFollowUpAt);
-    if (data.status) update["status"] = data.status;
+    const nextAction = clean(data.nextAction);
+    const nextFollowUpAt = clean(data.nextFollowUpAt);
+    const update: {
+      last_contact_at: string;
+      next_action?: string;
+      next_follow_up_at?: string;
+      status?: string;
+    } = { last_contact_at: new Date().toISOString() };
+    if (nextAction) update.next_action = nextAction;
+    if (nextFollowUpAt) update.next_follow_up_at = nextFollowUpAt;
+    if (data.status) update.status = data.status;
 
     const { data: row, error } = await context.supabase
       .from("clients")
@@ -686,8 +693,8 @@ export const logClientTouch = createServerFn({ method: "POST" })
         note: data.note.trim(),
         luxia_stage: row.luxia_stage,
         status: row.status,
-        next_action: update["next_action"] ?? null,
-        next_follow_up_at: update["next_follow_up_at"] ?? null,
+        next_action: nextAction,
+        next_follow_up_at: nextFollowUpAt,
       },
     });
     if (logError) throw new Error(logError.message);
