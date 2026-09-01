@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty, RoleGate } from "@/components/melano/shell";
 import { StatusBadge } from "@/components/melano/badges";
+import { IntegracionesPanel } from "@/components/melano/integraciones-panel";
 import { fmtDate, useOrg, useMyRole } from "@/lib/melano";
 import { useOrgRows } from "@/lib/melano-queries";
 import { runN8nAutomation, saveN8nAutomation } from "@/lib/melano.functions";
