@@ -47,6 +47,7 @@ const NAV = [
 
 const ADMIN_NAV = [
   { to: "/leads", label: "Leads · LUXIA", icon: Users },
+  { to: "/luxia/reunion", label: "Pipeline LUXIA", icon: GitBranch },
   { to: "/clientes", label: "Clientes", icon: Users },
   { to: "/admin", label: "Administración", icon: ShieldCheck },
 ] as const;
