@@ -623,6 +623,95 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          city: string | null
+          contact_name: string | null
+          created_at: string
+          currency: string
+          email: string | null
+          id: string
+          is_demo: boolean
+          last_contact_at: string | null
+          legal_name: string | null
+          luxia_stage: Database["public"]["Enums"]["lead_phase"]
+          mrr: number
+          name: string
+          next_action: string | null
+          next_follow_up_at: string | null
+          notes: string | null
+          onboarding_at: string | null
+          organization_id: string
+          owner_user: string | null
+          phone: string | null
+          plan: string | null
+          segment: string | null
+          status: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          city?: string | null
+          contact_name?: string | null
+          created_at?: string
+          currency?: string
+          email?: string | null
+          id?: string
+          is_demo?: boolean
+          last_contact_at?: string | null
+          legal_name?: string | null
+          luxia_stage?: Database["public"]["Enums"]["lead_phase"]
+          mrr?: number
+          name: string
+          next_action?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          onboarding_at?: string | null
+          organization_id: string
+          owner_user?: string | null
+          phone?: string | null
+          plan?: string | null
+          segment?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          city?: string | null
+          contact_name?: string | null
+          created_at?: string
+          currency?: string
+          email?: string | null
+          id?: string
+          is_demo?: boolean
+          last_contact_at?: string | null
+          legal_name?: string | null
+          luxia_stage?: Database["public"]["Enums"]["lead_phase"]
+          mrr?: number
+          name?: string
+          next_action?: string | null
+          next_follow_up_at?: string | null
+          notes?: string | null
+          onboarding_at?: string | null
+          organization_id?: string
+          owner_user?: string | null
+          phone?: string | null
+          plan?: string | null
+          segment?: string | null
+          status?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       decision_evidence: {
         Row: {
           content: string | null

@@ -420,3 +420,145 @@ export const listAdminData = createServerFn({ method: "POST" })
       me: context.userId,
     };
   });
+
+/* ------------------------------------------------------------------ */
+/* Clientes (CEO / ADMIN)                                              */
+/* ------------------------------------------------------------------ */
+
+export type ClientInput = {
+  id?: string;
+  organizationId: string;
+  name: string;
+  legalName?: string | null;
+  contactName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  city?: string | null;
+  segment?: string | null;
+  status?: string;
+  luxiaStage?: string;
+  plan?: string | null;
+  mrr?: number;
+  currency?: string;
+  nextAction?: string | null;
+  onboardingAt?: string | null;
+  lastContactAt?: string | null;
+  nextFollowUpAt?: string | null;
+  notes?: string | null;
+};
+
+const CLIENT_STATUS = ["PROSPECTO", "ONBOARDING", "ACTIVO", "PAUSADO", "CERRADO"];
+const CLIENT_STAGE = ["FASE_0_14", "FASE_15_45", "FASE_46_90"];
+
+function clean(value?: string | null) {
+  const v = (value ?? "").trim();
+  return v.length ? v : null;
+}
+
+export const listClients = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string }) => {
+    if (!input?.organizationId) throw new Error("organizationId requerido");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context, data.organizationId);
+    const { data: rows, error } = await context.supabase
+      .from("clients")
+      .select("*")
+      .eq("organization_id", data.organizationId)
+      .order("created_at", { ascending: false });
+    if (error) throw new Error(error.message);
+    return { clients: (rows ?? []) as unknown as Record<string, Serializable>[] };
+  });
+
+export const saveClient = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: ClientInput) => {
+    if (!input?.organizationId) throw new Error("organizationId requerido");
+    if (!clean(input.name)) throw new Error("El nombre del cliente es obligatorio");
+    const email = clean(input.email);
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Email inválido");
+    if (input.status && !CLIENT_STATUS.includes(input.status)) throw new Error("Estado inválido");
+    if (input.luxiaStage && !CLIENT_STAGE.includes(input.luxiaStage)) {
+      throw new Error("Etapa LUXIA inválida");
+    }
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context, data.organizationId);
+    const payload = {
+      organization_id: data.organizationId,
+      name: clean(data.name)!,
+      legal_name: clean(data.legalName),
+      contact_name: clean(data.contactName),
+      email: clean(data.email),
+      phone: clean(data.phone),
+      website: clean(data.website),
+      city: clean(data.city),
+      segment: clean(data.segment),
+      status: data.status ?? "PROSPECTO",
+      luxia_stage: (data.luxiaStage ?? "FASE_0_14") as never,
+      plan: clean(data.plan),
+      mrr: Number.isFinite(data.mrr) ? Number(data.mrr) : 0,
+      currency: data.currency ?? "ARS",
+      next_action: clean(data.nextAction),
+      onboarding_at: clean(data.onboardingAt),
+      last_contact_at: clean(data.lastContactAt),
+      next_follow_up_at: clean(data.nextFollowUpAt),
+      notes: clean(data.notes),
+    };
+
+    const query = data.id
+      ? context.supabase.from("clients").update(payload).eq("id", data.id).select("id, name").single()
+      : context.supabase.from("clients").insert(payload).select("id, name").single();
+    const { data: row, error } = await query;
+    if (error) throw new Error(error.message);
+
+    await context.supabase.from("activity_logs").insert({
+      organization_id: data.organizationId,
+      actor_type: "human",
+      actor_user: context.userId,
+      action: data.id ? "client.updated" : "client.created",
+      entity_type: "client",
+      entity_id: row.id,
+      detail: {
+        name: payload.name,
+        status: payload.status,
+        luxia_stage: data.luxiaStage ?? "FASE_0_14",
+        mrr: payload.mrr,
+        currency: payload.currency,
+      },
+    });
+
+    return { id: row.id as string, name: row.name as string };
+  });
+
+export const deleteClient = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string; clientId: string }) => {
+    if (!input?.organizationId || !input?.clientId) throw new Error("Parámetros inválidos");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context, data.organizationId);
+    const { data: row, error } = await context.supabase
+      .from("clients")
+      .delete()
+      .eq("id", data.clientId)
+      .eq("organization_id", data.organizationId)
+      .select("name")
+      .single();
+    if (error) throw new Error(error.message);
+
+    await context.supabase.from("activity_logs").insert({
+      organization_id: data.organizationId,
+      actor_type: "human",
+      actor_user: context.userId,
+      action: "client.deleted",
+      entity_type: "client",
+      detail: { name: row.name },
+    });
+    return { ok: true };
+  });
