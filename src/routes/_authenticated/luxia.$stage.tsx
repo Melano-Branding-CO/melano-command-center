@@ -464,6 +464,8 @@ function StagePage() {
         ))}
       </nav>
 
+      <PlaybookPanel stage={stage} />
+
       {isLoading ? (
         <Empty text="Cargando leads de la etapa…" />
       ) : rows.length === 0 ? (
