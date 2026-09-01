@@ -36,11 +36,13 @@ export const ProposedActionSchema = z.object({
   description: z.string().min(1),
   owner_agent_id: z.string().nullable().default(null),
   priority: z.enum(["P0", "P1", "P2", "P3"]),
+  // The model may describe urgency but the backend owns the actual due_at.
   due_at: z.string().datetime({ offset: true }).nullable().default(null),
   success_metric: z.string().nullable().default(null),
   action_type: z.string().default("review"),
   requires_approval: z.boolean().default(false),
-  canonical_key: z.string().min(1),
+  // Accepted only for compatibility; the backend always recomputes this key.
+  canonical_key: z.string().nullable().default(null),
 });
 
 export const AgentOutputSchema = z.object({
