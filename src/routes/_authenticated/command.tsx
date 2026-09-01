@@ -127,6 +127,20 @@ function CommandCenter() {
     }
   }
 
+  async function onRunWorkflow(ruleId: string, label: string) {
+    if (!org?.id) return;
+    setN8nBusy(ruleId);
+    try {
+      await runWorkflow({ data: { organizationId: org.id, ruleId } });
+      toast.success(`Workflow ${label} ejecutado en n8n`);
+      await qc.invalidateQueries();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Error llamando a n8n");
+    } finally {
+      setN8nBusy(null);
+    }
+  }
+
   return (
     <>
       <PageHeader
