@@ -120,6 +120,14 @@ function ApprovalsPage() {
                   >
                     Rechazar
                   </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={busy === a.id}
+                    onClick={() => avisar(a.id)}
+                  >
+                    Avisar a Bruno (n8n)
+                  </Button>
                 </div>
               ) : null}
             </Panel>
