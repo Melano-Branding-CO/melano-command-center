@@ -3,6 +3,7 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge, PriorityBadge } from "@/components/melano/badges";
 import { fmtDate, useOrg, agentMap } from "@/lib/melano";
 import { useOrgRows, useRowById } from "@/lib/melano-queries";
+import { McpN8nLog } from "@/components/melano/mcp-n8n-log";
 
 export const Route = createFileRoute("/_authenticated/meetings/$meetingId")({
   head: () => ({
@@ -269,6 +270,10 @@ function MeetingDetail() {
             )}
           </Panel>
         </div>
+      </div>
+
+      <div className="mt-4">
+        <McpN8nLog orgId={org?.id} meetingId={meetingId} limit={20} />
       </div>
     </>
   );
