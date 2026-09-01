@@ -125,7 +125,10 @@ function CommandCenter() {
         }
       />
 
+      <MomentumPanel className="mb-4" />
+
       <div className="grid gap-4 lg:grid-cols-3">
+
         <Panel
           title="Hoy — Top 3"
           className="lg:col-span-2"
