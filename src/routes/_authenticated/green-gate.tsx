@@ -175,7 +175,17 @@ function GreenGatePage() {
     LEAD_MATCH.test(`${m.key} ${m.label ?? ""}`),
   );
 
+  const upcoming = useMemo(
+    () =>
+      (leads ?? [])
+        .filter((l) => !!l.next_follow_up_at)
+        .sort((a, b) => (a.next_follow_up_at! < b.next_follow_up_at! ? -1 : 1))
+        .slice(0, 5),
+    [leads],
+  );
+
   const lastRun = (runs ?? [])[0] ?? null;
+
 
   async function setStatus(task: Task, status: string) {
     setBusy(task.id);
