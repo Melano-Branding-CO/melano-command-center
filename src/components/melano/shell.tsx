@@ -46,7 +46,10 @@ const NAV = [
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
-const ADMIN_NAV = [{ to: "/admin", label: "Administración", icon: ShieldCheck }] as const;
+const ADMIN_NAV = [
+  { to: "/clientes", label: "Clientes", icon: Users },
+  { to: "/admin", label: "Administración", icon: ShieldCheck },
+] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
