@@ -261,6 +261,8 @@ function CommandCenter() {
 
         <N8nWorkflowsPanel className="lg:col-span-3" />
 
+        <N8nRunsHistory className="lg:col-span-3" />
+
         <Panel title="Alertas">
           {(alerts ?? []).length === 0 ? (
             <Empty text="Sin alertas abiertas." />
