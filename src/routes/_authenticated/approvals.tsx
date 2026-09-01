@@ -45,16 +45,36 @@ function ApprovalsPage() {
   });
   const qc = useQueryClient();
   const decide = useServerFn(decideApproval);
+  const notifyPending = useServerFn(notifyApprovalInN8n);
+  const notifyDecided = useServerFn(notifyApprovalDecisionInN8n);
   const [busy, setBusy] = useState<string | null>(null);
 
   async function act(approvalId: string, approve: boolean) {
+    if (!org?.id) return;
     setBusy(approvalId);
     try {
       await decide({ data: { approvalId, approve } });
       toast.success(approve ? "Aprobado" : "Rechazado");
+      const res = await notifyDecided({ data: { organizationId: org.id, approvalId } });
+      if (res.ok) toast.success("Pipeline actualizado en n8n");
+      else if (res.error) toast.warning(`n8n: ${res.error}`);
       await qc.invalidateQueries();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al decidir");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function avisar(approvalId: string) {
+    if (!org?.id) return;
+    setBusy(approvalId);
+    try {
+      const res = await notifyPending({ data: { organizationId: org.id, approvalId } });
+      toast.success(`Aviso enviado a Bruno · ${res.rule}`);
+      await qc.invalidateQueries();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "No se pudo avisar por n8n");
     } finally {
       setBusy(null);
     }
