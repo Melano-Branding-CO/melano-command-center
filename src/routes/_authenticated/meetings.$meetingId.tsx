@@ -74,6 +74,10 @@ type TaskRow = {
   next_action: string | null;
   success_metric: string | null;
   assigned_agent: string | null;
+  result: string | null;
+  error: string | null;
+  completed_at: string | null;
+  trace_id: string | null;
 };
 
 type AgentRow = { id: string; name: string; code: string; role: string };
@@ -260,8 +264,23 @@ function MeetingDetail() {
                       <Field label="Por qué ahora" value={t.why_now} />
                       <Field label="Próxima acción" value={t.next_action} />
                       <Field label="Métrica de éxito" value={t.success_metric} />
+                      {t.result ? (
+                        <div className="rounded-md border border-border/60 bg-muted/30 p-2">
+                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                            Outcome{t.completed_at ? ` · ${fmtDate(t.completed_at)}` : ""}
+                          </p>
+                          <p className="whitespace-pre-wrap text-sm text-foreground">{t.result}</p>
+                        </div>
+                      ) : null}
+                      {t.error ? (
+                        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2">
+                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Error</p>
+                          <p className="whitespace-pre-wrap text-sm text-foreground">{t.error}</p>
+                        </div>
+                      ) : null}
                       <p className="text-[11px] text-muted-foreground">
                         Agente: {t.assigned_agent ? (byAgent.get(t.assigned_agent)?.name ?? "—") : "—"}
+                        {t.trace_id ? ` · trace ${t.trace_id.slice(0, 8)}` : ""}
                       </p>
                     </div>
                   </li>
