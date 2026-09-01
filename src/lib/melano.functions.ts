@@ -509,7 +509,9 @@ export const saveClient = createServerFn({ method: "POST" })
       last_contact_at: clean(data.lastContactAt),
       next_follow_up_at: clean(data.nextFollowUpAt),
       notes: clean(data.notes),
+      owner_user: clean(data.ownerUser),
     };
+
 
     const query = data.id
       ? context.supabase.from("clients").update(payload).eq("id", data.id).select("id, name").single()
