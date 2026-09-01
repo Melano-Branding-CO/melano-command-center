@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Panel, Empty, RoleGate } from "@/components/melano/shell";
 import { StatusBadge } from "@/components/melano/badges";
+import { N8nWorkflowsPanel } from "@/components/melano/n8n-panel";
 import { fmtDate, useOrg } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { cn } from "@/lib/utils";
@@ -229,6 +230,8 @@ function CeoDashboard() {
               )}
             </Panel>
           </div>
+
+          <N8nWorkflowsPanel />
 
           <Panel title="Clientes · próxima acción">
             {allClients.length === 0 ? (

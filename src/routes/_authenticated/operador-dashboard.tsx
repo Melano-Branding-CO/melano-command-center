@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { PageHeader, Panel, Empty, RoleGate } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
+import { N8nWorkflowsPanel } from "@/components/melano/n8n-panel";
 import { fmtDate, useMyRole, useOrg } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { supabase } from "@/integrations/supabase/client";
@@ -277,6 +278,8 @@ function OperatorDashboard() {
               </div>
             )}
           </Panel>
+
+          <N8nWorkflowsPanel />
 
           <Panel title="Avance de tareas asignadas">
             {myTasks.length === 0 ? (

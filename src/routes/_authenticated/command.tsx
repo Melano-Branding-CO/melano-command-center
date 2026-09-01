@@ -6,9 +6,10 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
+import { N8nWorkflowsPanel } from "@/components/melano/n8n-panel";
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
-import { runMeetingNow, runN8nAutomation } from "@/lib/melano.functions";
+import { runMeetingNow } from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({
@@ -48,9 +49,7 @@ function CommandCenter() {
   const map = agentMap(agents as Agent[] | undefined);
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const [n8nBusy, setN8nBusy] = useState<string | null>(null);
   const runMeeting = useServerFn(runMeetingNow);
-  const runWorkflow = useServerFn(runN8nAutomation);
 
   useRealtime([
     "tasks",
@@ -88,26 +87,6 @@ function CommandCenter() {
     org?.id,
     { eq: { status: "OPEN" }, order: "created_at" },
   );
-  const { data: automations } = useOrgRows<{
-    id: string;
-    name: string;
-    status: string;
-    enabled: boolean;
-    n8n_workflow: string | null;
-    n8n_webhook_url: string | null;
-    last_run_at: string | null;
-    last_result: string | null;
-    last_error: string | null;
-    next_run_at: string | null;
-  }>("automation_rules", org?.id, { order: "created_at" });
-  const { data: automationRuns } = useOrgRows<{
-    id: string;
-    rule_id: string;
-    status: string;
-    started_at: string;
-    trace_id: string | null;
-    error: string | null;
-  }>("automation_runs", org?.id, { order: "started_at", limit: 40 });
   const { data: revenueMetrics } = useOrgRows<{
     id: string;
     label: string;
@@ -130,19 +109,6 @@ function CommandCenter() {
     }
   }
 
-  async function onRunWorkflow(ruleId: string, label: string) {
-    if (!org?.id) return;
-    setN8nBusy(ruleId);
-    try {
-      await runWorkflow({ data: { organizationId: org.id, ruleId } });
-      toast.success(`Workflow ${label} ejecutado en n8n`);
-      await qc.invalidateQueries();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Error llamando a n8n");
-    } finally {
-      setN8nBusy(null);
-    }
-  }
 
   return (
     <>
