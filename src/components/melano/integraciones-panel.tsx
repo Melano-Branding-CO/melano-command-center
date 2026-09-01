@@ -70,7 +70,10 @@ export function IntegracionesPanel({
   rules: RuleLike[];
   runs: RunLike[];
 }) {
-  const known = rules.filter((r) => r.n8n_workflow && CATALOG[r.n8n_workflow]);
+  const known = rules.flatMap((r) => {
+    const meta = r.n8n_workflow ? CATALOG[r.n8n_workflow] : undefined;
+    return meta ? [{ rule: r, meta }] : [];
+  });
 
   return (
     <Panel title="Integraciones conectadas en n8n">
