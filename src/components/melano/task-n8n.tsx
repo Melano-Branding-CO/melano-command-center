@@ -29,9 +29,9 @@ export function RunTaskInN8nButton({
   taskId,
   size = "sm",
 }: {
-  organizationId?: string;
+  organizationId?: string | undefined;
   taskId: string;
-  size?: "sm" | "default";
+  size?: "sm" | "default" | undefined;
 }) {
   const run = useServerFn(runTaskInN8n);
   const qc = useQueryClient();

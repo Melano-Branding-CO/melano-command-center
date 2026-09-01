@@ -1133,7 +1133,7 @@ export const runTaskInN8n = createServerFn({ method: "POST" })
         status === "SUCCESS"
           ? {
               status: "RUNNING",
-              started_at: task.status === "RUNNING" ? undefined : startedAt,
+              started_at: startedAt,
               trace_id: traceId,
               result: `n8n · ${rule.n8n_workflow ?? rule.name}: ${output.slice(0, 300) || "OK"}`,
               error: null,
