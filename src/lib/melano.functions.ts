@@ -700,3 +700,171 @@ export const logClientTouch = createServerFn({ method: "POST" })
     if (logError) throw new Error(logError.message);
     return { ok: true };
   });
+
+/* ============================ Panel de asignaciones ============================ */
+
+const TASK_PRIORITY = ["P0", "P1", "P2", "P3"];
+const TASK_STATUS = ["BACKLOG", "READY", "RUNNING", "BLOCKED", "REVIEW", "DONE", "FAILED"];
+
+type AssignmentInput = {
+  organizationId: string;
+  id?: string | undefined;
+  title: string;
+  description?: string | null;
+  successMetric?: string | null;
+  whyNow?: string | null;
+  nextAction?: string | null;
+  priority?: string;
+  status?: string;
+  assignedUser?: string | null;
+  assignedAgent?: string | null;
+  deadline?: string | null;
+  isTodayPriority?: boolean;
+};
+
+/** Miembros de la organización (para asignar responsables). Sólo CEO/ADMIN. */
+export const listOrgMembers = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string }) => {
+    if (!input?.organizationId) throw new Error("organizationId requerido");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context, data.organizationId);
+    const { data: members, error } = await context.supabase
+      .from("organization_members")
+      .select("user_id, role")
+      .eq("organization_id", data.organizationId);
+    if (error) throw new Error(error.message);
+    const ids = (members ?? []).map((m) => m.user_id);
+    const { data: profiles } = ids.length
+      ? await context.supabase.from("profiles").select("id, email, full_name").in("id", ids)
+      : { data: [] as { id: string; email: string | null; full_name: string | null }[] };
+    return {
+      members: (members ?? []).map((m) => {
+        const p = (profiles ?? []).find((row) => row.id === m.user_id);
+        return {
+          userId: m.user_id as string,
+          role: m.role as string,
+          email: p?.email ?? null,
+          fullName: p?.full_name ?? null,
+        };
+      }),
+    };
+  });
+
+/** Alta/edición de una asignación (tarea con objetivo y responsable). Sólo CEO/ADMIN. */
+export const saveAssignment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: AssignmentInput) => {
+    if (!input?.organizationId) throw new Error("organizationId requerido");
+    if (!clean(input.title)) throw new Error("El título de la tarea es obligatorio");
+    if (input.priority && !TASK_PRIORITY.includes(input.priority)) throw new Error("Prioridad inválida");
+    if (input.status && !TASK_STATUS.includes(input.status)) throw new Error("Estado inválido");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context, data.organizationId);
+    const payload: Record<string, Serializable> = {
+      organization_id: data.organizationId,
+      title: clean(data.title)!,
+      description: clean(data.description),
+      success_metric: clean(data.successMetric),
+      why_now: clean(data.whyNow),
+      next_action: clean(data.nextAction),
+      priority: data.priority ?? "P2",
+      status: data.status ?? "READY",
+      assigned_user: clean(data.assignedUser),
+      assigned_agent: clean(data.assignedAgent),
+      deadline: clean(data.deadline),
+      is_today_priority: !!data.isTodayPriority,
+      today_date: data.isTodayPriority ? new Date().toISOString().slice(0, 10) : null,
+      execution_mode: "MANUAL",
+    };
+    if (!data.id) payload['created_by'] = context.userId;
+
+    const query = data.id
+      ? context.supabase
+          .from("tasks")
+          .update(payload as never)
+          .eq("id", data.id)
+          .eq("organization_id", data.organizationId)
+          .select("id, title")
+          .single()
+      : context.supabase
+          .from("tasks")
+          .insert(payload as never)
+          .select("id, title")
+          .single();
+
+    const { data: row, error } = await query;
+    if (error) throw new Error(error.message);
+
+    await context.supabase.from("activity_logs").insert({
+      organization_id: data.organizationId,
+      actor_type: "human",
+      actor_user: context.userId,
+      action: data.id ? "task.assignment_updated" : "task.assignment_created",
+      entity_type: "task",
+      entity_id: row.id,
+      detail: {
+        title: row.title,
+        assigned_user: clean(data.assignedUser),
+        assigned_agent: clean(data.assignedAgent),
+        priority: data.priority ?? "P2",
+        status: data.status ?? "READY",
+        success_metric: clean(data.successMetric),
+        deadline: clean(data.deadline),
+      },
+    });
+
+    return { id: row.id as string };
+  });
+
+/** Avance de una asignación por su responsable (RLS restringe a assigned_user = auth.uid()). */
+export const updateMyAssignment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    (input: {
+      organizationId: string;
+      taskId: string;
+      status: string;
+      nextAction?: string | null;
+      result?: string | null;
+    }) => {
+      if (!input?.organizationId || !input?.taskId) throw new Error("Parámetros inválidos");
+      if (!TASK_STATUS.includes(input.status)) throw new Error("Estado inválido");
+      return input;
+    },
+  )
+  .handler(async ({ data, context }) => {
+    const update: Record<string, Serializable> = { status: data.status };
+    const nextAction = clean(data.nextAction);
+    const result = clean(data.result);
+    if (nextAction) update['next_action'] = nextAction;
+    if (result) update['result'] = result;
+    if (data.status === "RUNNING") update['started_at'] = new Date().toISOString();
+    if (data.status === "DONE") update['completed_at'] = new Date().toISOString();
+
+    const { data: row, error } = await context.supabase
+      .from("tasks")
+      .update(update as never)
+      .eq("id", data.taskId)
+      .eq("organization_id", data.organizationId)
+      .eq("assigned_user", context.userId)
+      .select("id, title, status")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row) throw new Error("La tarea no está asignada a tu usuario");
+
+    await context.supabase.from("activity_logs").insert({
+      organization_id: data.organizationId,
+      actor_type: "human",
+      actor_user: context.userId,
+      action: "task.progress",
+      entity_type: "task",
+      entity_id: row.id,
+      detail: { title: row.title, status: row.status, next_action: nextAction, result },
+    });
+    return { ok: true };
+  });
