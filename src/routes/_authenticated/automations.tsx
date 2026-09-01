@@ -57,6 +57,108 @@ type Run = {
 
 const INBOUND_PATH = "/api/public/n8n/dispatch";
 
+const N8N_BASE = "https://melanoincorporated.app.n8n.cloud/webhook";
+
+/** Integraciones recomendadas para el Command Center. El webhook es una sugerencia de path:
+ *  hay que crear el workflow en n8n y pegar su Production URL real antes de ejecutar. */
+const INTEGRATIONS: {
+  slug: string;
+  name: string;
+  category: string;
+  description: string;
+}[] = [
+  {
+    slug: "gmail-luxia-followup",
+    name: "Gmail · Follow-up LUXIA",
+    category: "Comercial",
+    description: "Envía el seguimiento por email a leads con próximo contacto vencido.",
+  },
+  {
+    slug: "whatsapp-cloud-outreach",
+    name: "WhatsApp Cloud API · Outreach",
+    category: "Comercial",
+    description: "Primer contacto y recordatorios a inmobiliarias por WhatsApp.",
+  },
+  {
+    slug: "google-calendar-reuniones",
+    name: "Google Calendar · Reuniones",
+    category: "Comercial",
+    description: "Agenda la reunión de fase 1 y sincroniza el próximo contacto del lead.",
+  },
+  {
+    slug: "google-sheets-relevamiento",
+    name: "Google Sheets · Relevamiento",
+    category: "Datos",
+    description: "Importa relevamientos de inmobiliarias y los envía a create_task o leads.",
+  },
+  {
+    slug: "slack-alertas",
+    name: "Slack · Alertas ejecutivas",
+    category: "Operación",
+    description: "Publica alertas críticas y decisiones aprobadas en el canal de dirección.",
+  },
+  {
+    slug: "telegram-bruno",
+    name: "Telegram · Aprobaciones Bruno",
+    category: "Gobernanza",
+    description: "Notifica aprobaciones pendientes y devuelve la decisión al Command Center.",
+  },
+  {
+    slug: "supabase-sync",
+    name: "Supabase · Sync operacional",
+    category: "Datos",
+    description: "Lee y escribe tablas operativas desde workflows con el rol correspondiente.",
+  },
+  {
+    slug: "http-dispatch",
+    name: "HTTP Request · Dispatch entrante",
+    category: "Núcleo",
+    description: "Invoca run_meeting, run_agent, create_task o log en el Command Center.",
+  },
+  {
+    slug: "schedule-0600",
+    name: "Schedule Trigger · Ciclo 06:00",
+    category: "Núcleo",
+    description: "Respaldo del cron diario: dispara la reunión ejecutiva si falla el worker.",
+  },
+  {
+    slug: "openai-enriquecimiento",
+    name: "OpenAI · Enriquecimiento de leads",
+    category: "IA",
+    description: "Normaliza y puntúa datos de contacto antes de crearlos como lead.",
+  },
+  {
+    slug: "hubspot-crm",
+    name: "HubSpot · CRM espejo",
+    category: "Comercial",
+    description: "Refleja clientes y etapas LUXIA en el CRM comercial.",
+  },
+  {
+    slug: "notion-actas",
+    name: "Notion · Actas de reunión",
+    category: "Operación",
+    description: "Guarda el brief ejecutivo y las decisiones como documentación interna.",
+  },
+  {
+    slug: "github-deploys",
+    name: "GitHub · Deploys y salud",
+    category: "Producto",
+    description: "Reporta commits y estados de deploy como señales para el agente CTO.",
+  },
+  {
+    slug: "stripe-mrr",
+    name: "Stripe · MRR y cobros",
+    category: "Finanzas",
+    description: "Actualiza MRR y alerta pagos fallidos para el agente CFO.",
+  },
+  {
+    slug: "drive-propuestas",
+    name: "Google Drive · Propuestas",
+    category: "Comercial",
+    description: "Genera y archiva la propuesta de fase 2 con enlace en el lead.",
+  },
+];
+
 function AutomationsPage() {
   const { data: org } = useOrg();
   const { data: role } = useMyRole(org?.id);
