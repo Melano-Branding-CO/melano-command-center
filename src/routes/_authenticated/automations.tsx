@@ -382,6 +382,48 @@ function AutomationsPage() {
         )}
 
         <RoleGate allow={["CEO", "ADMIN"]}>
+          <Panel title="15 integraciones disponibles en n8n">
+            <p className="text-sm text-muted-foreground">
+              Elegí una integración: se precarga el formulario de arriba con nombre, workflow y un
+              path sugerido. Creá el workflow en n8n y reemplazá el webhook por su{" "}
+              <strong>Production URL</strong> real antes de ejecutar.
+            </p>
+            <ul className="mt-3 grid gap-2 md:grid-cols-2">
+              {INTEGRATIONS.map((i) => (
+                <li
+                  key={i.slug}
+                  className="flex items-start justify-between gap-3 rounded-md border border-border/60 p-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{i.name}</p>
+                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                      {i.category}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{i.description}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() =>
+                      setForm({
+                        id: "",
+                        name: i.name,
+                        description: i.description,
+                        workflow: i.slug,
+                        webhookUrl: `${N8N_BASE}/${i.slug}`,
+                        enabled: true,
+                      })
+                    }
+                  >
+                    Usar
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </Panel>
+        </RoleGate>
+
+        <RoleGate allow={["CEO", "ADMIN"]}>
           <Panel title="Entrada desde n8n (n8n → Command Center)">
             <p className="text-sm text-muted-foreground">
               Configurá en n8n un nodo <strong>HTTP Request</strong> con método POST hacia esta URL y
