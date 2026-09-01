@@ -86,6 +86,7 @@ const NAV_GROUPS: NavGroup[] = [
       { to: "/approvals", label: "Approvals", icon: ShieldCheck },
       { to: "/meetings", label: "Meetings", icon: CalendarClock },
       { to: "/automations", label: "Automations", icon: BadgeCheck },
+      { to: "/ejecuciones", label: "Ejecuciones", icon: Activity },
       { to: "/agents", label: "Agents", icon: Bot },
       { to: "/products", label: "Products", icon: Package },
     ],

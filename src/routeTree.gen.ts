@@ -25,6 +25,7 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedDashboardsRouteImport } from './routes/_authenticated/dashboards'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
+import { Route as AuthenticatedEjecucionesRouteImport } from './routes/_authenticated/ejecuciones'
 import { Route as AuthenticatedGreenGateRouteImport } from './routes/_authenticated/green-gate'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
@@ -124,6 +125,12 @@ const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
   path: '/decisions',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedEjecucionesRoute =
+  AuthenticatedEjecucionesRouteImport.update({
+    id: '/ejecuciones',
+    path: '/ejecuciones',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedGreenGateRoute = AuthenticatedGreenGateRouteImport.update({
   id: '/green-gate',
   path: '/green-gate',
@@ -231,6 +238,7 @@ export interface FileRoutesByFullPath {
   '/command': typeof AuthenticatedCommandRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
+  '/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/metas': typeof AuthenticatedMetasRoute
@@ -265,6 +273,7 @@ export interface FileRoutesByTo {
   '/command': typeof AuthenticatedCommandRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
+  '/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
   '/metas': typeof AuthenticatedMetasRoute
@@ -301,6 +310,7 @@ export interface FileRoutesById {
   '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/dashboards': typeof AuthenticatedDashboardsRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
+  '/_authenticated/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/_authenticated/green-gate': typeof AuthenticatedGreenGateRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
@@ -337,6 +347,7 @@ export interface FileRouteTypes {
     | '/command'
     | '/dashboards'
     | '/decisions'
+    | '/ejecuciones'
     | '/green-gate'
     | '/leads'
     | '/metas'
@@ -371,6 +382,7 @@ export interface FileRouteTypes {
     | '/command'
     | '/dashboards'
     | '/decisions'
+    | '/ejecuciones'
     | '/green-gate'
     | '/leads'
     | '/metas'
@@ -406,6 +418,7 @@ export interface FileRouteTypes {
     | '/_authenticated/command'
     | '/_authenticated/dashboards'
     | '/_authenticated/decisions'
+    | '/_authenticated/ejecuciones'
     | '/_authenticated/green-gate'
     | '/_authenticated/leads'
     | '/_authenticated/metas'
@@ -546,6 +559,13 @@ declare module '@tanstack/react-router' {
       path: '/decisions'
       fullPath: '/decisions'
       preLoaderRoute: typeof AuthenticatedDecisionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/ejecuciones': {
+      id: '/_authenticated/ejecuciones'
+      path: '/ejecuciones'
+      fullPath: '/ejecuciones'
+      preLoaderRoute: typeof AuthenticatedEjecucionesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/green-gate': {
@@ -694,6 +714,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedDashboardsRoute: typeof AuthenticatedDashboardsRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
+  AuthenticatedEjecucionesRoute: typeof AuthenticatedEjecucionesRoute
   AuthenticatedGreenGateRoute: typeof AuthenticatedGreenGateRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
@@ -723,6 +744,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedDashboardsRoute: AuthenticatedDashboardsRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
+  AuthenticatedEjecucionesRoute: AuthenticatedEjecucionesRoute,
   AuthenticatedGreenGateRoute: AuthenticatedGreenGateRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
