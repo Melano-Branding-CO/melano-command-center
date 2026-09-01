@@ -9,9 +9,170 @@ export type RowOpts = {
   eq?: Record<string, string | boolean | number | null>;
 };
 
+const TABLE_MAP: Record<string, string> = {
+  organizations: "tenants",
+  organization_members: "tenant_members",
+  executive_meetings: "meeting_runs",
+  meeting_outputs: "agent_runs",
+  activity_logs: "automation_logs",
+  metrics: "kpi_snapshot",
+};
+
+const COLUMN_MAP: Record<string, Record<string, string>> = {
+  executive_meetings: {
+    finished_at: "completed_at",
+    trigger: "trigger_source",
+  },
+  meeting_outputs: {
+    meeting_id: "meeting_run_id",
+  },
+  decisions: {
+    meeting_id: "meeting_run_id",
+    status: "state",
+  },
+  tasks: {
+    meeting_id: "meeting_run_id",
+    assigned_agent: "owner_agent_id",
+    deadline: "due_at",
+  },
+  activity_logs: {
+    meeting_id: "meeting_run_id",
+  },
+};
+
+function mappedTable(table: string) {
+  return TABLE_MAP[table] ?? table;
+}
+
+function mappedColumn(table: string, column: string) {
+  return COLUMN_MAP[table]?.[column] ?? column;
+}
+
+function objectValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value)
+    ? (value as Record<string, unknown>)
+    : {};
+}
+
+function normalizeRow(table: string, row: Record<string, unknown>): Record<string, unknown> {
+  if (table === "executive_meetings") {
+    const summaryObject = objectValue(row.summary);
+    return {
+      ...row,
+      title: summaryObject.title ?? "Reunión ejecutiva",
+      trigger: row.trigger_source,
+      finished_at: row.completed_at,
+      executive_brief: row.summary,
+      summary:
+        typeof summaryObject.summary === "string"
+          ? summaryObject.summary
+          : typeof row.summary === "string"
+            ? row.summary
+            : null,
+    };
+  }
+
+  if (table === "meeting_outputs") {
+    const output = objectValue(row.output);
+    return {
+      ...row,
+      meeting_id: row.meeting_run_id,
+      situation: output.situation ?? null,
+      changes: output.changes ?? null,
+      problems: output.problems ?? null,
+      opportunities: output.opportunities ?? null,
+      metrics: output.metrics ?? {},
+      proposed_action: output.proposed_action ?? null,
+      raw: row.output,
+      created_at: row.created_at ?? row.started_at,
+    };
+  }
+
+  if (table === "tasks") {
+    const payload = objectValue(row.payload);
+    return {
+      ...row,
+      organization_id: row.tenant_id,
+      meeting_id: row.meeting_run_id,
+      assigned_agent: row.owner_agent_id,
+      deadline: row.due_at,
+      why_now: payload.why_now ?? null,
+      next_action: payload.next_action ?? null,
+      success_metric: payload.success_metric ?? null,
+      is_today_priority: payload.is_today_priority ?? false,
+      today_date: payload.today_date ?? null,
+    };
+  }
+
+  if (table === "decisions") {
+    const fields = objectValue(row.fields);
+    return {
+      ...row,
+      organization_id: row.tenant_id,
+      meeting_id: row.meeting_run_id,
+      status: row.state,
+      description: fields.description ?? null,
+      reasoning_summary: fields.reasoning_summary ?? null,
+      expected_impact: fields.expected_impact ?? null,
+      risk: row.risk_level ?? fields.risk ?? null,
+      confidence: fields.confidence ?? null,
+      source_agent: fields.source_agent ?? row.owner ?? null,
+      requires_approval: row.approval_required,
+    };
+  }
+
+  if (table === "approvals") {
+    const metadata = objectValue(row.metadata);
+    return {
+      ...row,
+      organization_id: row.tenant_id,
+      action: metadata.action ?? row.action_type,
+      category: metadata.category ?? row.action_type,
+      risk: row.risk_level,
+      agent_id: row.requested_by_agent,
+    };
+  }
+
+  if (table === "activity_logs") {
+    return {
+      ...row,
+      organization_id: row.tenant_id,
+      action: row.event_type,
+      actor_agent: row.actor_type === "agent" ? row.actor_id : null,
+      actor_user: row.actor_type === "human" ? row.actor_id : null,
+      detail: row.payload,
+    };
+  }
+
+  if (table === "metrics") {
+    return {
+      ...row,
+      organization_id: row.tenant_id,
+      unit: null,
+      captured_at: row.updated_at,
+    };
+  }
+
+  if (table === "agents") {
+    const name = String(row.name ?? "");
+    const [label, role] = name.split(" — ");
+    return {
+      ...row,
+      organization_id: row.tenant_id,
+      code: String(row.id ?? label).replace(/^ag-/, "").toUpperCase(),
+      role: role ?? label,
+      status: row.state,
+      enabled: row.state !== "PAUSED",
+      sort_order: 0,
+    };
+  }
+
+  return { ...row, organization_id: row.tenant_id ?? row.organization_id };
+}
+
 /**
- * Lectura genérica multi-tenant: siempre filtrada por organization_id.
- * RLS en la base vuelve a validar la membresía.
+ * Lectura genérica multi-tenant sobre el contrato canónico tenant_id.
+ * Mantiene aliases de lectura para pantallas legacy mientras se completa el refactor.
  */
 export function useOrgRows<T = Record<string, unknown>>(
   table: string,
@@ -22,18 +183,24 @@ export function useOrgRows<T = Record<string, unknown>>(
     queryKey: [table, orgId, opts],
     enabled: !!orgId,
     queryFn: async (): Promise<T[]> => {
+      const physicalTable = mappedTable(table);
       let q = (supabase as unknown as { from: (t: string) => any })
-        .from(table)
+        .from(physicalTable)
         .select("*")
-        .eq("organization_id", orgId);
+        .eq("tenant_id", orgId);
+
       for (const [k, v] of Object.entries(opts.eq ?? {})) {
-        q = v === null ? q.is(k, null) : q.eq(k, v);
+        const physicalColumn = mappedColumn(table, k);
+        q = v === null ? q.is(physicalColumn, null) : q.eq(physicalColumn, v);
       }
-      if (opts.order) q = q.order(opts.order, { ascending: opts.asc ?? false });
+      if (opts.order) {
+        q = q.order(mappedColumn(table, opts.order), { ascending: opts.asc ?? false });
+      }
       if (opts.limit) q = q.limit(opts.limit);
+
       const { data, error } = await q;
       if (error) throw error;
-      return (data ?? []) as T[];
+      return (data ?? []).map((row: Record<string, unknown>) => normalizeRow(table, row)) as T[];
     },
   });
 }
@@ -43,26 +210,28 @@ export function useRowById<T = Record<string, unknown>>(table: string, id?: stri
     queryKey: [table, "one", id],
     enabled: !!id,
     queryFn: async (): Promise<T | null> => {
+      const physicalTable = mappedTable(table);
       const { data, error } = await (supabase as unknown as { from: (t: string) => any })
-        .from(table)
+        .from(physicalTable)
         .select("*")
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
-      return (data ?? null) as T | null;
+      return data ? (normalizeRow(table, data as Record<string, unknown>) as T) : null;
     },
   });
 }
 
-/** Refresca las queries cuando cambian las tablas en tiempo real. */
+/** Refresca las queries cuando cambian las tablas físicas en tiempo real. */
 export function useRealtime(tables: string[]) {
   const qc = useQueryClient();
   const key = tables.join(",");
   useEffect(() => {
     const channel = supabase.channel(`melano-${key}`);
-    for (const table of key.split(",")) {
+    for (const logicalTable of key.split(",")) {
+      const table = mappedTable(logicalTable);
       channel.on("postgres_changes", { event: "*", schema: "public", table }, () => {
-        qc.invalidateQueries({ queryKey: [table] });
+        qc.invalidateQueries({ queryKey: [logicalTable] });
       });
     }
     channel.subscribe();
