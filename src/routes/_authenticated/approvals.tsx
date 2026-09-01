@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge } from "@/components/melano/badges";
 import { fmtDate, useOrg } from "@/lib/melano";
-import { useOrgRows } from "@/lib/melano-queries";
+import { useTenantRows } from "@/integrations/supabase/canonical";
 import { decideApproval } from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/approvals")({
@@ -25,18 +25,17 @@ export const Route = createFileRoute("/_authenticated/approvals")({
 
 type Approval = {
   id: string;
-  action: string;
-  category: string | null;
+  action_type: string;
   reason: string | null;
-  impact: string | null;
-  risk: string | null;
+  risk_level: string | null;
+  metadata: Record<string, unknown>;
   status: string;
   requested_at: string | null;
 };
 
 function ApprovalsPage() {
   const { data: org } = useOrg();
-  const { data: approvals, isLoading } = useOrgRows<Approval>("approvals", org?.id, {
+  const { data: approvals, isLoading } = useTenantRows<Approval>("approvals", org?.id, {
     order: "requested_at",
   });
   const qc = useQueryClient();
@@ -66,24 +65,24 @@ function ApprovalsPage() {
       ) : (
         <div className="grid gap-4">
           {(approvals ?? []).map((a) => (
-            <Panel key={a.id} title={a.category ?? "critical"} action={<StatusBadge status={a.status} />}>
-              <h3 className="text-sm font-semibold text-foreground">{a.action}</h3>
+            <Panel key={a.id} title={a.action_type ?? "critical"} action={<StatusBadge status={a.status} />}>
+              <h3 className="text-sm font-semibold text-foreground">{a.action_type}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{a.reason ?? "—"}</p>
               <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-3">
                 <div>
                   <dt className="label-caps">Impacto</dt>
-                  <dd className="text-foreground">{a.impact ?? "—"}</dd>
+                  <dd className="text-foreground">{String(a.metadata?.impact ?? "—")}</dd>
                 </div>
                 <div>
                   <dt className="label-caps">Riesgo</dt>
-                  <dd className="text-foreground">{a.risk ?? "—"}</dd>
+                  <dd className="text-foreground">{a.risk_level ?? "—"}</dd>
                 </div>
                 <div>
                   <dt className="label-caps">Solicitado</dt>
                   <dd className="text-foreground">{fmtDate(a.requested_at)}</dd>
                 </div>
               </dl>
-              {a.status === "PENDING" ? (
+              {a.status.toLowerCase() === "pending" ? (
                 <div className="mt-4 flex gap-2">
                   <Button size="sm" disabled={busy === a.id} onClick={() => act(a.id, true)}>
                     Aprobar
