@@ -8,7 +8,7 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge } from "@/components/melano/badges";
 import { fmtDate, useOrg } from "@/lib/melano";
 import { useOrgRows } from "@/lib/melano-queries";
-import { decideApproval } from "@/lib/melano.functions";
+import { decideApproval } from "@/lib/runtime.functions";
 
 export const Route = createFileRoute("/_authenticated/approvals")({
   head: () => ({
@@ -83,7 +83,7 @@ function ApprovalsPage() {
                   <dd className="text-foreground">{fmtDate(a.requested_at)}</dd>
                 </div>
               </dl>
-              {a.status === "PENDING" ? (
+              {a.status.toLowerCase() === "pending" ? (
                 <div className="mt-4 flex gap-2">
                   <Button size="sm" disabled={busy === a.id} onClick={() => act(a.id, true)}>
                     Aprobar
