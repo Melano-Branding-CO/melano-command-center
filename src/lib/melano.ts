@@ -87,6 +87,16 @@ export function useAgents(orgId?: string) {
   });
 }
 
+/** Fecha operativa del día en la zona horaria de MELANO INC (Buenos Aires). */
+export function todayKey(timeZone = "America/Argentina/Buenos_Aires") {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(new Date());
+}
+
 export function fmtDate(value?: string | null) {
   if (!value) return "—";
   return new Date(value).toLocaleString("es-AR", {
