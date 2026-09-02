@@ -33,10 +33,12 @@ const CATALOG: Record<
     credential: "Gmail account (OAuth)",
   },
   "melano-whatsapp-alertas": {
-    provider: "WhatsApp Business Cloud",
-    credential: "WhatsApp Business Cloud (pendiente)",
-    pending: "Falta cargar la credencial de envío y el Phone Number ID en n8n.",
+    provider: "Alertas críticas · WhatsApp + Email",
+    credential: "Gmail account (OAuth) · WhatsApp Business Cloud pendiente",
+    pending:
+      "El canal Email está operativo. WhatsApp queda deshabilitado en n8n: falta la credencial de envío (WhatsApp Business Cloud) y el Phone Number ID.",
   },
+
   "melano-sheets-pipeline": {
     provider: "Google Sheets",
     credential: "Google Sheets account (OAuth)",
