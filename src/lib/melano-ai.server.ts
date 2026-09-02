@@ -402,17 +402,17 @@ async function loadTenantContext(tenantId: string) {
       },
       tasks: (tasks.data ?? []).map((task: Record<string, unknown>) => ({
         ...task,
-        deadline_status: deadlineStatus(task.due_at as string | null, now),
+        deadline_status: deadlineStatus(task["due_at"] as string | null, now),
       })),
       decisions: decisions.data ?? [],
       pending_approvals: approvals.data ?? [],
       metrics: (kpis.data ?? []).map((row: Record<string, unknown>) => ({
-        key: row.key,
-        label: row.label,
-        value: row.value,
-        evidence_status: metricEvidence(row.value, row.updated_at as string | null),
+        key: row["key"],
+        label: row["label"],
+        value: row["value"],
+        evidence_status: metricEvidence(row["value"], row["updated_at"] as string | null),
         source: "kpi_snapshot",
-        captured_at: row.updated_at,
+        captured_at: row["updated_at"],
       })),
       critical_actions: criticalActions.data ?? [],
       products: {
@@ -425,12 +425,12 @@ async function loadTenantContext(tenantId: string) {
       financial_snapshots: {
         mrr: (mrr.data ?? []).map((row: Record<string, unknown>) => ({
           ...row,
-          evidence_status: metricEvidence(row.mrr_value, row.updated_at as string | null),
+          evidence_status: metricEvidence(row["mrr_value"], row["updated_at"] as string | null),
           source: "mrr_snapshot",
         })),
         pipeline: (pipeline.data ?? []).map((row: Record<string, unknown>) => ({
           ...row,
-          evidence_status: metricEvidence(row.total_value, row.updated_at as string | null),
+          evidence_status: metricEvidence(row["total_value"], row["updated_at"] as string | null),
           source: "pipeline_snapshot",
         })),
       },
@@ -828,9 +828,10 @@ export async function runExecutiveMeetingServer(
       .in("state", ["ACTIVE", "PILOT"]);
     if (agentsError) throw agentsError;
 
-    const available = new Map(
-      (agents ?? []).map((agent: CanonicalAgent) => [agent.id, agent] as const),
+    const available = new Map<string, CanonicalAgent>(
+      ((agents ?? []) as CanonicalAgent[]).map((agent) => [agent.id, agent] as const),
     );
+
     const specialistIds = CORE_SPECIALISTS.filter((id) => available.has(id));
     if (specialistIds.length < 3) {
       throw new Error(`Comité insuficiente: ${specialistIds.length}/5 especialistas canónicos disponibles`);

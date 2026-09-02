@@ -50,7 +50,7 @@ export const AgentOutputSchema = z.object({
   changes: z.string(),
   problems: z.array(ProblemSchema),
   opportunities: z.array(OpportunitySchema),
-  metrics: z.record(EvidenceValueSchema),
+  metrics: z.record(z.string(), EvidenceValueSchema),
   proposed_action: ProposedActionSchema.nullable(),
 });
 

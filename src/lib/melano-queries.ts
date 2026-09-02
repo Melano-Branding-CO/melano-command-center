@@ -92,118 +92,118 @@ function inferMetricCategory(key: unknown, label: unknown) {
 
 function normalizeRow(table: string, row: Record<string, unknown>): Record<string, unknown> {
   if (table === "executive_meetings") {
-    const summaryObject = objectValue(row.summary);
+    const summaryObject = objectValue(row["summary"]);
     return {
       ...row,
-      organization_id: row.tenant_id,
-      title: summaryObject.title ?? "Reunión ejecutiva",
-      trigger: row.trigger_source,
-      finished_at: row.completed_at,
-      executive_brief: row.summary,
+      organization_id: row["tenant_id"],
+      title: summaryObject["title"] ?? "Reunión ejecutiva",
+      trigger: row["trigger_source"],
+      finished_at: row["completed_at"],
+      executive_brief: row["summary"],
       summary:
-        typeof summaryObject.summary === "string"
-          ? summaryObject.summary
-          : typeof row.summary === "string"
-            ? row.summary
+        typeof summaryObject["summary"] === "string"
+          ? summaryObject["summary"]
+          : typeof row["summary"] === "string"
+            ? row["summary"]
             : null,
     };
   }
 
   if (table === "meeting_outputs") {
-    const output = objectValue(row.output);
+    const output = objectValue(row["output"]);
     return {
       ...row,
-      organization_id: row.tenant_id,
-      meeting_id: row.meeting_run_id,
-      situation: output.situation ?? null,
-      changes: output.changes ?? null,
-      problems: output.problems ?? null,
-      opportunities: output.opportunities ?? null,
-      metrics: output.metrics ?? {},
-      proposed_action: output.proposed_action ?? null,
-      raw: row.output,
-      created_at: row.created_at ?? row.started_at,
+      organization_id: row["tenant_id"],
+      meeting_id: row["meeting_run_id"],
+      situation: output["situation"] ?? null,
+      changes: output["changes"] ?? null,
+      problems: output["problems"] ?? null,
+      opportunities: output["opportunities"] ?? null,
+      metrics: output["metrics"] ?? {},
+      proposed_action: output["proposed_action"] ?? null,
+      raw: row["output"],
+      created_at: row["created_at"] ?? row["started_at"],
     };
   }
 
   if (table === "tasks") {
-    const payload = objectValue(row.payload);
+    const payload = objectValue(row["payload"]);
     return {
       ...row,
-      organization_id: row.tenant_id,
-      meeting_id: row.meeting_run_id,
-      assigned_agent: row.owner_agent_id,
-      deadline: row.due_at,
-      why_now: payload.why_now ?? null,
-      next_action: payload.next_action ?? null,
-      success_metric: payload.success_metric ?? null,
-      is_today_priority: payload.is_today_priority ?? false,
-      today_date: payload.today_date ?? null,
+      organization_id: row["tenant_id"],
+      meeting_id: row["meeting_run_id"],
+      assigned_agent: row["owner_agent_id"],
+      deadline: row["due_at"],
+      why_now: payload["why_now"] ?? null,
+      next_action: payload["next_action"] ?? null,
+      success_metric: payload["success_metric"] ?? null,
+      is_today_priority: payload["is_today_priority"] ?? false,
+      today_date: payload["today_date"] ?? null,
     };
   }
 
   if (table === "decisions") {
-    const fields = objectValue(row.fields);
+    const fields = objectValue(row["fields"]);
     return {
       ...row,
-      organization_id: row.tenant_id,
-      meeting_id: row.meeting_run_id,
-      status: row.state,
-      description: fields.description ?? null,
-      reasoning_summary: fields.reasoning_summary ?? null,
-      expected_impact: fields.expected_impact ?? null,
-      risk: row.risk_level ?? fields.risk ?? null,
-      confidence: fields.confidence ?? null,
-      source_agent: fields.source_agent ?? row.owner ?? null,
-      requires_approval: row.approval_required,
-      created_at: row.decided_at ?? row.updated_at,
+      organization_id: row["tenant_id"],
+      meeting_id: row["meeting_run_id"],
+      status: row["state"],
+      description: fields["description"] ?? null,
+      reasoning_summary: fields["reasoning_summary"] ?? null,
+      expected_impact: fields["expected_impact"] ?? null,
+      risk: row["risk_level"] ?? fields["risk"] ?? null,
+      confidence: fields["confidence"] ?? null,
+      source_agent: fields["source_agent"] ?? row["owner"] ?? null,
+      requires_approval: row["approval_required"],
+      created_at: row["decided_at"] ?? row["updated_at"],
     };
   }
 
   if (table === "approvals") {
-    const metadata = objectValue(row.metadata);
+    const metadata = objectValue(row["metadata"]);
     return {
       ...row,
-      organization_id: row.tenant_id,
-      action: metadata.action ?? row.action_type,
-      category: metadata.category ?? row.action_type,
-      risk: row.risk_level,
-      agent_id: row.requested_by_agent,
+      organization_id: row["tenant_id"],
+      action: metadata["action"] ?? row["action_type"],
+      category: metadata["category"] ?? row["action_type"],
+      risk: row["risk_level"],
+      agent_id: row["requested_by_agent"],
     };
   }
 
   if (table === "activity_logs") {
     return {
       ...row,
-      organization_id: row.tenant_id,
-      action: row.event_type,
-      actor_agent: row.actor_type === "agent" ? row.actor_id : null,
-      actor_user: row.actor_type === "human" ? row.actor_id : null,
-      detail: row.payload,
+      organization_id: row["tenant_id"],
+      action: row["event_type"],
+      actor_agent: row["actor_type"] === "agent" ? row["actor_id"] : null,
+      actor_user: row["actor_type"] === "human" ? row["actor_id"] : null,
+      detail: row["payload"],
     };
   }
 
   if (table === "metrics") {
     return {
       ...row,
-      organization_id: row.tenant_id,
-      id: row.key,
-      category: inferMetricCategory(row.key, row.label),
+      organization_id: row["tenant_id"],
+      id: row["key"],
+      category: inferMetricCategory(row["key"], row["label"]),
       unit: null,
-      captured_at: row.updated_at,
+      captured_at: row["updated_at"],
     };
   }
 
   if (table === "agents") {
-    const name = String(row.name ?? "");
+    const name = String(row["name"] ?? "");
     const [label, role] = name.split(" — ");
     return {
       ...row,
-      organization_id: row.tenant_id,
-      code: String(row.id ?? label).replace(/^ag-/, "").toUpperCase(),
+      organization_id: row["tenant_id"],
+      code: String(row["id"] ?? label).replace(/^ag-/, "").toUpperCase(),
       role: role ?? label,
-      status: row.state,
-      enabled: row.state !== "PAUSED",
+      status: row["state"],
+      enabled: row["state"] !== "PAUSED",
       sort_order: 0,
     };
   }
@@ -211,35 +211,35 @@ function normalizeRow(table: string, row: Record<string, unknown>): Record<strin
   if (table === "alerts") {
     return {
       ...row,
-      organization_id: row.tenant_id,
-      severity: row.priority,
-      status: row.status ?? "open",
-      created_at: row.updated_at,
+      organization_id: row["tenant_id"],
+      severity: row["priority"],
+      status: row["status"] ?? "open",
+      created_at: row["updated_at"],
     };
   }
 
   if (table === "automation_rules") {
     return {
       ...row,
-      organization_id: row.tenant_id,
-      name: row.title,
-      status: row.state,
+      organization_id: row["tenant_id"],
+      name: row["title"],
+      status: row["state"],
       next_run_at: null,
-      created_at: row.updated_at,
+      created_at: row["updated_at"],
     };
   }
 
   if (table === "products") {
     return {
       ...row,
-      organization_id: row.tenant_id,
+      organization_id: row["tenant_id"],
       code: "LUXIA",
       name: "LUXIA",
       priority: "P0",
     };
   }
 
-  return { ...row, organization_id: row.tenant_id ?? row.organization_id };
+  return { ...row, organization_id: row["tenant_id"] ?? row["organization_id"] };
 }
 
 function matchesVirtualFilters(
@@ -288,7 +288,9 @@ export function useOrgRows<T = Record<string, unknown>>(
       if (error) throw error;
       let rows = (data ?? []).map((row: Record<string, unknown>) => normalizeRow(table, row));
       if (Object.keys(virtualFilters).length) {
-        rows = rows.filter((row) => matchesVirtualFilters(table, row, virtualFilters));
+        rows = rows.filter((row: Record<string, unknown>) =>
+          matchesVirtualFilters(table, row, virtualFilters),
+        );
       }
       return rows as T[];
     },
