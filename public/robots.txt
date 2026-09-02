@@ -3,4 +3,4 @@ Allow: /publico
 Allow: /sitemap.xml
 Disallow: /
 
-Sitemap: https://melano-command-center.lovable.app/sitemap.xml
+Sitemap: https://comandcenter.tech/sitemap.xml

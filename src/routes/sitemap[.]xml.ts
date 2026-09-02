@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 
-const BASE_URL = "https://melano-command-center.lovable.app";
+const BASE_URL = "https://comandcenter.tech";
 
 /**
  * El Command Center es privado (robots.txt bloquea todo salvo /publico).
