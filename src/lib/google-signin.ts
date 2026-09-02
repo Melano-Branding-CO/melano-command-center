@@ -18,7 +18,7 @@ export async function signInWithGoogle(next?: string): Promise<{ error: Error | 
   }
 
   const result = await lovable.auth.signInWithOAuth("google", {
-    redirect_uri: window.location.origin,
+    redirect_uri: `${window.location.origin}/auth`,
     extraParams: { prompt: "select_account" },
   });
 
