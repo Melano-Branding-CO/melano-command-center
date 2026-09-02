@@ -47,24 +47,13 @@ export function useOrg() {
   return useQuery({
     queryKey: ["organization", CANONICAL_TENANT_SLUG],
     queryFn: async (): Promise<Org | null> => {
-      const db = supabase as unknown as { from: (table: string) => any };
-      const { data, error } = await db
-        .from("tenants")
-        .select("id,name,slug,created_at")
+      const { data, error } = await supabase
+        .from("organizations")
+        .select("*")
         .eq("slug", CANONICAL_TENANT_SLUG)
         .maybeSingle();
       if (error) throw error;
-      if (!data) return null;
-
-      // Transitional shape for existing UI. No operational state is invented:
-      // autonomy remains the governed L2 default already shown by the product.
-      return {
-        ...data,
-        autonomy_level: 2,
-        status: "YELLOW",
-        tagline: "AI. Automation. Impact.",
-        timezone: "America/Argentina/Buenos_Aires",
-      } as unknown as Org;
+      return (data as Org) ?? null;
     },
   });
 }
@@ -77,11 +66,10 @@ export function useMyRole(orgId?: string) {
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
       if (!uid || !orgId) return null;
-      const db = supabase as unknown as { from: (table: string) => any };
-      const { data, error } = await db
-        .from("tenant_members")
+      const { data, error } = await supabase
+        .from("organization_members")
         .select("role")
-        .eq("tenant_id", orgId)
+        .eq("organization_id", orgId)
         .eq("user_id", uid)
         .maybeSingle();
       if (error) throw error;
@@ -95,29 +83,17 @@ export function useAgents(orgId?: string) {
     queryKey: ["agents", orgId],
     enabled: !!orgId,
     queryFn: async (): Promise<Agent[]> => {
-      const db = supabase as unknown as { from: (table: string) => any };
-      const { data, error } = await db
+      const { data, error } = await supabase
         .from("agents")
         .select("*")
-        .eq("tenant_id", orgId!);
+        .eq("organization_id", orgId!)
+        .order("sort_order", { ascending: true });
       if (error) throw error;
-
-      return (data ?? []).map((row: Record<string, unknown>, index: number) => {
-        const name = String(row["name"] ?? "");
-        const [label, role] = name.split(" — ");
-        return {
-          ...row,
-          organization_id: row["tenant_id"],
-          code: String(row["id"] ?? label).replace(/^ag-/, "").toUpperCase(),
-          role: role ?? label,
-          status: row["state"],
-          enabled: row["state"] !== "PAUSED",
-          sort_order: index,
-        } as unknown as Agent;
-      });
+      return (data ?? []) as Agent[];
     },
   });
 }
+
 
 /** Fecha operativa del día en la zona horaria de MELANO INC (Buenos Aires). */
 export function todayKey(timeZone = "America/Argentina/Buenos_Aires") {

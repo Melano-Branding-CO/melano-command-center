@@ -14,7 +14,7 @@ import { MomentumPanel } from "@/components/melano/momentum";
 
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
-import { runMeetingNow } from "@/lib/runtime.functions";
+import { runMeetingNow } from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({
