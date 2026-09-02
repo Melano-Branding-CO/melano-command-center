@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { signInWithGoogle } from "@/lib/google-signin";
+import { signInWithGoogle, takePostLoginTarget } from "@/lib/google-signin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,8 +49,8 @@ export function AuthPage({ next }: { next?: string }) {
   useEffect(() => {
     let active = true;
     const go = () => {
-      if (next) window.location.replace(next);
-      else navigate({ to: "/command", replace: true });
+      const target = next ?? takePostLoginTarget();
+      window.location.replace(target);
     };
     supabase.auth.getSession().then(({ data }) => {
       if (active && data.session) go();
