@@ -83,6 +83,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Sistema operativo empresarial autónomo de MELANO INC: agentes ejecutivos de IA, decisiones, tareas y aprobaciones con trazabilidad real.",
       },
       { name: "author", content: "MELANO INC" },
+      {
+        name: "google-site-verification",
+        content: "yEV7F_RSZwtPJTT9KtWI_ax0soDIXGnnpJN05p_20Fc",
+      },
       { property: "og:title", content: "MELANO INC — Autonomous Command Center" },
       {
         property: "og:description",
