@@ -103,15 +103,15 @@ export function useAgents(orgId?: string) {
       if (error) throw error;
 
       return (data ?? []).map((row: Record<string, unknown>, index: number) => {
-        const name = String(row.name ?? "");
+        const name = String(row["name"] ?? "");
         const [label, role] = name.split(" — ");
         return {
           ...row,
-          organization_id: row.tenant_id,
-          code: String(row.id ?? label).replace(/^ag-/, "").toUpperCase(),
+          organization_id: row["tenant_id"],
+          code: String(row["id"] ?? label).replace(/^ag-/, "").toUpperCase(),
           role: role ?? label,
-          status: row.state,
-          enabled: row.state !== "PAUSED",
+          status: row["state"],
+          enabled: row["state"] !== "PAUSED",
           sort_order: index,
         } as unknown as Agent;
       });
