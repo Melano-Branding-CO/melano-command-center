@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "author", content: "MELANO INC" },
       {
         name: "google-site-verification",
-        content: "yEV7F_RSZwtPJTT9KtWI_ax0soDIXGnnpJN05p_20Fc",
+        content: "FsrRLM19KuQ_FKU8fLU5QHNOZJGCkLTpvfYnJDybmrU",
       },
       { property: "og:title", content: "MELANO INC — Autonomous Command Center" },
       {
