@@ -49,8 +49,8 @@ export function AuthPage({ next }: { next?: string }) {
   useEffect(() => {
     let active = true;
     const go = () => {
-      if (next) window.location.replace(next);
-      else navigate({ to: "/command", replace: true });
+      const target = next ?? takePostLoginTarget();
+      window.location.replace(target);
     };
     supabase.auth.getSession().then(({ data }) => {
       if (active && data.session) go();
