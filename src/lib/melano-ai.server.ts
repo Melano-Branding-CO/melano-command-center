@@ -828,9 +828,10 @@ export async function runExecutiveMeetingServer(
       .in("state", ["ACTIVE", "PILOT"]);
     if (agentsError) throw agentsError;
 
-    const available = new Map(
-      (agents ?? []).map((agent: CanonicalAgent) => [agent.id, agent] as const),
+    const available = new Map<string, CanonicalAgent>(
+      ((agents ?? []) as CanonicalAgent[]).map((agent) => [agent.id, agent] as const),
     );
+
     const specialistIds = CORE_SPECIALISTS.filter((id) => available.has(id));
     if (specialistIds.length < 3) {
       throw new Error(`Comité insuficiente: ${specialistIds.length}/5 especialistas canónicos disponibles`);
