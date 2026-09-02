@@ -18,10 +18,7 @@ function mappedTable(table: string) {
 }
 
 
-/**
- * Lectura genérica multi-tenant sobre el contrato canónico tenant_id.
- * Mantiene aliases de lectura para pantallas legacy mientras se completa el refactor.
- */
+/** Lectura genérica multi-tenant sobre `organization_id`. */
 export function useOrgRows<T = Record<string, unknown>>(
   table: string,
   orgId?: string,
@@ -31,36 +28,20 @@ export function useOrgRows<T = Record<string, unknown>>(
     queryKey: [table, orgId, opts],
     enabled: !!orgId,
     queryFn: async (): Promise<T[]> => {
-      const physicalTable = mappedTable(table);
       let q = (supabase as unknown as { from: (t: string) => any })
-        .from(physicalTable)
+        .from(mappedTable(table))
         .select("*")
-        .eq("tenant_id", orgId);
+        .eq("organization_id", orgId);
 
-      const virtualFilters: Record<string, string | boolean | number | null> = {};
       for (const [k, v] of Object.entries(opts.eq ?? {})) {
-        if (VIRTUAL_FIELDS[table]?.has(k)) {
-          virtualFilters[k] = v;
-          continue;
-        }
-        const physicalColumn = mappedColumn(table, k);
-        const physicalValue = mappedValue(table, k, v);
-        q = physicalValue === null ? q.is(physicalColumn, null) : q.eq(physicalColumn, physicalValue);
+        q = v === null ? q.is(k, null) : q.eq(k, v);
       }
-      if (opts.order) {
-        q = q.order(mappedColumn(table, opts.order), { ascending: opts.asc ?? false });
-      }
+      if (opts.order) q = q.order(opts.order, { ascending: opts.asc ?? false });
       if (opts.limit) q = q.limit(opts.limit);
 
       const { data, error } = await q;
       if (error) throw error;
-      let rows = (data ?? []).map((row: Record<string, unknown>) => normalizeRow(table, row));
-      if (Object.keys(virtualFilters).length) {
-        rows = rows.filter((row: Record<string, unknown>) =>
-          matchesVirtualFilters(table, row, virtualFilters),
-        );
-      }
-      return rows as T[];
+      return (data ?? []) as T[];
     },
   });
 }
@@ -70,17 +51,17 @@ export function useRowById<T = Record<string, unknown>>(table: string, id?: stri
     queryKey: [table, "one", id],
     enabled: !!id,
     queryFn: async (): Promise<T | null> => {
-      const physicalTable = mappedTable(table);
       const { data, error } = await (supabase as unknown as { from: (t: string) => any })
-        .from(physicalTable)
+        .from(mappedTable(table))
         .select("*")
         .eq("id", id)
         .maybeSingle();
       if (error) throw error;
-      return data ? (normalizeRow(table, data as Record<string, unknown>) as T) : null;
+      return (data as T) ?? null;
     },
   });
 }
+
 
 /** Refresca las queries cuando cambian las tablas físicas en tiempo real. */
 export function useRealtime(tables: string[]) {
