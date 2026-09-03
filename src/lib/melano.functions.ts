@@ -1075,6 +1075,8 @@ export const runN8nAutomation = createServerFn({ method: "POST" })
           trace_id: traceId,
           triggered_by: context.userId,
           triggered_at: startedAt,
+          callback_url: (await import("./n8n-callback")).n8nCallbackUrl(),
+          callback_token: await (await import("./n8n-callback")).n8nCallbackToken(traceId),
           payload: data.payload ?? null,
         }),
       });
