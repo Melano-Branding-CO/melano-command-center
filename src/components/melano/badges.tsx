@@ -20,7 +20,7 @@ export function PriorityBadge({ priority }: { priority: string }) {
 }
 
 const statusStyles: Record<string, string> = {
-  ACTIVE: "border-success/40 bg-success/15 text-success",
+  ACTIVE: "border-primary/40 bg-primary/15 text-primary",
   RUNNING: "border-primary/40 bg-primary/15 text-primary",
   PAUSED: "border-border bg-muted text-muted-foreground",
   BLOCKED: "border-warning/40 bg-warning/15 text-warning",

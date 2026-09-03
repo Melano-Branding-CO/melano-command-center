@@ -8,6 +8,7 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge, PriorityBadge } from "@/components/melano/badges";
 import { fmtDate, useOrg, useAgents } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
+import { getAgentHealth } from "@/lib/agent-health";
 
 export const Route = createFileRoute("/_authenticated/green-gate")({
   head: () => ({
@@ -187,6 +188,7 @@ function GreenGatePage() {
   );
 
   const lastRun = (runs ?? [])[0] ?? null;
+  const luxiaHealth = luxia ? getAgentHealth(luxia, runs ?? []) : null;
 
 
   async function setStatus(task: Task, status: string) {
@@ -228,10 +230,13 @@ function GreenGatePage() {
       <section className="mb-8 grid gap-4 lg:grid-cols-2">
         <Panel
           title="Estado de LUXIA"
-          action={luxia ? <StatusBadge status={luxia.status} /> : undefined}
+          action={luxiaHealth ? <StatusBadge status={luxiaHealth.status} /> : undefined}
         >
           {luxia ? (
-            <dl className="grid gap-2 text-xs sm:grid-cols-2">
+            <>
+              <p className="mb-3 text-xs text-muted-foreground">{luxiaHealth?.reason}</p>
+              {luxiaHealth?.traceId ? <p className="mb-3 font-mono text-[11px] text-muted-foreground">trace {luxiaHealth.traceId}</p> : null}
+              <dl className="grid gap-2 text-xs sm:grid-cols-2">
               <div>
                 <dt className="label-caps">Habilitado</dt>
                 <dd className="text-foreground">{luxia.enabled ? "Sí" : "No"}</dd>
@@ -246,9 +251,10 @@ function GreenGatePage() {
               </div>
               <div>
                 <dt className="label-caps">Último resultado</dt>
-                <dd className="truncate text-foreground">{luxia.last_result ?? "—"}</dd>
+                <dd className="truncate text-foreground">{luxia.last_result ?? "Sin resultado"}</dd>
               </div>
             </dl>
+            </>
           ) : (
             <Empty text="Agente LUXIA no encontrado." />
           )}
