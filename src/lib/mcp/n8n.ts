@@ -25,13 +25,23 @@ export async function dispatchN8n(
 ): Promise<N8nDispatchResult> {
   const { data: rules } = await db
     .from("automation_rules")
-    .select("id, name, n8n_webhook_url, n8n_workflow")
+    .select("id, name, n8n_webhook_url, n8n_workflow, status")
     .eq("organization_id", organizationId)
     .eq("enabled", true)
-    .order("n8n_webhook_url", { ascending: false, nullsFirst: false })
-    .order("created_at")
-    .limit(1);
-  const rule = rules?.[0];
+    .order("created_at");
+  // Preferimos una regla sana con webhook cargado; nunca una que ya viene fallando.
+  const candidates = (rules ?? []) as Array<{
+    id: string;
+    name: string;
+    n8n_webhook_url: string | null;
+    n8n_workflow: string | null;
+    status: string | null;
+  }>;
+  const rule =
+    candidates.find((r) => r.n8n_webhook_url && r.status !== "ERROR") ??
+    candidates.find((r) => r.n8n_webhook_url) ??
+    candidates[0];
+
   if (!rule) {
     return {
       ok: false,
