@@ -4,21 +4,34 @@ import { supabaseAdmin } from "@/integrations/supabase/client.server";
 const MODEL = "google/gemini-2.5-flash";
 const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
 
+// DeepSeek (API oficial, key propia). Si está configurada, es el motor primario.
+const DEEPSEEK_MODEL = process.env["DEEPSEEK_MODEL"] ?? "deepseek-chat";
+const DEEPSEEK_ENDPOINT = "https://api.deepseek.com/chat/completions";
+
 import type { Json as DbJson } from "@/integrations/supabase/types";
 
 export type Json = DbJson;
 
 export type AiResult = { text: string; tokens: number; model: string; ms: number };
 
-async function aiFull(system: string, user: string): Promise<AiResult> {
-  const key = process.env["LOVABLE_API_KEY"];
-  if (!key) throw new Error("Falta LOVABLE_API_KEY en el servidor");
+type ChatBody = {
+  choices?: Array<{ message?: { content?: string } }>;
+  usage?: { total_tokens?: number };
+};
+
+async function callChat(
+  endpoint: string,
+  key: string,
+  model: string,
+  system: string,
+  user: string,
+): Promise<AiResult> {
   const t0 = Date.now();
-  const res = await fetch(GATEWAY, {
+  const res = await fetch(endpoint, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: MODEL,
+      model,
       messages: [
         { role: "system", content: system },
         { role: "user", content: user },
@@ -29,19 +42,32 @@ async function aiFull(system: string, user: string): Promise<AiResult> {
     const body = await res.text();
     if (res.status === 429) throw new Error("Límite de uso de IA alcanzado. Reintentá en unos minutos.");
     if (res.status === 402) throw new Error("Sin créditos de IA disponibles.");
-    throw new Error(`AI gateway ${res.status}: ${body.slice(0, 300)}`);
+    if (res.status === 401) throw new Error("Credencial de IA inválida.");
+    throw new Error(`AI ${model} ${res.status}: ${body.slice(0, 300)}`);
   }
-  const data = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-    usage?: { total_tokens?: number };
-  };
+  const data = (await res.json()) as ChatBody;
   return {
     text: data.choices?.[0]?.message?.content ?? "",
     tokens: data.usage?.total_tokens ?? 0,
-    model: MODEL,
+    model,
     ms: Date.now() - t0,
   };
 }
+
+async function aiFull(system: string, user: string): Promise<AiResult> {
+  const deepseekKey = process.env["DEEPSEEK_API_KEY"];
+  if (deepseekKey) {
+    try {
+      return await callChat(DEEPSEEK_ENDPOINT, deepseekKey, DEEPSEEK_MODEL, system, user);
+    } catch (error) {
+      console.error("[deepseek] fallo, usando modelo de respaldo:", error);
+    }
+  }
+  const key = process.env["LOVABLE_API_KEY"];
+  if (!key) throw new Error("Falta DEEPSEEK_API_KEY o LOVABLE_API_KEY en el servidor");
+  return callChat(GATEWAY, key, MODEL, system, user);
+}
+
 
 async function ai(system: string, user: string): Promise<string> {
   return (await aiFull(system, user)).text;
