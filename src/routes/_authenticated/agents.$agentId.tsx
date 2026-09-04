@@ -29,6 +29,7 @@ type AgentRow = {
   code: string;
   name: string;
   role: string;
+  enabled: boolean;
   objective: string;
   status: string;
   execution_mode: string;
