@@ -53,6 +53,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     title: "Comercial",
     items: [
+      { to: "/melania", label: "MELANIA", icon: Bot, roles: ["CEO", "ADMIN"] },
       { to: "/leads", label: "Leads · LUXIA", icon: Users, roles: ["CEO", "ADMIN"] },
       {
         to: "/luxia/$stage",
