@@ -10,6 +10,7 @@ import { N8nWorkflowsPanel } from "@/components/melano/n8n-panel";
 import { N8nRunsHistory } from "@/components/melano/n8n-runs-history";
 import { McpPanel } from "@/components/melano/mcp-panel";
 import { MomentumPanel } from "@/components/melano/momentum";
+import { MiniCommandConsole } from "@/components/melano/mini-command-console";
 
 import { agentMap, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
@@ -277,6 +278,8 @@ function CommandCenter() {
           )}
         </Panel>
       </div>
+
+      <MiniCommandConsole />
     </>
   );
 }
