@@ -1,12 +1,13 @@
-import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
 
 const NEXT_KEY = "melano:auth:next";
 
 /**
- * Google sign-in a través del proveedor administrado de Lovable Cloud.
+ * Google sign-in mediante Supabase Auth canónico.
  *
- * El destino se guarda aparte y se aplica recién cuando la sesión de Supabase
- * está confirmada, nunca como redirect_uri hacia una ruta protegida.
+ * Google vuelve al callback del proyecto Supabase y Supabase redirige después
+ * a /auth en el mismo origen. El destino final se guarda aparte para evitar
+ * usar una ruta protegida como callback del proveedor.
  */
 export async function signInWithGoogle(next?: string): Promise<{ error: Error | null }> {
   const target = next && /^\/(?!\/)/.test(next) ? next : "/command";
@@ -17,13 +18,15 @@ export async function signInWithGoogle(next?: string): Promise<{ error: Error | 
     // sessionStorage puede no estar disponible; el fallback es /command.
   }
 
-  const result = await lovable.auth.signInWithOAuth("google", {
-    redirect_uri: `${window.location.origin}/auth`,
-    extraParams: { prompt: "select_account" },
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/auth`,
+      queryParams: { prompt: "select_account" },
+    },
   });
 
-  if (result.error) return { error: result.error };
-  return { error: null };
+  return { error };
 }
 
 export function takePostLoginTarget(): string {
