@@ -7,10 +7,6 @@ import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
 import { N8nWorkflowsPanel } from "@/components/melano/n8n-panel";
-import { N8nRunsHistory } from "@/components/melano/n8n-runs-history";
-import { McpPanel } from "@/components/melano/mcp-panel";
-import { MomentumPanel } from "@/components/melano/momentum";
-
 import { agentMap, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { runCanonicalBoardNow } from "@/lib/canonical-runtime.functions";
@@ -18,16 +14,15 @@ import { runCanonicalBoardNow } from "@/lib/canonical-runtime.functions";
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({
     meta: [
-      { title: "Command Center — MELANO INC" },
+      { title: "Revenue Command — MELANO INC" },
       {
         name: "description",
-        content:
-          "Estado ejecutivo en vivo: Top 3 del día, agentes, decisiones pendientes, aprobaciones y alertas de MELANO INC.",
+        content: "Caja, pipeline, cierres, bloqueos y automatización comercial de MELANO INC.",
       },
-      { property: "og:title", content: "Command Center — MELANO INC" },
+      { property: "og:title", content: "Revenue Command — MELANO INC" },
       {
         property: "og:description",
-        content: "Estado ejecutivo en vivo del sistema autónomo de MELANO INC.",
+        content: "Control operativo centrado en revenue real.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -47,6 +42,12 @@ type Task = {
   deadline: string | null;
 };
 
+type Lead = {
+  id: string;
+  score: number | null;
+  top: boolean | null;
+};
+
 function CommandCenter() {
   const { data: org } = useOrg();
   const { data: agents } = useAgents(org?.id);
@@ -55,16 +56,7 @@ function CommandCenter() {
   const [busy, setBusy] = useState(false);
   const runMeeting = useServerFn(runCanonicalBoardNow);
 
-  useRealtime([
-    "tasks",
-    "decisions",
-    "approvals",
-    "alerts",
-    "automation_rules",
-    "automation_runs",
-    "metrics",
-    "agents",
-  ]);
+  useRealtime(["tasks", "approvals", "alerts", "automation_rules", "metrics", "leads"]);
 
   const today = todayKey(org?.timezone ?? undefined);
   const { data: todayTasks, isLoading: loadingToday } = useOrgRows<Task>("tasks", org?.id, {
@@ -76,11 +68,6 @@ function CommandCenter() {
     eq: { status: "BLOCKED" },
     order: "updated_at",
   });
-  const { data: decisions } = useOrgRows<{ id: string; title: string; status: string; priority: string }>(
-    "decisions",
-    org?.id,
-    { eq: { status: "PROPOSED" }, order: "created_at", limit: 6 },
-  );
   const { data: approvals } = useOrgRows<{ id: string; action: string; risk: string | null }>(
     "approvals",
     org?.id,
@@ -98,6 +85,10 @@ function CommandCenter() {
     unit: string | null;
     captured_at: string;
   }>("metrics", org?.id, { eq: { category: "revenue" }, order: "captured_at", limit: 4 });
+  const { data: leads } = useOrgRows<Lead>("leads", org?.id, { order: "updated_at", limit: 5000 });
+
+  const totalLeads = leads?.length ?? 0;
+  const hotLeads = (leads ?? []).filter((lead) => lead.top || (lead.score ?? 0) >= 80).length;
 
   async function onRunMeeting() {
     if (!org?.id) return;
@@ -116,62 +107,30 @@ function CommandCenter() {
   return (
     <>
       <PageHeader
-        title="Command Center"
-        subtitle="Todo lo que ves sale de la base de datos real. Sin datos inventados."
+        title="Revenue Command"
+        subtitle="Solo caja, pipeline, cierres, bloqueos y automatización. Sin dashboards de relleno."
         actions={
           <Button onClick={onRunMeeting} disabled={busy || !org?.id}>
-            {busy ? "Ejecutando…" : "Ejecutar reunión ahora"}
+            {busy ? "Ejecutando…" : "Ejecutar Revenue Board"}
           </Button>
         }
       />
 
-      <MomentumPanel className="mb-4" />
-
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel
-          title="Hoy — Top 3"
-          className="lg:col-span-2"
-          action={
-            <Link to="/today" className="text-xs text-muted-foreground hover:text-foreground">
-              Ver detalle
+        <Panel title="Leads">
+          <div className="space-y-2">
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-sm text-muted-foreground">Total</span>
+              <span className="text-2xl font-semibold text-foreground">{totalLeads}</span>
+            </div>
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-sm text-muted-foreground">Hot / score alto</span>
+              <span className="text-xl font-semibold text-foreground">{hotLeads}</span>
+            </div>
+            <Link to="/leads" className="text-xs text-muted-foreground hover:text-foreground">
+              Abrir leads →
             </Link>
-          }
-        >
-          {loadingToday ? (
-            <Empty text="Cargando prioridades desde la base…" />
-          ) : (todayTasks ?? []).length === 0 ? (
-            <Empty text="Sin prioridades definidas hoy. Ejecutá la reunión ejecutiva para generarlas." />
-          ) : (
-            <ul className="space-y-3">
-              {(todayTasks ?? []).slice(0, 3).map((t) => (
-                <li key={t.id} className="rounded-md border border-border p-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <PriorityBadge priority={t.priority} />
-                    <StatusBadge status={t.status} />
-                    <span className="text-sm font-medium text-foreground">{t.title}</span>
-                  </div>
-                  <dl className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
-                    <div>
-                      <dt className="label-caps">Why now</dt>
-                      <dd>{t.why_now ?? "—"}</dd>
-                    </div>
-                    <div>
-                      <dt className="label-caps">Next action</dt>
-                      <dd>{t.next_action ?? "—"}</dd>
-                    </div>
-                    <div>
-                      <dt className="label-caps">Owner</dt>
-                      <dd>{t.assigned_agent ? map.get(t.assigned_agent)?.name ?? "—" : "—"}</dd>
-                    </div>
-                    <div>
-                      <dt className="label-caps">Success metric</dt>
-                      <dd>{t.success_metric ?? "—"}</dd>
-                    </div>
-                  </dl>
-                </li>
-              ))}
-            </ul>
-          )}
+          </div>
         </Panel>
 
         <Panel title="Revenue">
@@ -191,45 +150,7 @@ function CommandCenter() {
           )}
         </Panel>
 
-        <Panel title="Agentes">
-          {(agents ?? []).length === 0 ? (
-            <Empty text="Sin agentes configurados." />
-          ) : (
-            <ul className="space-y-1.5 text-sm">
-              {(agents ?? []).map((a) => (
-                <li key={a.id} className="flex items-center justify-between gap-2">
-                  <Link
-                    to="/agents/$agentId"
-                    params={{ agentId: a.id }}
-                    className="truncate text-foreground hover:underline"
-                  >
-                    {a.name}
-                  </Link>
-                  <StatusBadge status={a.status} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-
-        <Panel title="Decisiones pendientes">
-          {(decisions ?? []).length === 0 ? (
-            <Empty text="Sin decisiones propuestas." />
-          ) : (
-            <ul className="space-y-2 text-sm">
-              {(decisions ?? []).map((d) => (
-                <li key={d.id} className="flex items-center justify-between gap-2">
-                  <Link to="/decisions" className="truncate text-foreground hover:underline">
-                    {d.title}
-                  </Link>
-                  <PriorityBadge priority={d.priority} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-
-        <Panel title="Aprobaciones humanas">
+        <Panel title="Aprobaciones que bloquean ejecución">
           {(approvals ?? []).length === 0 ? (
             <Empty text="Nada esperando autorización." />
           ) : (
@@ -246,7 +167,53 @@ function CommandCenter() {
           )}
         </Panel>
 
-        <Panel title="Bloqueos">
+        <Panel
+          title="Hoy — Top 3 de impacto"
+          className="lg:col-span-2"
+          action={
+            <Link to="/today" className="text-xs text-muted-foreground hover:text-foreground">
+              Ver detalle
+            </Link>
+          }
+        >
+          {loadingToday ? (
+            <Empty text="Cargando prioridades desde la base…" />
+          ) : (todayTasks ?? []).length === 0 ? (
+            <Empty text="Sin prioridades definidas hoy. Ejecutá Revenue Board." />
+          ) : (
+            <ul className="space-y-3">
+              {(todayTasks ?? []).slice(0, 3).map((t) => (
+                <li key={t.id} className="rounded-md border border-border p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <PriorityBadge priority={t.priority} />
+                    <StatusBadge status={t.status} />
+                    <span className="text-sm font-medium text-foreground">{t.title}</span>
+                  </div>
+                  <dl className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                    <div>
+                      <dt className="label-caps">Por qué ahora</dt>
+                      <dd>{t.why_now ?? "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="label-caps">Próxima acción</dt>
+                      <dd>{t.next_action ?? "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="label-caps">Responsable</dt>
+                      <dd>{t.assigned_agent ? map.get(t.assigned_agent)?.name ?? "—" : "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="label-caps">Métrica de éxito</dt>
+                      <dd>{t.success_metric ?? "—"}</dd>
+                    </div>
+                  </dl>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title="Bloqueos de revenue">
           {(blocked ?? []).length === 0 ? (
             <Empty text="Sin bloqueos registrados." />
           ) : (
@@ -259,15 +226,13 @@ function CommandCenter() {
         </Panel>
 
         <N8nWorkflowsPanel className="lg:col-span-3" />
-        <McpPanel className="lg:col-span-3" />
-        <N8nRunsHistory className="lg:col-span-3" />
 
-        <Panel title="Alertas">
+        <Panel title="Alertas críticas">
           {(alerts ?? []).length === 0 ? (
             <Empty text="Sin alertas abiertas." />
           ) : (
             <ul className="space-y-2 text-sm">
-              {(alerts ?? []).map((a) => (
+              {(alerts ?? []).slice(0, 8).map((a) => (
                 <li key={a.id} className="flex items-center justify-between gap-2">
                   <span className="truncate text-foreground">{a.title}</span>
                   <StatusBadge status={a.severity} />
