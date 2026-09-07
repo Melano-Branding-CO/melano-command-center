@@ -242,6 +242,8 @@ function CommandCenter() {
           )}
         </Panel>
       </div>
+
+      <MiniCommandConsole />
     </>
   );
 }
