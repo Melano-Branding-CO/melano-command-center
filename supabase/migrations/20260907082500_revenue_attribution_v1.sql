@@ -59,10 +59,11 @@ create policy revenue_attribution_events_tenant_select
   to authenticated
   using ((select private.user_has_tenant_access(tenant_id)));
 
-revoke all on public.revenue_attribution_events from anon;
-revoke insert, update, delete on public.revenue_attribution_events from authenticated;
-grant select on public.revenue_attribution_events to authenticated;
-grant all on public.revenue_attribution_events to service_role;
+-- Authenticated clients are strictly read-only. Explicitly revoke every table
+-- privilege because TRUNCATE/REFERENCES/TRIGGER can survive a DML-only revoke.
+revoke all privileges on table public.revenue_attribution_events from anon, authenticated;
+grant select on table public.revenue_attribution_events to authenticated;
+grant all privileges on table public.revenue_attribution_events to service_role;
 
 -- Extend the already-established verified ledger snapshot instead of creating a competing KPI table.
 alter table public.revenue_ledger_snapshot
