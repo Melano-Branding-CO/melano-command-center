@@ -15,8 +15,8 @@ const TABLE_MAP: Record<string, string> = {
   executive_meetings: "meeting_runs",
   meeting_outputs: "agent_runs",
   activity_logs: "automation_logs",
-  metrics: "kpi_snapshot",
-  alerts: "critical_actions",
+  metrics: "verified_kpi_snapshot",
+  alerts: "verified_critical_actions",
   automation_rules: "routing_rules",
   products: "luxia_health",
 };
