@@ -5,15 +5,10 @@ import {
   Activity,
   BadgeCheck,
   Bot,
-  CalendarClock,
-  ChartNoAxesColumn,
   GitBranch,
   LayoutDashboard,
-  ListChecks,
   LogOut,
   Menu,
-  Package,
-  Settings,
   ShieldCheck,
   Sun,
   Users,
@@ -21,7 +16,7 @@ import {
   X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { AUTONOMY_LEVELS, useMyRole, useOrg } from "@/lib/melano";
+import { useMyRole, useOrg } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { StatusBadge } from "@/components/melano/badges";
 import { cn } from "@/lib/utils";
@@ -38,22 +33,23 @@ type NavItem = {
 
 type NavGroup = { title: string; items: NavItem[] };
 
+/**
+ * Revenue-only navigation.
+ * Se ocultan pantallas duplicadas, vanity dashboards y vistas de sistema que no
+ * intervienen directamente en captar, convertir, cobrar o ejecutar revenue.
+ * Los controles críticos de seguridad/operación siguen existiendo en backend.
+ */
 const NAV_GROUPS: NavGroup[] = [
   {
-    title: "Ejecutivo",
+    title: "Hoy",
     items: [
-      { to: "/command", label: "Command Center", icon: LayoutDashboard },
-      { to: "/today", label: "Today", icon: Sun },
-      { to: "/ceo", label: "CEO Dashboard", icon: ChartNoAxesColumn, roles: ["CEO"] },
-      { to: "/bruno", label: "Bruno", icon: ShieldCheck },
-      { to: "/green-gate", label: "Green Gate", icon: BadgeCheck },
-      { to: "/dashboards", label: "Dashboards", icon: ChartNoAxesColumn },
+      { to: "/command", label: "Revenue Command", icon: LayoutDashboard },
+      { to: "/today", label: "Top 3", icon: Sun },
     ],
   },
   {
-    title: "Comercial",
+    title: "Ventas",
     items: [
-      { to: "/melania", label: "MELANIA", icon: Bot, roles: ["CEO", "ADMIN"] },
       { to: "/leads", label: "Leads · LUXIA", icon: Users, roles: ["CEO", "ADMIN"] },
       {
         to: "/luxia/$stage",
@@ -69,41 +65,20 @@ const NAV_GROUPS: NavGroup[] = [
         icon: Users,
         roles: ["CEO", "ADMIN", "OPERATOR"],
       },
-      {
-        to: "/operador-dashboard",
-        label: "Dashboard operador",
-        icon: ChartNoAxesColumn,
-        roles: ["CEO", "ADMIN", "OPERATOR"],
-      },
       { to: "/revenue", label: "Revenue", icon: Wallet },
     ],
   },
   {
-    title: "Operación",
+    title: "Ejecución",
     items: [
-      { to: "/asignaciones", label: "Asignaciones", icon: ListChecks },
-      { to: "/tasks", label: "Tasks", icon: ListChecks },
-      { to: "/decisions", label: "Decisions", icon: GitBranch },
-      { to: "/approvals", label: "Approvals", icon: ShieldCheck },
-      { to: "/meetings", label: "Meetings", icon: CalendarClock },
-      { to: "/automations", label: "Automations", icon: BadgeCheck },
+      { to: "/melania", label: "MELANIA", icon: Bot, roles: ["CEO", "ADMIN"] },
+      { to: "/approvals", label: "Aprobaciones", icon: ShieldCheck },
+      { to: "/automations", label: "Automatizaciones", icon: BadgeCheck },
       { to: "/ejecuciones", label: "Ejecuciones", icon: Activity },
-      { to: "/agents", label: "Agents", icon: Bot },
-      { to: "/products", label: "Products", icon: Package },
-    ],
-  },
-  {
-    title: "Sistema",
-    items: [
-      { to: "/metas", label: "Metas anuales", icon: ChartNoAxesColumn, roles: ["CEO", "ADMIN"] },
-      { to: "/metrics", label: "Metrics", icon: ChartNoAxesColumn },
-      { to: "/activity", label: "Activity", icon: Activity },
-      { to: "/admin", label: "Administración", icon: ShieldCheck, roles: ["CEO", "ADMIN"] },
-      { to: "/settings", label: "Settings", icon: Settings },
+      { to: "/agents", label: "Agentes", icon: Bot },
     ],
   },
 ];
-
 
 /** Restringe una pantalla a los roles indicados (la RLS del backend vuelve a validar). */
 export function RoleGate({
@@ -132,7 +107,6 @@ export function RoleGate({
   }
   return <>{children}</>;
 }
-
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -253,19 +227,15 @@ export function AppShell({ children }: { children: ReactNode }) {
             </button>
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">
-                {org?.name ?? "MELANO INC"} · Autonomous Command Center
+                {org?.name ?? "MELANO INC"} · Revenue Command Center
               </p>
               <p className="truncate text-[11px] text-muted-foreground">
-                {org?.tagline ?? "AI. Automation. Impact."} · {role ?? "—"}
+                Captar → convertir → cobrar → automatizar · {role ?? "—"}
               </p>
             </div>
             <div className="ml-auto flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 Sistema <StatusBadge status={org?.system_health ?? "YELLOW"} />
-              </span>
-              <span className="rounded border border-border bg-muted px-2 py-0.5">
-                Autonomía L{org?.autonomy_level ?? 0} ·{" "}
-                {AUTONOMY_LEVELS[org?.autonomy_level ?? 0] ?? "—"}
               </span>
               <span className="rounded border border-border bg-muted px-2 py-0.5">
                 Agentes activos {activeAgents}
@@ -278,7 +248,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     : "border-border bg-muted",
                 )}
               >
-                Alertas críticas {criticalAlerts}
+                Bloqueos críticos {criticalAlerts}
               </span>
             </div>
           </div>
