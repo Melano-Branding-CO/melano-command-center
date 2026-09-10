@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useOrg } from "@/lib/melano";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -20,9 +20,11 @@ function DebugAccessPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastCheck, setLastCheck] = useState<string | null>(null);
 
-  const check = async () => {
+  const check = useCallback(async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user || !org?.id) return;
 
       // Check if user is in organization_members
@@ -42,13 +44,13 @@ function DebugAccessPage() {
       });
       setLastCheck(new Date().toLocaleTimeString());
     } catch (e) {
-      setDebug(prev => ({ ...prev, error: String(e) }));
+      setDebug((prev) => ({ ...prev, error: String(e) }));
     }
-  };
+  }, [org?.id]);
 
   useEffect(() => {
     check();
-  }, [org]);
+  }, [check]);
 
   const handleRefreshSession = async () => {
     setRefreshing(true);
@@ -58,10 +60,10 @@ function DebugAccessPage() {
       if (error) throw error;
 
       // Re-check membership after refresh
-      await new Promise(r => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 500));
       await check();
     } catch (e) {
-      setDebug(prev => ({ ...prev, error: `Refresh failed: ${String(e)}` }));
+      setDebug((prev) => ({ ...prev, error: `Refresh failed: ${String(e)}` }));
     } finally {
       setRefreshing(false);
     }
@@ -91,19 +93,22 @@ function DebugAccessPage() {
       <div className="space-y-2">
         {debug.membershipExists ? (
           <div className="p-4 bg-green-100 rounded text-green-800 text-sm">
-            <strong>✓ Acceso Verificado</strong><br/>
+            <strong>✓ Acceso Verificado</strong>
+            <br />
             Usuario está en organization_members con rol: <strong>{debug.role}</strong>
           </div>
         ) : (
           <div className="p-4 bg-red-100 rounded text-red-800 text-sm">
-            <strong>✗ Acceso Denegado</strong><br/>
+            <strong>✗ Acceso Denegado</strong>
+            <br />
             Usuario NO está en organization_members. Contactá a un admin para que te agregue.
           </div>
         )}
 
         {debug.error && (
           <div className="p-4 bg-yellow-100 rounded text-yellow-800 text-sm">
-            <strong>⚠ Error</strong><br/>
+            <strong>⚠ Error</strong>
+            <br />
             {debug.error}
           </div>
         )}

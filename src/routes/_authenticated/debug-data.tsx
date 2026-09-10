@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useOrg } from "@/lib/melano";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,7 @@ function DebugDataPage() {
   ]);
   const [checking, setChecking] = useState(false);
 
-  const checkAllTables = async () => {
+  const checkAllTables = useCallback(async () => {
     if (!org?.id) return;
     setChecking(true);
 
@@ -60,16 +60,16 @@ function DebugDataPage() {
         } catch (e) {
           return { ...t, error: String(e) };
         }
-      })
+      }),
     );
 
     setTables(results);
     setChecking(false);
-  };
+  }, [org?.id, tables]);
 
   useEffect(() => {
     checkAllTables();
-  }, [org?.id]);
+  }, [checkAllTables]);
 
   if (!org?.id) {
     return <div className="p-8">Cargando organización...</div>;
@@ -118,7 +118,10 @@ function DebugDataPage() {
       <div className="mt-6 p-4 bg-blue-50 rounded text-sm text-blue-900">
         <h3 className="font-semibold mb-2">Interpretación:</h3>
         <ul className="list-disc list-inside space-y-1">
-          <li>Si ves "Registros encontrados: 0" en todas las tablas, probablemente no hay datos para esta org</li>
+          <li>
+            Si ves "Registros encontrados: 0" en todas las tablas, probablemente no hay datos para
+            esta org
+          </li>
           <li>Si ves errores, hay un problema con las RLS policies</li>
           <li>Si ves datos, las RLS policies están funcionando correctamente</li>
         </ul>

@@ -2,7 +2,8 @@ import { n8nWebhookHeaders } from "@/lib/n8n-headers";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-type Serializable = string | number | boolean | null | Serializable[] | { [k: string]: Serializable };
+type Serializable =
+  string | number | boolean | null | Serializable[] | { [k: string]: Serializable };
 
 export const runMeetingNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -137,7 +138,7 @@ export const decideApproval = createServerFn({ method: "POST" })
 
         const finishedAt = new Date().toISOString();
         const outcome = res.ok
-          ? (res.output?.slice(0, 2000) || "Ejecutada automáticamente tras aprobación")
+          ? res.output?.slice(0, 2000) || "Ejecutada automáticamente tras aprobación"
           : null;
 
         await context.supabase
@@ -196,7 +197,6 @@ export const decideApproval = createServerFn({ method: "POST" })
 
     return { status: approval.status, execution };
   });
-
 
 export const clearDemoData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -269,16 +269,18 @@ async function assertAdmin(context: AdminContext, organizationId: string) {
 
 export const inviteUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { organizationId: string; email: string; role: string; days?: number }) => {
-    if (!input?.organizationId) throw new Error("organizationId requerido");
-    const email = (input.email ?? "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Email inválido");
-    if (!["CEO", "ADMIN", "OPERATOR", "VIEWER", "AGENT"].includes(input.role)) {
-      throw new Error("Rol inválido");
-    }
-    const days = Math.min(Math.max(input.days ?? 14, 1), 90);
-    return { organizationId: input.organizationId, email, role: input.role, days };
-  })
+  .inputValidator(
+    (input: { organizationId: string; email: string; role: string; days?: number }) => {
+      if (!input?.organizationId) throw new Error("organizationId requerido");
+      const email = (input.email ?? "").trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Email inválido");
+      if (!["CEO", "ADMIN", "OPERATOR", "VIEWER", "AGENT"].includes(input.role)) {
+        throw new Error("Rol inválido");
+      }
+      const days = Math.min(Math.max(input.days ?? 14, 1), 90);
+      return { organizationId: input.organizationId, email, role: input.role, days };
+    },
+  )
   .handler(async ({ data, context }) => {
     await assertAdmin(context, data.organizationId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -508,18 +510,33 @@ export const listAdminData = createServerFn({ method: "POST" })
         };
       }),
       organizations: (orgs ?? [])
-        .map((row: { role: string; organizations: { id: string; name: string; slug: string; autonomy_level: number } | null }) =>
-          row.organizations
-            ? {
-                id: row.organizations.id,
-                name: row.organizations.name,
-                slug: row.organizations.slug,
-                autonomyLevel: row.organizations.autonomy_level,
-                role: row.role,
-              }
-            : null,
+        .map(
+          (row: {
+            role: string;
+            organizations: {
+              id: string;
+              name: string;
+              slug: string;
+              autonomy_level: number;
+            } | null;
+          }) =>
+            row.organizations
+              ? {
+                  id: row.organizations.id,
+                  name: row.organizations.name,
+                  slug: row.organizations.slug,
+                  autonomyLevel: row.organizations.autonomy_level,
+                  role: row.role,
+                }
+              : null,
         )
-        .filter(Boolean) as { id: string; name: string; slug: string; autonomyLevel: number; role: string }[],
+        .filter(Boolean) as {
+        id: string;
+        name: string;
+        slug: string;
+        autonomyLevel: number;
+        role: string;
+      }[],
       me: context.userId,
     };
   });
@@ -615,9 +632,13 @@ export const saveClient = createServerFn({ method: "POST" })
       owner_user: clean(data.ownerUser),
     };
 
-
     const query = data.id
-      ? context.supabase.from("clients").update(payload).eq("id", data.id).select("id, name").single()
+      ? context.supabase
+          .from("clients")
+          .update(payload)
+          .eq("id", data.id)
+          .select("id, name")
+          .single()
       : context.supabase.from("clients").insert(payload).select("id, name").single();
     const { data: row, error } = await query;
     if (error) throw new Error(error.message);
@@ -862,7 +883,8 @@ export const saveAssignment = createServerFn({ method: "POST" })
   .inputValidator((input: AssignmentInput) => {
     if (!input?.organizationId) throw new Error("organizationId requerido");
     if (!clean(input.title)) throw new Error("El título de la tarea es obligatorio");
-    if (input.priority && !TASK_PRIORITY.includes(input.priority)) throw new Error("Prioridad inválida");
+    if (input.priority && !TASK_PRIORITY.includes(input.priority))
+      throw new Error("Prioridad inválida");
     if (input.status && !TASK_STATUS.includes(input.status)) throw new Error("Estado inválido");
     return input;
   })
@@ -884,7 +906,7 @@ export const saveAssignment = createServerFn({ method: "POST" })
       today_date: data.isTodayPriority ? new Date().toISOString().slice(0, 10) : null,
       execution_mode: "MANUAL",
     };
-    if (!data.id) payload['created_by'] = context.userId;
+    if (!data.id) payload["created_by"] = context.userId;
 
     const query = data.id
       ? context.supabase
@@ -944,10 +966,10 @@ export const updateMyAssignment = createServerFn({ method: "POST" })
     const update: Record<string, Serializable> = { status: data.status };
     const nextAction = clean(data.nextAction);
     const result = clean(data.result);
-    if (nextAction) update['next_action'] = nextAction;
-    if (result) update['result'] = result;
-    if (data.status === "RUNNING") update['started_at'] = new Date().toISOString();
-    if (data.status === "DONE") update['completed_at'] = new Date().toISOString();
+    if (nextAction) update["next_action"] = nextAction;
+    if (result) update["result"] = result;
+    if (data.status === "RUNNING") update["started_at"] = new Date().toISOString();
+    if (data.status === "DONE") update["completed_at"] = new Date().toISOString();
 
     const { data: row, error } = await context.supabase
       .from("tasks")
@@ -1029,10 +1051,12 @@ export const saveN8nAutomation = createServerFn({ method: "POST" })
 /** Ejecuta el workflow de n8n de una automatización y deja run + log auditables. */
 export const runN8nAutomation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { organizationId: string; ruleId: string; payload?: Serializable | undefined }) => {
-    if (!input?.organizationId || !input?.ruleId) throw new Error("Parámetros inválidos");
-    return input;
-  })
+  .inputValidator(
+    (input: { organizationId: string; ruleId: string; payload?: Serializable | undefined }) => {
+      if (!input?.organizationId || !input?.ruleId) throw new Error("Parámetros inválidos");
+      return input;
+    },
+  )
   .handler(async ({ data, context }) => {
     await assertAdmin(context, data.organizationId);
     const { data: rule, error } = await context.supabase
@@ -1064,6 +1088,13 @@ export const runN8nAutomation = createServerFn({ method: "POST" })
     let output = "";
     let errorText: string | null = null;
     try {
+      const { n8nCallbackToken } = await import("./n8n-callback");
+      const callbackToken = await n8nCallbackToken(traceId);
+      if (!callbackToken)
+        throw new Error(
+          "LOVABLE_CRON_SECRET no configurado; callback de n8n no se puede autenticar",
+        );
+
       const res = await fetch(rule.n8n_webhook_url, {
         method: "POST",
         headers: n8nWebhookHeaders(),
@@ -1076,7 +1107,7 @@ export const runN8nAutomation = createServerFn({ method: "POST" })
           triggered_by: context.userId,
           triggered_at: startedAt,
           callback_url: (await import("./n8n-callback")).n8nCallbackUrl(),
-          callback_token: await (await import("./n8n-callback")).n8nCallbackToken(traceId),
+          callback_token: callbackToken,
           payload: data.payload ?? null,
         }),
       });
@@ -1092,10 +1123,13 @@ export const runN8nAutomation = createServerFn({ method: "POST" })
 
     const finishedAt = new Date().toISOString();
     if (run?.id) {
+      // Solo actualizar si el run sigue en RUNNING (callback no fue invocado aún)
+      // Si el callback fue invocado antes, respeta el resultado real del workflow
       await context.supabase
         .from("automation_runs")
         .update({ status, finished_at: finishedAt, output, error: errorText })
-        .eq("id", run.id);
+        .eq("id", run.id)
+        .eq("status", "RUNNING");
     }
     await context.supabase
       .from("automation_rules")
@@ -1151,7 +1185,10 @@ async function dispatchN8nEvent(
     .limit(1);
   const rule = rules?.[0];
   if (!rule?.n8n_webhook_url) {
-    return { ok: false as const, error: "No hay workflow de n8n activo. Configuralo en Automations." };
+    return {
+      ok: false as const,
+      error: "No hay workflow de n8n activo. Configuralo en Automations.",
+    };
   }
 
   const traceId = crypto.randomUUID();
@@ -1235,7 +1272,13 @@ async function dispatchN8nEvent(
     },
   });
 
-  return { ok: status === "SUCCESS", traceId, output, error: errorText, rule: (rule.n8n_workflow ?? rule.name) as string };
+  return {
+    ok: status === "SUCCESS",
+    traceId,
+    output,
+    error: errorText,
+    rule: (rule.n8n_workflow ?? rule.name) as string,
+  };
 }
 
 /** Avisa a Bruno por n8n de una aprobación pendiente (decisión crítica). */
@@ -1258,7 +1301,9 @@ export const notifyApprovalInN8n = createServerFn({ method: "POST" })
 
     const { data: approval, error } = await context.supabase
       .from("approvals")
-      .select("id, action, category, reason, impact, risk, status, requested_at, decision_id, task_id, agent_id, trace_id")
+      .select(
+        "id, action, category, reason, impact, risk, status, requested_at, decision_id, task_id, agent_id, trace_id",
+      )
       .eq("id", data.approvalId)
       .eq("organization_id", data.organizationId)
       .maybeSingle();
@@ -1296,7 +1341,9 @@ export const notifyApprovalDecisionInN8n = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: approval } = await context.supabase
       .from("approvals")
-      .select("id, action, category, status, decided_at, decision_note, decision_id, task_id, trace_id")
+      .select(
+        "id, action, category, status, decided_at, decision_note, decision_id, task_id, trace_id",
+      )
       .eq("id", data.approvalId)
       .eq("organization_id", data.organizationId)
       .maybeSingle();
@@ -1339,10 +1386,12 @@ async function assertMcpActor(context: { supabase: any; userId: string }, organi
 /** Ejecuta una tarea en el workflow real de n8n usando el puente del endpoint /mcp. */
 export const runTaskViaMcp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { organizationId: string; taskId: string; note?: string | undefined }) => {
-    if (!input?.organizationId || !input?.taskId) throw new Error("Parámetros inválidos");
-    return input;
-  })
+  .inputValidator(
+    (input: { organizationId: string; taskId: string; note?: string | undefined }) => {
+      if (!input?.organizationId || !input?.taskId) throw new Error("Parámetros inválidos");
+      return input;
+    },
+  )
   .handler(async ({ data, context }) => {
     await assertMcpActor(context as never, data.organizationId);
     const { data: task, error } = await context.supabase
@@ -1380,10 +1429,12 @@ export const runTaskViaMcp = createServerFn({ method: "POST" })
 /** Ejecuta una decisión en n8n; si requiere aprobación, sólo notifica a Bruno. */
 export const runDecisionViaMcp = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { organizationId: string; decisionId: string; note?: string | undefined }) => {
-    if (!input?.organizationId || !input?.decisionId) throw new Error("Parámetros inválidos");
-    return input;
-  })
+  .inputValidator(
+    (input: { organizationId: string; decisionId: string; note?: string | undefined }) => {
+      if (!input?.organizationId || !input?.decisionId) throw new Error("Parámetros inválidos");
+      return input;
+    },
+  )
   .handler(async ({ data, context }) => {
     await assertMcpActor(context as never, data.organizationId);
     const { data: decision, error } = await context.supabase
