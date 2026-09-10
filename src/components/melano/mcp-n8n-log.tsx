@@ -14,11 +14,7 @@ type LogRow = {
   detail: Record<string, unknown> | null;
 };
 
-const ACTIONS = [
-  "n8n.task.run",
-  "n8n.decision.run",
-  "n8n.decision.approval_required",
-] as const;
+const ACTIONS = ["n8n.task.run", "n8n.decision.run", "n8n.decision.approval_required"] as const;
 
 const LABEL: Record<string, string> = {
   "n8n.task.run": "Tarea → n8n",
@@ -65,7 +61,9 @@ export function McpN8nLog({
       {isLoading ? (
         <Empty text="Cargando ejecuciones…" />
       ) : error ? (
-        <Empty text={`No se pudieron leer los logs: ${error instanceof Error ? error.message : "error"}`} />
+        <Empty
+          text={`No se pudieron leer los logs: ${error instanceof Error ? error.message : "error"}`}
+        />
       ) : (data ?? []).length === 0 ? (
         <Empty text="Sin ejecuciones disparadas desde MCP todavía." />
       ) : (
@@ -81,8 +79,8 @@ export function McpN8nLog({
                     {d["title"] ? ` · ${String(d["title"])}` : ""}
                   </p>
                   <p className="text-[11px] text-muted-foreground">
-                    {fmtDate(log.created_at)} · workflow {String(d["workflow"] ?? d["rule"] ?? "—")} · trace{" "}
-                    {log.trace_id?.slice(0, 8) ?? "—"}
+                    {fmtDate(log.created_at)} · workflow {String(d["workflow"] ?? d["rule"] ?? "—")}{" "}
+                    · trace {log.trace_id?.slice(0, 8) ?? "—"}
                   </p>
                   {d["error"] ? (
                     <p className="text-[11px] text-destructive">{String(d["error"])}</p>
@@ -90,9 +88,7 @@ export function McpN8nLog({
                 </div>
                 <span
                   className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] uppercase tracking-wide ${
-                    ok
-                      ? "border-primary/40 text-primary"
-                      : "border-destructive/40 text-destructive"
+                    ok ? "border-primary/40 text-primary" : "border-destructive/40 text-destructive"
                   }`}
                 >
                   {String(d["status"] ?? "—")}

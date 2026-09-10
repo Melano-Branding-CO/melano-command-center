@@ -17,7 +17,6 @@ function mappedTable(table: string) {
   return table;
 }
 
-
 /** Lectura genérica multi-tenant sobre `organization_id`. */
 export function useOrgRows<T = Record<string, unknown>>(
   table: string,
@@ -61,7 +60,6 @@ export function useRowById<T = Record<string, unknown>>(table: string, id?: stri
     },
   });
 }
-
 
 /** Refresca las queries cuando cambian las tablas físicas en tiempo real. */
 export function useRealtime(tables: string[]) {

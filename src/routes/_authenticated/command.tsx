@@ -11,7 +11,6 @@ import { N8nRunsHistory } from "@/components/melano/n8n-runs-history";
 import { McpPanel } from "@/components/melano/mcp-panel";
 import { MomentumPanel } from "@/components/melano/momentum";
 
-
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { runMeetingNow } from "@/lib/melano.functions";
@@ -77,11 +76,12 @@ function CommandCenter() {
     eq: { status: "BLOCKED" },
     order: "updated_at",
   });
-  const { data: decisions } = useOrgRows<{ id: string; title: string; status: string; priority: string }>(
-    "decisions",
-    org?.id,
-    { eq: { status: "PROPOSED" }, order: "created_at", limit: 6 },
-  );
+  const { data: decisions } = useOrgRows<{
+    id: string;
+    title: string;
+    status: string;
+    priority: string;
+  }>("decisions", org?.id, { eq: { status: "PROPOSED" }, order: "created_at", limit: 6 });
   const { data: approvals } = useOrgRows<{ id: string; action: string; risk: string | null }>(
     "approvals",
     org?.id,
@@ -114,7 +114,6 @@ function CommandCenter() {
     }
   }
 
-
   return (
     <>
       <PageHeader
@@ -130,7 +129,6 @@ function CommandCenter() {
       <MomentumPanel className="mb-4" />
 
       <div className="grid gap-4 lg:grid-cols-3">
-
         <Panel
           title="Hoy — Top 3"
           className="lg:col-span-2"
@@ -164,7 +162,7 @@ function CommandCenter() {
                     </div>
                     <div>
                       <dt className="label-caps">Owner</dt>
-                      <dd>{t.assigned_agent ? map.get(t.assigned_agent)?.name ?? "—" : "—"}</dd>
+                      <dd>{t.assigned_agent ? (map.get(t.assigned_agent)?.name ?? "—") : "—"}</dd>
                     </div>
                     <div>
                       <dt className="label-caps">Success metric</dt>
@@ -255,7 +253,9 @@ function CommandCenter() {
           ) : (
             <ul className="space-y-2 text-sm">
               {(blocked ?? []).map((t) => (
-                <li key={t.id} className="text-foreground">{t.title}</li>
+                <li key={t.id} className="text-foreground">
+                  {t.title}
+                </li>
               ))}
             </ul>
           )}
@@ -264,7 +264,6 @@ function CommandCenter() {
         <N8nWorkflowsPanel className="lg:col-span-3" />
 
         <McpPanel className="lg:col-span-3" />
-
 
         <N8nRunsHistory className="lg:col-span-3" />
 

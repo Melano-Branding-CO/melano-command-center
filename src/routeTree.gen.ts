@@ -28,6 +28,8 @@ import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ce
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedDashboardsRouteImport } from './routes/_authenticated/dashboards'
+import { Route as AuthenticatedDebugAccessRouteImport } from './routes/_authenticated/debug-access'
+import { Route as AuthenticatedDebugDataRouteImport } from './routes/_authenticated/debug-data'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedEjecucionesRouteImport } from './routes/_authenticated/ejecuciones'
 import { Route as AuthenticatedGreenGateRouteImport } from './routes/_authenticated/green-gate'
@@ -147,6 +149,17 @@ const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
 const AuthenticatedDashboardsRoute = AuthenticatedDashboardsRouteImport.update({
   id: '/dashboards',
   path: '/dashboards',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDebugAccessRoute =
+  AuthenticatedDebugAccessRouteImport.update({
+    id: '/debug-access',
+    path: '/debug-access',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedDebugDataRoute = AuthenticatedDebugDataRouteImport.update({
+  id: '/debug-data',
+  path: '/debug-data',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
@@ -286,6 +299,8 @@ export interface FileRoutesByFullPath {
   '/clientes': typeof AuthenticatedClientesRoute
   '/command': typeof AuthenticatedCommandRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
+  '/debug-access': typeof AuthenticatedDebugAccessRoute
+  '/debug-data': typeof AuthenticatedDebugDataRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
@@ -328,6 +343,8 @@ export interface FileRoutesByTo {
   '/clientes': typeof AuthenticatedClientesRoute
   '/command': typeof AuthenticatedCommandRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
+  '/debug-access': typeof AuthenticatedDebugAccessRoute
+  '/debug-data': typeof AuthenticatedDebugDataRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
@@ -372,6 +389,8 @@ export interface FileRoutesById {
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/dashboards': typeof AuthenticatedDashboardsRoute
+  '/_authenticated/debug-access': typeof AuthenticatedDebugAccessRoute
+  '/_authenticated/debug-data': typeof AuthenticatedDebugDataRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/_authenticated/green-gate': typeof AuthenticatedGreenGateRoute
@@ -416,6 +435,8 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/command'
     | '/dashboards'
+    | '/debug-access'
+    | '/debug-data'
     | '/decisions'
     | '/ejecuciones'
     | '/green-gate'
@@ -458,6 +479,8 @@ export interface FileRouteTypes {
     | '/clientes'
     | '/command'
     | '/dashboards'
+    | '/debug-access'
+    | '/debug-data'
     | '/decisions'
     | '/ejecuciones'
     | '/green-gate'
@@ -501,6 +524,8 @@ export interface FileRouteTypes {
     | '/_authenticated/clientes'
     | '/_authenticated/command'
     | '/_authenticated/dashboards'
+    | '/_authenticated/debug-access'
+    | '/_authenticated/debug-data'
     | '/_authenticated/decisions'
     | '/_authenticated/ejecuciones'
     | '/_authenticated/green-gate'
@@ -674,6 +699,20 @@ declare module '@tanstack/react-router' {
       path: '/dashboards'
       fullPath: '/dashboards'
       preLoaderRoute: typeof AuthenticatedDashboardsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/debug-access': {
+      id: '/_authenticated/debug-access'
+      path: '/debug-access'
+      fullPath: '/debug-access'
+      preLoaderRoute: typeof AuthenticatedDebugAccessRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/debug-data': {
+      id: '/_authenticated/debug-data'
+      path: '/debug-data'
+      fullPath: '/debug-data'
+      preLoaderRoute: typeof AuthenticatedDebugDataRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/decisions': {
@@ -856,6 +895,8 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedDashboardsRoute: typeof AuthenticatedDashboardsRoute
+  AuthenticatedDebugAccessRoute: typeof AuthenticatedDebugAccessRoute
+  AuthenticatedDebugDataRoute: typeof AuthenticatedDebugDataRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedEjecucionesRoute: typeof AuthenticatedEjecucionesRoute
   AuthenticatedGreenGateRoute: typeof AuthenticatedGreenGateRoute
@@ -886,6 +927,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedDashboardsRoute: AuthenticatedDashboardsRoute,
+  AuthenticatedDebugAccessRoute: AuthenticatedDebugAccessRoute,
+  AuthenticatedDebugDataRoute: AuthenticatedDebugDataRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedEjecucionesRoute: AuthenticatedEjecucionesRoute,
   AuthenticatedGreenGateRoute: AuthenticatedGreenGateRoute,

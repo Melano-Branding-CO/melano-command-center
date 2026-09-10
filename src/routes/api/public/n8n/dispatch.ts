@@ -40,9 +40,8 @@ async function handle(request: Request) {
 
   try {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { resolveOrgId, runAgentServer, runExecutiveMeetingServer } = await import(
-      "@/lib/melano-ai.server"
-    );
+    const { resolveOrgId, runAgentServer, runExecutiveMeetingServer } =
+      await import("@/lib/melano-ai.server");
     const orgId = await resolveOrgId(body.organizationId);
 
     async function log(actionName: string, detail: Record<string, unknown>) {

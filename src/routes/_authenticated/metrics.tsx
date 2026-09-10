@@ -9,7 +9,10 @@ export const Route = createFileRoute("/_authenticated/metrics")({
       { title: "Metrics — MELANO INC" },
       { name: "description", content: "Métricas verificadas del negocio y del sistema autónomo." },
       { property: "og:title", content: "Metrics — MELANO INC" },
-      { property: "og:description", content: "Indicadores clave con fuente y fecha de verificación." },
+      {
+        property: "og:description",
+        content: "Indicadores clave con fuente y fecha de verificación.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),

@@ -7,7 +7,10 @@ export const Route = createFileRoute("/_authenticated/activity")({
   head: () => ({
     meta: [
       { title: "Activity — MELANO INC" },
-      { name: "description", content: "Log completo de acciones humanas y de agentes con trace_id." },
+      {
+        name: "description",
+        content: "Log completo de acciones humanas y de agentes con trace_id.",
+      },
       { property: "og:title", content: "Activity — MELANO INC" },
       { property: "og:description", content: "Auditoría en vivo del sistema autónomo." },
       { name: "robots", content: "noindex" },

@@ -15,7 +15,8 @@ export const Route = createFileRoute("/_authenticated/ejecuciones")({
       { property: "og:title", content: "Ejecuciones — MELANO INC" },
       {
         property: "og:description",
-        content: "Dashboard operativo de ejecuciones: reuniones, tareas, agentes y automatizaciones.",
+        content:
+          "Dashboard operativo de ejecuciones: reuniones, tareas, agentes y automatizaciones.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -23,7 +24,13 @@ export const Route = createFileRoute("/_authenticated/ejecuciones")({
   component: EjecucionesPage,
 });
 
-type MeetingRow = { id: string; title: string; status: string; created_at: string; finished_at: string | null };
+type MeetingRow = {
+  id: string;
+  title: string;
+  status: string;
+  created_at: string;
+  finished_at: string | null;
+};
 type TaskRow = {
   id: string;
   title: string;
@@ -109,7 +116,10 @@ function EjecucionesPage() {
     order: "started_at",
     limit: 300,
   });
-  const { data: rules } = useOrgRows<RuleRow>("automation_rules", org?.id, { order: "created_at", asc: true });
+  const { data: rules } = useOrgRows<RuleRow>("automation_rules", org?.id, {
+    order: "created_at",
+    asc: true,
+  });
 
   const loading = lm || lt || la;
   const days = lastDays(DAYS);
@@ -169,7 +179,11 @@ function EjecucionesPage() {
                 value={runsW.length}
                 hint={`${successRate}% éxito · ${runsW.length - okRuns} con error`}
               />
-              <Stat label="Automatizaciones" value={autoW.length} hint="ejecuciones n8n / internas" />
+              <Stat
+                label="Automatizaciones"
+                value={autoW.length}
+                hint="ejecuciones n8n / internas"
+              />
             </div>
           </Panel>
 
@@ -185,7 +199,8 @@ function EjecucionesPage() {
                       <div className="flex items-center justify-between gap-3">
                         <span className="font-mono text-xs text-muted-foreground">{d.day}</span>
                         <span className="text-xs text-muted-foreground">
-                          {d.meetings} reuniones · {d.tasks} tareas · {d.runs} runs · {d.autos} automatizaciones
+                          {d.meetings} reuniones · {d.tasks} tareas · {d.runs} runs · {d.autos}{" "}
+                          automatizaciones
                         </span>
                         <span className="w-8 text-right text-foreground">{total}</span>
                       </div>
@@ -208,7 +223,8 @@ function EjecucionesPage() {
                   <li key={a.id} className="text-sm">
                     <div className="flex items-center justify-between gap-3">
                       <span className="flex-1 truncate text-foreground">
-                        <span className="font-mono text-xs text-muted-foreground">{a.code}</span> {a.name}
+                        <span className="font-mono text-xs text-muted-foreground">{a.code}</span>{" "}
+                        {a.name}
                       </span>
                       <span className="text-xs text-muted-foreground">
                         {a.runs} runs · {a.ok} ok · {a.failed} error · {a.tareas} tareas
@@ -255,9 +271,13 @@ function EjecucionesPage() {
                           <span className="flex-1 truncate text-foreground">
                             {rule?.n8n_workflow ?? rule?.name ?? "Automatización"}
                           </span>
-                          <span className="text-xs text-muted-foreground">{fmtDate(r.started_at)}</span>
+                          <span className="text-xs text-muted-foreground">
+                            {fmtDate(r.started_at)}
+                          </span>
                         </div>
-                        {r.error ? <p className="mt-1 text-xs text-destructive">{r.error}</p> : null}
+                        {r.error ? (
+                          <p className="mt-1 text-xs text-destructive">{r.error}</p>
+                        ) : null}
                       </li>
                     );
                   })}

@@ -189,9 +189,7 @@ function OperatorDashboard() {
                 ))}
               </SelectContent>
             </Select>
-            <p className="mt-2 text-xs text-muted-foreground">
-              Viendo: {operatorLabel(target)}
-            </p>
+            <p className="mt-2 text-xs text-muted-foreground">Viendo: {operatorLabel(target)}</p>
           </div>
         </Panel>
       ) : null}

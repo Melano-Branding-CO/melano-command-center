@@ -24,10 +24,7 @@ type RunLike = {
 
 /** Metadatos declarativos de las integraciones montadas en n8n.
  *  `credential` es la credencial real configurada en la instancia de n8n. */
-const CATALOG: Record<
-  string,
-  { provider: string; credential: string; pending?: string }
-> = {
+const CATALOG: Record<string, { provider: string; credential: string; pending?: string }> = {
   "melano-gmail-brief": {
     provider: "Gmail",
     credential: "Gmail account (OAuth)",
@@ -65,13 +62,7 @@ function integrationState(rule: RuleLike) {
  * Panel de integraciones: qué workflow de n8n usa qué credencial,
  * en qué estado está y cuándo corrió por última vez. Sólo datos reales.
  */
-export function IntegracionesPanel({
-  rules,
-  runs,
-}: {
-  rules: RuleLike[];
-  runs: RunLike[];
-}) {
+export function IntegracionesPanel({ rules, runs }: { rules: RuleLike[]; runs: RunLike[] }) {
   const known = rules.flatMap((r) => {
     const meta = r.n8n_workflow ? CATALOG[r.n8n_workflow] : undefined;
     return meta ? [{ rule: r, meta }] : [];
@@ -128,7 +119,9 @@ export function IntegracionesPanel({
                 </dl>
 
                 {meta.pending ? (
-                  <p className="mt-2 text-[11px] text-muted-foreground">Pendiente: {meta.pending}</p>
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    Pendiente: {meta.pending}
+                  </p>
                 ) : null}
                 {r.last_error ? (
                   <p className="mt-2 line-clamp-2 text-[11px] text-destructive">{r.last_error}</p>

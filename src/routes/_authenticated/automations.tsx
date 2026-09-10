@@ -293,7 +293,11 @@ function AutomationsPage() {
             </div>
             <div className="mt-3 flex gap-2">
               <Button onClick={submit} disabled={busy === "save"}>
-                {busy === "save" ? "Guardando…" : form.id ? "Guardar cambios" : "Crear automatización"}
+                {busy === "save"
+                  ? "Guardando…"
+                  : form.id
+                    ? "Guardar cambios"
+                    : "Crear automatización"}
               </Button>
               {form.id ? (
                 <Button variant="outline" onClick={reset}>
@@ -335,7 +339,9 @@ function AutomationsPage() {
                   {r.last_error ? (
                     <p className="mt-2 text-xs text-destructive">{r.last_error}</p>
                   ) : r.last_result ? (
-                    <p className="mt-2 whitespace-pre-wrap text-xs text-foreground">{r.last_result}</p>
+                    <p className="mt-2 whitespace-pre-wrap text-xs text-foreground">
+                      {r.last_result}
+                    </p>
                   ) : null}
 
                   {lastRuns.length > 0 ? (
@@ -429,11 +435,11 @@ function AutomationsPage() {
         <RoleGate allow={["CEO", "ADMIN"]}>
           <Panel title="Entrada desde n8n (n8n → Command Center)">
             <p className="text-sm text-muted-foreground">
-              Configurá en n8n un nodo <strong>HTTP Request</strong> con método POST hacia esta URL y
-              el header <code>Authorization: Bearer &lt;LOVABLE_CRON_SECRET&gt;</code>.
+              Configurá en n8n un nodo <strong>HTTP Request</strong> con método POST hacia esta URL
+              y el header <code>Authorization: Bearer &lt;LOVABLE_CRON_SECRET&gt;</code>.
             </p>
             <pre className="mt-3 overflow-auto rounded bg-muted/40 p-3 text-[11px] leading-relaxed">
-{`POST ${inboundUrl}
+              {`POST ${inboundUrl}
 Authorization: Bearer <LOVABLE_CRON_SECRET>
 Content-Type: application/json
 

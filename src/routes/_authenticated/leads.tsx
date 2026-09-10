@@ -34,13 +34,7 @@ export const Route = createFileRoute("/_authenticated/leads")({
 
 type Phase = "FASE_0_14" | "FASE_15_45" | "FASE_46_90";
 type LeadStatus =
-  | "NUEVO"
-  | "CONTACTADO"
-  | "CALIFICADO"
-  | "NEGOCIACION"
-  | "GANADO"
-  | "PERDIDO"
-  | "DESCARTADO";
+  "NUEVO" | "CONTACTADO" | "CALIFICADO" | "NEGOCIACION" | "GANADO" | "PERDIDO" | "DESCARTADO";
 
 type Lead = {
   id: string;
@@ -149,7 +143,6 @@ function LeadsPage() {
   const [bulk, setBulk] = useState("");
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", source: "", zone: "" });
 
-
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
     const base = (leads ?? []).filter((l) => l.cohort === "LUXIA" || !l.cohort);
@@ -171,12 +164,7 @@ function LeadsPage() {
     return map;
   }, [events]);
 
-  async function logEvent(
-    lead: Lead,
-    action: string,
-    from: string | null,
-    to: string | null,
-  ) {
+  async function logEvent(lead: Lead, action: string, from: string | null, to: string | null) {
     await db()
       .from("lead_events")
       .insert({
@@ -287,9 +275,7 @@ function LeadsPage() {
       .map((line) => line.trim())
       .filter(Boolean)
       .map((line) => {
-        const [full_name, email, phone, zone, source] = line
-          .split(/\t|;|,/)
-          .map((c) => c.trim());
+        const [full_name, email, phone, zone, source] = line.split(/\t|;|,/).map((c) => c.trim());
         return {
           organization_id: org!.id,
           full_name: full_name ?? "",
@@ -336,7 +322,6 @@ function LeadsPage() {
 
   return (
     <>
-
       <PageHeader
         title="Leads · LUXIA"
         subtitle="Cohorte real de leads inmobiliarios con avance controlado por fases 0–14 / 15–45 / 46–90."
@@ -428,8 +413,6 @@ function LeadsPage() {
           </div>
         </Panel>
       ) : null}
-
-
 
       {isLoading ? (
         <Empty text="Cargando cohorte…" />

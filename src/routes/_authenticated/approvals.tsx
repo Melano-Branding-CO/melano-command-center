@@ -18,7 +18,10 @@ export const Route = createFileRoute("/_authenticated/approvals")({
   head: () => ({
     meta: [
       { title: "Approvals — MELANO INC" },
-      { name: "description", content: "Centro de aprobación humana para acciones críticas del sistema." },
+      {
+        name: "description",
+        content: "Centro de aprobación humana para acciones críticas del sistema.",
+      },
       { property: "og:title", content: "Approvals — MELANO INC" },
       { property: "og:description", content: "Autoridad final humana sobre acciones críticas." },
       { name: "robots", content: "noindex" },
@@ -57,7 +60,8 @@ function ApprovalsPage() {
       toast.success(approve ? "Aprobado" : "Rechazado");
       const exec = decided.execution;
       if (approve && exec) {
-        if (exec.executed) toast.success(`Ejecutada en n8n · cerrada en DONE (${exec.workflow ?? "workflow"})`);
+        if (exec.executed)
+          toast.success(`Ejecutada en n8n · cerrada en DONE (${exec.workflow ?? "workflow"})`);
         else if (exec.error) toast.warning(`No se pudo ejecutar automáticamente: ${exec.error}`);
       }
       const res = await notifyDecided({ data: { organizationId: org.id, approvalId } });
@@ -88,7 +92,10 @@ function ApprovalsPage() {
 
   return (
     <>
-      <PageHeader title="Approvals" subtitle="Bruno es la autoridad final. Nada crítico se ejecuta sin firma." />
+      <PageHeader
+        title="Approvals"
+        subtitle="Bruno es la autoridad final. Nada crítico se ejecuta sin firma."
+      />
       {isLoading ? (
         <Empty text="Cargando…" />
       ) : (approvals ?? []).length === 0 ? (
@@ -96,7 +103,11 @@ function ApprovalsPage() {
       ) : (
         <div className="grid gap-4">
           {(approvals ?? []).map((a) => (
-            <Panel key={a.id} title={a.category ?? "critical"} action={<StatusBadge status={a.status} />}>
+            <Panel
+              key={a.id}
+              title={a.category ?? "critical"}
+              action={<StatusBadge status={a.status} />}
+            >
               <h3 className="text-sm font-semibold text-foreground">{a.action}</h3>
               <p className="mt-1 text-sm text-muted-foreground">{a.reason ?? "—"}</p>
               <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-3">

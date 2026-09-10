@@ -89,7 +89,9 @@ export function McpPanel({ className }: { className?: string }) {
     <Panel
       title="Panel MCP · Ejecución en n8n"
       className={cn(className)}
-      action={<span className="text-[11px] text-muted-foreground">endpoint /mcp · credencial API</span>}
+      action={
+        <span className="text-[11px] text-muted-foreground">endpoint /mcp · credencial API</span>
+      }
     >
       <div className="grid gap-4 lg:grid-cols-2">
         <div>

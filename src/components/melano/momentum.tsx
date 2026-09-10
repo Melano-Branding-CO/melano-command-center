@@ -10,7 +10,12 @@ import { cn } from "@/lib/utils";
  * persistidos. Nunca inventa cifras: si no hay registros, muestra SIN DATOS.
  */
 
-type TaskRow = { id: string; status: string; is_today_priority: boolean; today_date: string | null };
+type TaskRow = {
+  id: string;
+  status: string;
+  is_today_priority: boolean;
+  today_date: string | null;
+};
 type MeetingRow = { id: string; status: string; scheduled_for: string; started_at: string | null };
 type DecisionRow = { id: string; status: string; created_at: string };
 type ApprovalRow = { id: string; status: string; requested_at: string };
@@ -49,7 +54,10 @@ export function MomentumPanel({ className }: { className?: string }) {
   const today = todayKey(tz);
   const since = new Date(Date.now() - 7 * DAY).getTime();
 
-  const { data: tasks } = useOrgRows<TaskRow>("tasks", org?.id, { order: "updated_at", limit: 500 });
+  const { data: tasks } = useOrgRows<TaskRow>("tasks", org?.id, {
+    order: "updated_at",
+    limit: 500,
+  });
   const { data: meetings } = useOrgRows<MeetingRow>("executive_meetings", org?.id, {
     order: "scheduled_for",
     limit: 120,
@@ -66,14 +74,19 @@ export function MomentumPanel({ className }: { className?: string }) {
     order: "started_at",
     limit: 300,
   });
-  const { data: clients } = useOrgRows<ClientRow>("clients", org?.id, { order: "created_at", limit: 300 });
+  const { data: clients } = useOrgRows<ClientRow>("clients", org?.id, {
+    order: "created_at",
+    limit: 300,
+  });
   const { data: goals } = useOrgRows<GoalRow>("annual_goals", org?.id, { order: "year", limit: 5 });
 
   const m = useMemo(() => {
     const todayTasks = (tasks ?? []).filter((t) => t.is_today_priority && t.today_date === today);
     const todayDone = todayTasks.filter((t) => t.status === "DONE").length;
 
-    const recentDecisions = (decisions ?? []).filter((d) => new Date(d.created_at).getTime() >= since);
+    const recentDecisions = (decisions ?? []).filter(
+      (d) => new Date(d.created_at).getTime() >= since,
+    );
     const decisionsClosed = recentDecisions.filter((d) =>
       ["APPROVED", "COMPLETED", "REJECTED"].includes(d.status),
     ).length;
@@ -106,16 +119,30 @@ export function MomentumPanel({ className }: { className?: string }) {
 
     const parts = [
       { key: "Cierre del día", weight: 30, value: ratio(todayDone, todayTasks.length) },
-      { key: "Decisiones resueltas (7d)", weight: 20, value: ratio(decisionsClosed, recentDecisions.length) },
-      { key: "Aprobaciones al día", weight: 15, value: pendingNow === 0 ? 1 : pendingOld > 0 ? 0 : 0.5 },
-      { key: "Fiabilidad automatización (7d)", weight: 25, value: ratio(runsOk, recentRuns.length) },
+      {
+        key: "Decisiones resueltas (7d)",
+        weight: 20,
+        value: ratio(decisionsClosed, recentDecisions.length),
+      },
+      {
+        key: "Aprobaciones al día",
+        weight: 15,
+        value: pendingNow === 0 ? 1 : pendingOld > 0 ? 0 : 0.5,
+      },
+      {
+        key: "Fiabilidad automatización (7d)",
+        weight: 25,
+        value: ratio(runsOk, recentRuns.length),
+      },
       { key: "Ritmo de reunión", weight: 10, value: meetingDays.has(today) ? 1 : 0 },
     ];
     const measured = parts.filter((p) => p.value !== null);
     const weight = measured.reduce((s, p) => s + p.weight, 0);
     const score =
       weight > 0
-        ? Math.round(measured.reduce((s, p) => s + p.weight * (p.value as number), 0) / weight * 100)
+        ? Math.round(
+            (measured.reduce((s, p) => s + p.weight * (p.value as number), 0) / weight) * 100,
+          )
         : null;
 
     return {
@@ -151,7 +178,11 @@ export function MomentumPanel({ className }: { className?: string }) {
               <Chip
                 icon={Flame}
                 tone={m.streak > 0 ? "warning" : "muted"}
-                label={m.streak > 0 ? `Racha ${m.streak} día${m.streak === 1 ? "" : "s"}` : "Sin racha activa"}
+                label={
+                  m.streak > 0
+                    ? `Racha ${m.streak} día${m.streak === 1 ? "" : "s"}`
+                    : "Sin racha activa"
+                }
               />
               <Chip
                 icon={Trophy}
@@ -166,7 +197,11 @@ export function MomentumPanel({ className }: { className?: string }) {
               <Chip
                 icon={Zap}
                 tone={m.pendingNow > 0 ? "warning" : "success"}
-                label={m.pendingNow > 0 ? `${m.pendingNow} aprobación(es) pendientes` : "Aprobaciones al día"}
+                label={
+                  m.pendingNow > 0
+                    ? `${m.pendingNow} aprobación(es) pendientes`
+                    : "Aprobaciones al día"
+                }
               />
             </div>
           </div>
@@ -203,7 +238,15 @@ export function MomentumPanel({ className }: { className?: string }) {
               </div>
               <Bar
                 value={p.value ?? 0}
-                tone={p.value === null ? "muted" : p.value >= 0.8 ? "success" : p.value >= 0.4 ? "warning" : "danger"}
+                tone={
+                  p.value === null
+                    ? "muted"
+                    : p.value >= 0.8
+                      ? "success"
+                      : p.value >= 0.4
+                        ? "warning"
+                        : "danger"
+                }
               />
             </li>
           ))}

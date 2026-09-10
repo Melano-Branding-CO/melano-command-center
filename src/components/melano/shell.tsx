@@ -103,7 +103,6 @@ const NAV_GROUPS: NavGroup[] = [
   },
 ];
 
-
 /** Restringe una pantalla a los roles indicados (la RLS del backend vuelve a validar). */
 export function RoleGate({
   allow,
@@ -131,7 +130,6 @@ export function RoleGate({
   }
   return <>{children}</>;
 }
-
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
