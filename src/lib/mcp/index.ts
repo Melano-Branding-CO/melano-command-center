@@ -12,10 +12,10 @@ const projectRef = import.meta.env["VITE_SUPABASE_PROJECT_ID"] ?? "project-ref-u
 
 export default defineMcp({
   name: "melano-command-center",
-  title: "Melano Command Center",
+  title: "MELANO INC — COMMAND CENTER",
   version: "0.1.0",
   instructions:
-    "Herramientas del Autonomous Command Center de MELANO INC. Consultá prioridades del día, tareas, aprobaciones pendientes, estado de los agentes y el último brief ejecutivo; podés crear tareas y ejecutar tareas o decisiones en el workflow de n8n activo. Toda ejecución queda registrada con trace_id y es visible en /today y /meetings. Las decisiones que requieren aprobación no se ejecutan: sólo se notifica a Bruno. Los datos son reales y están aislados por organización.",
+    "Herramientas del Command Center de MELANO INC. Consultá prioridades del día, tareas, aprobaciones pendientes, estado de los agentes y el último brief ejecutivo; podés crear tareas y ejecutar tareas o decisiones en el workflow de n8n activo. Toda ejecución queda registrada con trace_id y es visible en /today y /meetings. Las decisiones que requieren aprobación no se ejecutan: sólo se notifica a Bruno. Los datos son reales y están aislados por organización.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
