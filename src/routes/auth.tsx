@@ -10,16 +10,15 @@ import { Label } from "@/components/ui/label";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Acceso — MELANO INC Command Center" },
+      { title: "MELANO INC — COMMAND CENTER" },
       {
         name: "description",
-        content:
-          "Acceso privado al Autonomous Command Center de MELANO INC con email o cuenta de Google.",
+        content: "Acceso privado al Command Center de MELANO INC con email o cuenta de Google.",
       },
-      { property: "og:title", content: "Acceso — MELANO INC Command Center" },
+      { property: "og:title", content: "MELANO INC — COMMAND CENTER" },
       {
         property: "og:description",
-        content: "Ingresá al Command Center autónomo de MELANO INC.",
+        content: "Ingresá al Command Center de MELANO INC.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -111,9 +110,7 @@ export function AuthPage({ next }: { next?: string }) {
         <Link to="/" className="label-caps hover:text-foreground">
           MELANO INC
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">
-          Autonomous Command Center
-        </h1>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-foreground">COMMAND CENTER</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           {mode === "signin" ? "Acceso privado al sistema." : "Creá tu acceso al sistema."}
         </p>
