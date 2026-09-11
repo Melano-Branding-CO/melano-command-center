@@ -11,7 +11,7 @@ export async function signInWithGoogle(next?: string): Promise<{ error: Error | 
     // sessionStorage puede no estar disponible; el fallback es /command.
   }
 
-  const callbackUrl = new URL("/auth/callback", window.location.origin);
+  const callbackUrl = new URL("/auth", window.location.origin);
   callbackUrl.searchParams.set("next", target);
 
   const { error } = await supabase.auth.signInWithOAuth({
