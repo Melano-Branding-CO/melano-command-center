@@ -2,13 +2,6 @@ import { supabase } from "@/integrations/supabase/client";
 
 const NEXT_KEY = "melano:auth:next";
 
-/**
- * Google sign-in mediante Supabase Auth canónico.
- *
- * Google vuelve al callback del proyecto Supabase y Supabase redirige después
- * a /auth en el mismo origen. El destino final se guarda aparte para evitar
- * usar una ruta protegida como callback del proveedor.
- */
 export async function signInWithGoogle(next?: string): Promise<{ error: Error | null }> {
   const target = next && /^\/(?!\/)/.test(next) ? next : "/command";
 
@@ -18,10 +11,13 @@ export async function signInWithGoogle(next?: string): Promise<{ error: Error | 
     // sessionStorage puede no estar disponible; el fallback es /command.
   }
 
+  const callbackUrl = new URL("/auth/callback", window.location.origin);
+  callbackUrl.searchParams.set("next", target);
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth`,
+      redirectTo: callbackUrl.toString(),
       queryParams: { prompt: "select_account" },
     },
   });
