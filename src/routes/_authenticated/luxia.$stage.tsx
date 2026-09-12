@@ -14,7 +14,13 @@ import { cn } from "@/lib/utils";
 
 type Phase = "FASE_0_14" | "FASE_15_45" | "FASE_46_90";
 type LeadStatus =
-  "NUEVO" | "CONTACTADO" | "CALIFICADO" | "NEGOCIACION" | "GANADO" | "PERDIDO" | "DESCARTADO";
+  | "NUEVO"
+  | "CONTACTADO"
+  | "CALIFICADO"
+  | "NEGOCIACION"
+  | "GANADO"
+  | "PERDIDO"
+  | "DESCARTADO";
 
 type Lead = {
   id: string;
@@ -238,10 +244,15 @@ function PlaybookPanel({ stage }: { stage: StageConfig }) {
           <h2 className="text-sm font-semibold text-foreground">
             Playbook de la fase · {stage.label}
           </h2>
-          <p className="text-xs text-muted-foreground">Qué abarca, qué hacer y cuándo avanzar.</p>
+          <p className="text-xs text-muted-foreground">
+            Qué abarca, qué hacer y cuándo avanzar.
+          </p>
         </div>
         <ChevronDown
-          className={cn("h-4 w-4 text-muted-foreground transition-transform", open && "rotate-180")}
+          className={cn(
+            "h-4 w-4 text-muted-foreground transition-transform",
+            open && "rotate-180",
+          )}
         />
       </button>
 
@@ -473,7 +484,9 @@ function StagePage() {
                 <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-4">
                   <div>
                     <dt className="label-caps">Contacto</dt>
-                    <dd className="truncate text-foreground">{lead.email ?? lead.phone ?? "—"}</dd>
+                    <dd className="truncate text-foreground">
+                      {lead.email ?? lead.phone ?? "—"}
+                    </dd>
                   </div>
                   <div>
                     <dt className="label-caps">Zona</dt>

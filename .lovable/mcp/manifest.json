@@ -5,7 +5,9 @@
   "auth": {
     "type": "oauth",
     "issuer": "https://iuuzheclayeiytmxahdp.supabase.co/auth/v1",
-    "accepted_audiences": ["authenticated"]
+    "accepted_audiences": [
+      "authenticated"
+    ]
   },
   "mcp": {
     "server": {
@@ -46,7 +48,14 @@
             "status": {
               "description": "Filtrar por estado de la tarea.",
               "type": "string",
-              "enum": ["BACKLOG", "READY", "IN_PROGRESS", "BLOCKED", "DONE", "FAILED"]
+              "enum": [
+                "BACKLOG",
+                "READY",
+                "IN_PROGRESS",
+                "BLOCKED",
+                "DONE",
+                "FAILED"
+              ]
             },
             "limit": {
               "description": "Cantidad máxima (default 20).",
@@ -83,7 +92,12 @@
             "priority": {
               "description": "Prioridad (default P2).",
               "type": "string",
-              "enum": ["P0", "P1", "P2", "P3"]
+              "enum": [
+                "P0",
+                "P1",
+                "P2",
+                "P3"
+              ]
             },
             "success_metric": {
               "description": "Métrica verificable de cierre.",
@@ -94,7 +108,9 @@
               "type": "string"
             }
           },
-          "required": ["title"]
+          "required": [
+            "title"
+          ]
         },
         "outputSchema": null
       },
@@ -170,7 +186,9 @@
               "type": "string"
             }
           },
-          "required": ["task_id"]
+          "required": [
+            "task_id"
+          ]
         },
         "outputSchema": null
       },
@@ -198,7 +216,9 @@
               "type": "string"
             }
           },
-          "required": ["decision_id"]
+          "required": [
+            "decision_id"
+          ]
         },
         "outputSchema": null
       }

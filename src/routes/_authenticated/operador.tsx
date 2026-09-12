@@ -314,8 +314,8 @@ function OperatorPage() {
 
       <p className="mt-4 text-xs text-muted-foreground">
         Cada seguimiento queda auditado en <code>activity_logs</code> con actor, cliente, nota y
-        fecha. Los operadores solo acceden a los clientes asignados a su cartera; la etapa LUXIA, el
-        alta y la baja siguen siendo exclusivas de CEO y ADMIN.
+        fecha. Los operadores solo acceden a los clientes asignados a su cartera; la etapa LUXIA,
+        el alta y la baja siguen siendo exclusivas de CEO y ADMIN.
       </p>
     </>
   );

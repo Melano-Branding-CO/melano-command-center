@@ -160,68 +160,11 @@ function AutomationsPage() {
           ))}
         </div>
 
-        {isAdmin ? (
-          <Panel title="Conectar un workflow de n8n">
-            <div className="grid gap-3 md:grid-cols-2">
-              <label className="text-xs text-muted-foreground">
-                Nombre
-                <input
-                  className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
-                  value={form.name}
-                  onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                  placeholder="Follow-up automático LUXIA"
-                />
-              </label>
-              <label className="text-xs text-muted-foreground">
-                Workflow en n8n
-                <input
-                  className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
-                  value={form.workflow}
-                  onChange={(e) => setForm((f) => ({ ...f, workflow: e.target.value }))}
-                  placeholder="luxia-followup"
-                />
-              </label>
-              <label className="text-xs text-muted-foreground md:col-span-2">
-                Webhook URL (Production URL del nodo Webhook)
-                <input
-                  className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
-                  value={form.webhookUrl}
-                  onChange={(e) => setForm((f) => ({ ...f, webhookUrl: e.target.value }))}
-                  placeholder="https://melanoincorporated.app.n8n.cloud/webhook/…"
-                />
-              </label>
-              <label className="text-xs text-muted-foreground md:col-span-2">
-                Descripción
-                <input
-                  className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground"
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  placeholder="Qué hace el workflow y cuándo se dispara"
-                />
-              </label>
-              <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                <input
-                  type="checkbox"
-                  checked={form.enabled}
-                  onChange={(e) => setForm((f) => ({ ...f, enabled: e.target.checked }))}
-                />
-                Activa
-              </label>
-            </div>
-            <div className="mt-3 flex gap-2">
-              <Button onClick={submit} disabled={busy === "save"}>
-                {busy === "save"
-                  ? "Guardando…"
-                  : form.id
-                    ? "Guardar cambios"
-                    : "Crear automatización"}
-              </Button>
-              {form.id ? (
-                <Button variant="outline" onClick={reset}>
-                  Cancelar
-                </Button>
-              ) : null}
-            </div>
+        {legacyHostCount > 0 ? (
+          <Panel title="Host legacy detectado">
+            <p className="text-sm text-destructive">
+              {legacyHostCount} workflow(s) apuntan fuera de {CANONICAL_N8N_HOST}. No se consideran GREEN.
+            </p>
           </Panel>
         ) : null}
 
@@ -276,19 +219,14 @@ function AutomationsPage() {
                       </p>
                     </div>
                   </div>
-                  {r.n8n_webhook_url ? (
-                    <p className="mt-2 break-all text-[11px] text-muted-foreground">
-                      n8n: {r.n8n_workflow ?? "workflow"} · {r.n8n_webhook_url}
-                    </p>
-                  ) : (
-                    <p className="mt-2 text-[11px] text-muted-foreground">Sin webhook de n8n.</p>
-                  )}
-                  {r.last_error ? (
-                    <p className="mt-2 text-xs text-destructive">{r.last_error}</p>
-                  ) : r.last_result ? (
-                    <p className="mt-2 whitespace-pre-wrap text-xs text-foreground">
-                      {r.last_result}
-                    </p>
+
+                  {workflow.webhookUrl ? (
+                    <div className="mt-3 rounded-md border border-border/60 p-2 text-[11px]">
+                      <span className="label-caps">Webhook</span>
+                      <p className={`mt-1 break-all ${canonicalWebhook ? "text-foreground" : "text-destructive"}`}>
+                        {workflow.webhookUrl}
+                      </p>
+                    </div>
                   ) : null}
 
                   {workflow.blocker ? (
@@ -316,69 +254,13 @@ function AutomationsPage() {
           </div>
         )}
 
-        <RoleGate allow={["CEO", "ADMIN"]}>
-          <Panel title="15 integraciones disponibles en n8n">
-            <p className="text-sm text-muted-foreground">
-              Elegí una integración: se precarga el formulario de arriba con nombre, workflow y un
-              path sugerido. Creá el workflow en n8n y reemplazá el webhook por su{" "}
-              <strong>Production URL</strong> real antes de ejecutar.
-            </p>
-            <ul className="mt-3 grid gap-2 md:grid-cols-2">
-              {INTEGRATIONS.map((i) => (
-                <li
-                  key={i.slug}
-                  className="flex items-start justify-between gap-3 rounded-md border border-border/60 p-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{i.name}</p>
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                      {i.category}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">{i.description}</p>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() =>
-                      setForm({
-                        id: "",
-                        name: i.name,
-                        description: i.description,
-                        workflow: i.slug,
-                        webhookUrl: `${N8N_BASE}/${i.slug}`,
-                        enabled: true,
-                      })
-                    }
-                  >
-                    Usar
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </Panel>
-        </RoleGate>
-
-        <RoleGate allow={["CEO", "ADMIN"]}>
-          <Panel title="Entrada desde n8n (n8n → Command Center)">
-            <p className="text-sm text-muted-foreground">
-              Configurá en n8n un nodo <strong>HTTP Request</strong> con método POST hacia esta URL
-              y el header <code>Authorization: Bearer &lt;LOVABLE_CRON_SECRET&gt;</code>.
-            </p>
-            <pre className="mt-3 overflow-auto rounded bg-muted/40 p-3 text-[11px] leading-relaxed">
-              {`POST ${inboundUrl}
-Authorization: Bearer <LOVABLE_CRON_SECRET>
-Content-Type: application/json
-
-{ "action": "run_meeting" }
-{ "action": "run_agent", "agentCode": "CRO" }
-{ "action": "create_task", "title": "Contactar inmobiliaria", "priority": "P1" }
-{ "action": "log", "message": "workflow terminado", "detail": { "leads": 12 } }`}
-            </pre>
-            <p className="mt-2 text-[11px] text-muted-foreground">
-              Toda ejecución entrante queda registrada en Activity con su trace.
-            </p>
-          </Panel>
-        </RoleGate>
+        <Panel title="Criterio GREEN">
+          <p className="text-sm text-muted-foreground">
+            GREEN requiere: workflow publicado, trigger real, host canónico cuando existe webhook, ejecución terminal
+            reciente y evidencia de SUCCESS. Un registro sin workflow real queda PENDING_CONFIG; un bloqueo técnico
+            queda BLOCKED; PAUSED se reserva para una pausa explícita.
+          </p>
+        </Panel>
       </div>
     </>
   );

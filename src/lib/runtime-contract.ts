@@ -59,9 +59,7 @@ export type AgentOutput = z.infer<typeof AgentOutputSchema>;
 export function parseAgentOutput(value: unknown): AgentOutput {
   const parsed = AgentOutputSchema.safeParse(value);
   if (!parsed.success) {
-    throw new Error(
-      `FAILED_VALIDATION: ${parsed.error.issues.map((issue) => issue.message).join("; ")}`,
-    );
+    throw new Error(`FAILED_VALIDATION: ${parsed.error.issues.map((issue) => issue.message).join("; ")}`);
   }
   return parsed.data;
 }

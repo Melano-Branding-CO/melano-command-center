@@ -8,10 +8,7 @@ export const Route = createFileRoute("/_authenticated/meetings/")({
   head: () => ({
     meta: [
       { title: "Meetings — MELANO INC" },
-      {
-        name: "description",
-        content: "Reuniones ejecutivas de las 06:00 con brief consolidado por MELANIA.",
-      },
+      { name: "description", content: "Reuniones ejecutivas de las 06:00 con brief consolidado por MELANIA." },
       { property: "og:title", content: "Meetings — MELANO INC" },
       { property: "og:description", content: "Historial del comité ejecutivo autónomo." },
       { name: "robots", content: "noindex" },
@@ -53,14 +50,8 @@ function MeetingsPage() {
       ) : (
         <div className="grid gap-4">
           {(meetings ?? []).map((m) => (
-            <Panel
-              key={m.id}
-              title={fmtDate(m.started_at)}
-              action={<StatusBadge status={m.status} />}
-            >
-              <p className="whitespace-pre-line text-sm text-muted-foreground">
-                {m.summary ?? "—"}
-              </p>
+            <Panel key={m.id} title={fmtDate(m.started_at)} action={<StatusBadge status={m.status} />}>
+              <p className="whitespace-pre-line text-sm text-muted-foreground">{m.summary ?? "—"}</p>
               <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-muted-foreground">
                 <span>Finalizada: {fmtDate(m.finished_at)}</span>
                 <span>{countBy(outputs, m.id)} respuestas de agentes</span>
@@ -80,3 +71,4 @@ function MeetingsPage() {
     </>
   );
 }
+

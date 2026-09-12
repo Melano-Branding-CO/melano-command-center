@@ -9,9 +9,7 @@
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write .",
-    "import:leads": "tsx scripts/import-leads.ts",
-    "import:leads:sample": "tsx scripts/import-leads.ts data/leads-cucicba-sample.csv"
+    "format": "prettier --write ."
   },
   "overrides": {
     "rolldown": "1.2.1"

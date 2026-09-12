@@ -135,26 +135,10 @@ const LUXIA_FLOW = [
 ];
 
 const METHOD = [
-  {
-    n: "01",
-    title: "Diagnóstico",
-    text: "Proceso, cuello de botella, datos, herramientas y criterio de éxito.",
-  },
-  {
-    n: "02",
-    title: "Validación",
-    text: "Hipótesis concreta, flujo mínimo y una métrica que permita decidir.",
-  },
-  {
-    n: "03",
-    title: "Implementación",
-    text: "Software, automatización, integraciones, permisos y QA funcional.",
-  },
-  {
-    n: "04",
-    title: "Escala",
-    text: "Medición, aprendizaje, estandarización y reducción del trabajo manual.",
-  },
+  { n: "01", title: "Diagnóstico", text: "Proceso, cuello de botella, datos, herramientas y criterio de éxito." },
+  { n: "02", title: "Validación", text: "Hipótesis concreta, flujo mínimo y una métrica que permita decidir." },
+  { n: "03", title: "Implementación", text: "Software, automatización, integraciones, permisos y QA funcional." },
+  { n: "04", title: "Escala", text: "Medición, aprendizaje, estandarización y reducción del trabajo manual." },
 ];
 
 const PRINCIPLES = [
@@ -179,18 +163,10 @@ function PublicPage() {
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <span className="text-sm font-semibold tracking-[0.2em] text-foreground">MELANO INC</span>
           <nav className="hidden items-center gap-7 text-xs text-muted-foreground md:flex">
-            <a href="#capacidades" className="transition-colors hover:text-foreground">
-              Capacidades
-            </a>
-            <a href="#ecosistema" className="transition-colors hover:text-foreground">
-              Ecosistema
-            </a>
-            <a href="#datos" className="transition-colors hover:text-foreground">
-              Datos en vivo
-            </a>
-            <a href="#metodo" className="transition-colors hover:text-foreground">
-              Método
-            </a>
+            <a href="#capacidades" className="transition-colors hover:text-foreground">Capacidades</a>
+            <a href="#ecosistema" className="transition-colors hover:text-foreground">Ecosistema</a>
+            <a href="#datos" className="transition-colors hover:text-foreground">Datos en vivo</a>
+            <a href="#metodo" className="transition-colors hover:text-foreground">Método</a>
           </nav>
           <div className="flex items-center gap-2">
             <Link
@@ -227,9 +203,7 @@ function PublicPage() {
           }}
         />
         <div className="relative mx-auto max-w-6xl px-5 py-24 sm:py-32">
-          <p className="text-[11px] tracking-[0.35em] text-muted-foreground">
-            AI · AUTOMATION · IMPACT
-          </p>
+          <p className="text-[11px] tracking-[0.35em] text-muted-foreground">AI · AUTOMATION · IMPACT</p>
           <h1 className="mt-5 max-w-4xl text-4xl font-semibold leading-[1.08] tracking-tight text-foreground sm:text-6xl">
             Convertimos operaciones fragmentadas en{" "}
             <span className="bg-gradient-to-r from-primary to-foreground bg-clip-text text-transparent">
@@ -260,11 +234,7 @@ function PublicPage() {
             </a>
           </div>
           <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-3 text-xs text-muted-foreground">
-            {[
-              "IA aplicada a procesos reales",
-              "Automatización conectada",
-              "Revenue & Real Estate Tech",
-            ].map((t) => (
+            {["IA aplicada a procesos reales", "Automatización conectada", "Revenue & Real Estate Tech"].map((t) => (
               <li key={t} className="flex items-center gap-2">
                 <span className="size-1.5 rotate-45 bg-primary" />
                 {t}
@@ -310,9 +280,7 @@ function PublicPage() {
                 className="rounded-xl border border-border bg-card p-7 transition-colors hover:border-primary/40"
               >
                 <p className="text-[10px] tracking-[0.25em] text-muted-foreground">{p.layer}</p>
-                <h3 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">
-                  {p.name}
-                </h3>
+                <h3 className="mt-3 text-2xl font-semibold tracking-tight text-foreground">{p.name}</h3>
                 <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">{p.text}</p>
                 {p.href ? (
                   <a
@@ -392,10 +360,7 @@ function PublicPage() {
           ) : (
             <>
               <div className="mt-10 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
-                <Kpi
-                  label="Tareas ejecutadas"
-                  value={`${data.totals.tasksDone} / ${data.totals.tasks}`}
-                />
+                <Kpi label="Tareas ejecutadas" value={`${data.totals.tasksDone} / ${data.totals.tasks}`} />
                 <Kpi label="Decisiones registradas" value={data.totals.decisions} />
                 <Kpi
                   label="Aprobaciones resueltas"
@@ -423,10 +388,7 @@ function PublicPage() {
                 </ChartCard>
                 <ChartCard title="Leads por fase comercial">
                   <PieBlock
-                    data={data.leadsByPhase.map((d) => ({
-                      ...d,
-                      name: PHASE_LABEL[d.name] ?? d.name,
-                    }))}
+                    data={data.leadsByPhase.map((d) => ({ ...d, name: PHASE_LABEL[d.name] ?? d.name }))}
                   />
                 </ChartCard>
                 <ChartCard title="Clientes por etapa LUXIA">
@@ -443,20 +405,10 @@ function PublicPage() {
                       <LineChart data={data.activityByDay}>
                         <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
                         <XAxis dataKey="day" stroke="var(--muted-foreground)" fontSize={11} />
-                        <YAxis
-                          stroke="var(--muted-foreground)"
-                          fontSize={11}
-                          allowDecimals={false}
-                        />
+                        <YAxis stroke="var(--muted-foreground)" fontSize={11} allowDecimals={false} />
                         <Tooltip contentStyle={TOOLTIP} />
                         <Legend wrapperStyle={{ fontSize: 12 }} />
-                        <Line
-                          type="monotone"
-                          dataKey="tareas"
-                          stroke="var(--primary)"
-                          strokeWidth={2}
-                          dot={false}
-                        />
+                        <Line type="monotone" dataKey="tareas" stroke="var(--primary)" strokeWidth={2} dot={false} />
                         <Line
                           type="monotone"
                           dataKey="decisiones"
@@ -471,8 +423,7 @@ function PublicPage() {
               </div>
 
               <p className="mt-3 text-[11px] text-muted-foreground">
-                Datos agregados y anónimos · actualizado{" "}
-                {new Date(data.updatedAt).toLocaleString("es-AR")}
+                Datos agregados y anónimos · actualizado {new Date(data.updatedAt).toLocaleString("es-AR")}
               </p>
             </>
           )}
@@ -525,9 +476,7 @@ function PublicPage() {
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-24 lg:grid-cols-[1fr_1.4fr] lg:items-center">
           <div>
             <p className="text-[10px] tracking-[0.25em] text-muted-foreground">LIDERAZGO</p>
-            <p className="mt-4 text-2xl font-semibold tracking-tight text-foreground">
-              Bruno Melano
-            </p>
+            <p className="mt-4 text-2xl font-semibold tracking-tight text-foreground">Bruno Melano</p>
             <p className="text-sm text-muted-foreground">CEO &amp; Founder</p>
             <a
               href="https://brunomelano.com/"
@@ -593,12 +542,7 @@ function PublicPage() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-5 py-8 text-xs text-muted-foreground">
           <span>MELANO INC — AI. Automation. Impact.</span>
           <div className="flex gap-5">
-            <a
-              href="https://melanoinc.com/privacidad/"
-              target="_blank"
-              rel="noreferrer"
-              className="hover:text-foreground"
-            >
+            <a href="https://melanoinc.com/privacidad/" target="_blank" rel="noreferrer" className="hover:text-foreground">
               Política de Privacidad
             </a>
             <Link to="/auth" className="hover:text-foreground">
@@ -687,14 +631,7 @@ function PieBlock({ data }: { data: { name: string; value: number }[] }) {
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          <Pie
-            data={data}
-            dataKey="value"
-            nameKey="name"
-            innerRadius={45}
-            outerRadius={80}
-            stroke="var(--card)"
-          >
+          <Pie data={data} dataKey="value" nameKey="name" innerRadius={45} outerRadius={80} stroke="var(--card)">
             {data.map((entry, i) => (
               <Cell key={entry.name} fill={PALETTE[i % PALETTE.length]} />
             ))}

@@ -4,9 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 
 type OAuthApi = {
-  getAuthorizationDetails: (
-    id: string,
-  ) => Promise<{ data: AuthzDetails | null; error: Error | null }>;
+  getAuthorizationDetails: (id: string) => Promise<{ data: AuthzDetails | null; error: Error | null }>;
   approveAuthorization: (id: string) => Promise<{ data: AuthzResult | null; error: Error | null }>;
   denyAuthorization: (id: string) => Promise<{ data: AuthzResult | null; error: Error | null }>;
 };

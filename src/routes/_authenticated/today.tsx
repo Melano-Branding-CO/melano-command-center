@@ -44,11 +44,7 @@ function TodayPage() {
   const map = agentMap(agents as Agent[] | undefined);
   useRealtime(["tasks"]);
   const today = todayKey(org?.timezone ?? undefined);
-  const {
-    data: tasks,
-    isLoading,
-    error,
-  } = useOrgRows<Task>("tasks", org?.id, {
+  const { data: tasks, isLoading, error } = useOrgRows<Task>("tasks", org?.id, {
     eq: { is_today_priority: true, today_date: today },
     order: "priority",
     asc: true,
@@ -60,9 +56,7 @@ function TodayPage() {
       {isLoading ? (
         <Empty text="Cargando prioridades desde la base…" />
       ) : error ? (
-        <Empty
-          text={`No se pudieron leer las prioridades: ${error instanceof Error ? error.message : "error desconocido"}`}
-        />
+        <Empty text={`No se pudieron leer las prioridades: ${error instanceof Error ? error.message : "error desconocido"}`} />
       ) : (tasks ?? []).length === 0 ? (
         <Empty text="Sin prioridades para hoy. Ejecutá la reunión ejecutiva desde el Command Center." />
       ) : (

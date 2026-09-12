@@ -38,43 +38,22 @@ export function getAgentHealth(
   if (!agent.enabled || agent.status === "PAUSED") {
     return { status: "YELLOW", reason: "Agente pausado o deshabilitado.", observedAt, traceId };
   }
-  if (
-    agent.status === "ERROR" ||
-    agent.last_error ||
-    latest?.status === "FAILED" ||
-    latest?.error
-  ) {
-    return {
-      status: "RED",
-      reason: agent.last_error ?? latest?.error ?? "Última ejecución fallida.",
-      observedAt,
-      traceId,
-    };
+  if (agent.status === "ERROR" || agent.last_error || latest?.status === "FAILED" || latest?.error) {
+    return { status: "RED", reason: agent.last_error ?? latest?.error ?? "Última ejecución fallida.", observedAt, traceId };
   }
   if (agent.status !== "ACTIVE") {
     return { status: "YELLOW", reason: `Estado operativo: ${agent.status}.`, observedAt, traceId };
   }
   if (!latest || latest.status !== "SUCCESS" || !latest.finished_at) {
-    return {
-      status: "YELLOW",
-      reason: "Falta una última ejecución completada con éxito.",
-      observedAt,
-      traceId,
-    };
+    return { status: "YELLOW", reason: "Falta una última ejecución completada con éxito.", observedAt, traceId };
   }
   if (!observedAt || now - new Date(observedAt).getTime() > 15 * 60_000) {
-    return {
-      status: "YELLOW",
-      reason: "La última señal operativa tiene más de 15 minutos.",
-      observedAt,
-      traceId,
-    };
+    return { status: "YELLOW", reason: "La última señal operativa tiene más de 15 minutos.", observedAt, traceId };
   }
 
   return {
     status: "YELLOW",
-    reason:
-      "La fuente actual no registra heartbeat ni error_count; GREEN queda bloqueado hasta verificar ambas señales.",
+    reason: "La fuente actual no registra heartbeat ni error_count; GREEN queda bloqueado hasta verificar ambas señales.",
     observedAt,
     traceId,
   };

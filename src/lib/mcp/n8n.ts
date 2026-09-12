@@ -63,10 +63,7 @@ export async function dispatchN8n(
         webhookUrl = resolved.url;
         await db
           .from("automation_rules")
-          .update({
-            n8n_webhook_url: resolved.url,
-            n8n_workflow: rule.n8n_workflow ?? resolved.workflow,
-          })
+          .update({ n8n_webhook_url: resolved.url, n8n_workflow: rule.n8n_workflow ?? resolved.workflow })
           .eq("id", rule.id);
       }
     } catch {
@@ -83,6 +80,7 @@ export async function dispatchN8n(
       error: "No se pudo resolver el webhook del workflow activo de n8n.",
     };
   }
+
 
   const traceId = crypto.randomUUID();
   const startedAt = new Date().toISOString();

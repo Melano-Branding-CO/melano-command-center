@@ -60,8 +60,7 @@ export default defineTool({
       },
     );
 
-    if (!res.ok)
-      return errorResult(`${res.error ?? "Error llamando a n8n"} (trace ${res.traceId ?? "—"})`);
+    if (!res.ok) return errorResult(`${res.error ?? "Error llamando a n8n"} (trace ${res.traceId ?? "—"})`);
     return textResult({
       decision: decision.title,
       ejecutada: !blocked,

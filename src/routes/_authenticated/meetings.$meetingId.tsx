@@ -11,8 +11,7 @@ export const Route = createFileRoute("/_authenticated/meetings/$meetingId")({
       { title: "Reunión ejecutiva — MELANO INC" },
       {
         name: "description",
-        content:
-          "Lectura completa del brief, la intervención de cada agente y los casos derivados.",
+        content: "Lectura completa del brief, la intervención de cada agente y los casos derivados.",
       },
       { property: "og:title", content: "Reunión ejecutiva — MELANO INC" },
       {
@@ -128,10 +127,7 @@ function MeetingDetail() {
     order: "created_at",
     asc: true,
   });
-  const { data: agents } = useOrgRows<AgentRow>("agents", org?.id, {
-    order: "sort_order",
-    asc: true,
-  });
+  const { data: agents } = useOrgRows<AgentRow>("agents", org?.id, { order: "sort_order", asc: true });
   const byAgent = agentMap(agents as never);
 
   if (isLoading) return <Empty text="Cargando…" />;
@@ -158,10 +154,7 @@ function MeetingDetail() {
           {brief ? (
             <div className="mt-3 space-y-2">
               <Field label="Estado general" value={brief["situation"] ?? brief["estado"]} />
-              <Field
-                label="Top 3 prioridades"
-                value={brief["top_priorities"] ?? brief["prioridades"]}
-              />
+              <Field label="Top 3 prioridades" value={brief["top_priorities"] ?? brief["prioridades"]} />
               <Field label="Riesgos" value={brief["risks"] ?? brief["riesgos"]} />
               <details>
                 <summary className="cursor-pointer text-[11px] text-muted-foreground hover:text-foreground">
@@ -194,9 +187,7 @@ function MeetingDetail() {
                           {a?.code ? `· ${a.code}` : ""} {a?.role ? `· ${a.role}` : ""}
                         </span>
                       </p>
-                      <span className="text-[11px] text-muted-foreground">
-                        {fmtDate(o.created_at)}
-                      </span>
+                      <span className="text-[11px] text-muted-foreground">{fmtDate(o.created_at)}</span>
                     </div>
                     <div className="mt-2 space-y-2">
                       <Field label="Situación" value={o.situation} />
@@ -283,15 +274,12 @@ function MeetingDetail() {
                       ) : null}
                       {t.error ? (
                         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2">
-                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                            Error
-                          </p>
+                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Error</p>
                           <p className="whitespace-pre-wrap text-sm text-foreground">{t.error}</p>
                         </div>
                       ) : null}
                       <p className="text-[11px] text-muted-foreground">
-                        Agente:{" "}
-                        {t.assigned_agent ? (byAgent.get(t.assigned_agent)?.name ?? "—") : "—"}
+                        Agente: {t.assigned_agent ? (byAgent.get(t.assigned_agent)?.name ?? "—") : "—"}
                         {t.trace_id ? ` · trace ${t.trace_id.slice(0, 8)}` : ""}
                       </p>
                     </div>

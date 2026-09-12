@@ -77,14 +77,8 @@ function DashboardsPage() {
     order: "requested_at",
     limit: 300,
   });
-  const { data: products } = useOrgRows<Product>("products", org?.id, {
-    order: "priority",
-    asc: true,
-  });
-  const { data: alerts } = useOrgRows<Alert>("alerts", org?.id, {
-    order: "created_at",
-    limit: 200,
-  });
+  const { data: products } = useOrgRows<Product>("products", org?.id, { order: "priority", asc: true });
+  const { data: alerts } = useOrgRows<Alert>("alerts", org?.id, { order: "created_at", limit: 200 });
 
   const allTasks = tasks ?? [];
   const allRuns = runs ?? [];
@@ -102,7 +96,7 @@ function DashboardsPage() {
   const tokensToday = runsToday.reduce((acc, r) => acc + (r.tokens ?? 0), 0);
   const costToday = runsToday.reduce((acc, r) => acc + Number(r.estimated_cost ?? 0), 0);
 
-  const agentRows = ((agents as Agent[] | undefined) ?? []).map((a) => {
+  const agentRows = (agents as Agent[] | undefined ?? []).map((a) => {
     const rs = allRuns.filter((r) => r.agent_id === a.id);
     const rsToday = rs.filter((r) => isToday(r.started_at));
     const ok = rsToday.filter((r) => r.status === "SUCCESS").length;
@@ -146,21 +140,13 @@ function DashboardsPage() {
       ) : (
         <div className="space-y-6">
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            <Kpi
-              label="Ejecuciones hoy"
-              value={runsToday.length}
-              hint={`${okRuns} OK · ${failedRuns} fallidas`}
-            />
+            <Kpi label="Ejecuciones hoy" value={runsToday.length} hint={`${okRuns} OK · ${failedRuns} fallidas`} />
             <Kpi
               label="Tasa de éxito hoy"
               value={successRate === null ? "SIN DATOS" : `${successRate}%`}
               tone={successRate === null ? "muted" : successRate >= 80 ? "good" : "warn"}
             />
-            <Kpi
-              label="Tareas creadas hoy"
-              value={tasksToday.length}
-              hint={`${completedToday.length} completadas`}
-            />
+            <Kpi label="Tareas creadas hoy" value={tasksToday.length} hint={`${completedToday.length} completadas`} />
             <Kpi
               label="Bloqueos abiertos"
               value={openBlocked.length}
@@ -250,7 +236,10 @@ function DashboardsPage() {
                       <StatusBadge status={r.product.status} />
                     </div>
                     <div className="mt-3 h-1.5 w-full overflow-hidden rounded bg-muted">
-                      <div className="h-full bg-primary" style={{ width: `${r.progress ?? 0}%` }} />
+                      <div
+                        className="h-full bg-primary"
+                        style={{ width: `${r.progress ?? 0}%` }}
+                      />
                     </div>
                     <dl className="mt-3 grid grid-cols-4 gap-2 text-xs">
                       <Mini label="Tareas" value={r.total} />
