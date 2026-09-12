@@ -8,7 +8,10 @@ export const Route = createFileRoute("/_authenticated/decisions")({
   head: () => ({
     meta: [
       { title: "Decisions — MELANO INC" },
-      { name: "description", content: "Decisiones propuestas y aprobadas con impacto, riesgo y confianza." },
+      {
+        name: "description",
+        content: "Decisiones propuestas y aprobadas con impacto, riesgo y confianza.",
+      },
       { property: "og:title", content: "Decisions — MELANO INC" },
       { property: "og:description", content: "Registro de decisiones del sistema autónomo." },
       { name: "robots", content: "noindex" },
@@ -37,7 +40,10 @@ function DecisionsPage() {
 
   return (
     <>
-      <PageHeader title="Decisions" subtitle="Cada decisión con evidencia, riesgo e impacto esperado." />
+      <PageHeader
+        title="Decisions"
+        subtitle="Cada decisión con evidencia, riesgo e impacto esperado."
+      />
       {isLoading ? (
         <Empty text="Cargando…" />
       ) : (decisions ?? []).length === 0 ? (
@@ -45,7 +51,11 @@ function DecisionsPage() {
       ) : (
         <div className="grid gap-4 lg:grid-cols-2">
           {(decisions ?? []).map((d) => (
-            <Panel key={d.id} title={fmtDate(d.created_at)} action={<StatusBadge status={d.status} />}>
+            <Panel
+              key={d.id}
+              title={fmtDate(d.created_at)}
+              action={<StatusBadge status={d.status} />}
+            >
               <div className="flex flex-wrap items-center gap-2">
                 <PriorityBadge priority={d.priority} />
                 <h3 className="text-sm font-semibold text-foreground">{d.title}</h3>

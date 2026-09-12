@@ -40,7 +40,8 @@ async function callChat(
   });
   if (!res.ok) {
     const body = await res.text();
-    if (res.status === 429) throw new Error("Límite de uso de IA alcanzado. Reintentá en unos minutos.");
+    if (res.status === 429)
+      throw new Error("Límite de uso de IA alcanzado. Reintentá en unos minutos.");
     if (res.status === 402) throw new Error("Sin créditos de IA disponibles.");
     if (res.status === 401) throw new Error("Credencial de IA inválida.");
     throw new Error(`AI ${model} ${res.status}: ${body.slice(0, 300)}`);
@@ -72,7 +73,6 @@ async function aiFull(system: string, user: string): Promise<AiResult> {
 async function ai(system: string, user: string): Promise<string> {
   return (await aiFull(system, user)).text;
 }
-
 
 function parseJson<T>(text: string, fallback: T): T {
   const cleaned = text
@@ -284,7 +284,6 @@ export async function runAgentServer(agentId: string, meetingId?: string) {
 
     return { agent, parsed, traceId, runId: run?.id ?? null, tokens: result.tokens };
   } catch (err) {
-
     const message = err instanceof Error ? err.message : String(err);
     if (run?.id) {
       await db

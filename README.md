@@ -647,16 +647,11 @@ El nivel se aumenta únicamente después de resultados verificados.
 
 Una función se considera GREEN únicamente cuando:
 
-trigger real
-+
-ejecución real
-+
-resultado esperado
-+
-persistencia
-+
-log
-+
+trigger real +
+ejecución real +
+resultado esperado +
+persistencia +
+log +
 verificación
 
 Compilar correctamente NO significa GREEN.
@@ -739,35 +734,25 @@ STATUS
 
 No llenar esta pantalla con 20 tareas.
 
-==================================================
-23. MVP
+================================================== 23. MVP
 
 Primero implementar un MVP REAL.
 
 MVP =
 
-Auth
-+
-Supabase
-+
-Agents
-+
-Tasks
-+
-Decisions
-+
-Executive Meeting
-+
-Activity Logs
-+
-Approval Center
-+
+Auth +
+Supabase +
+Agents +
+Tasks +
+Decisions +
+Executive Meeting +
+Activity Logs +
+Approval Center +
 Command Center
 
 No construir primero integraciones complejas.
 
-==================================================
-24. DEMO DATA
+================================================== 24. DEMO DATA
 
 Si necesitás datos de demostración para desarrollar UI:
 
@@ -779,8 +764,7 @@ Nunca mezclarlos con información real.
 
 Agregar opción para limpiar demo data.
 
-==================================================
-25. CRITERIO FINAL
+================================================== 25. CRITERIO FINAL
 
 No quiero solamente un dashboard atractivo.
 
@@ -851,3 +835,4 @@ cd <repository-name>
 npm i
 npm run dev
 ```
+

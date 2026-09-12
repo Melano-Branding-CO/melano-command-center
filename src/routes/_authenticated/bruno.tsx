@@ -78,16 +78,15 @@ function BrunoPage() {
   const figures = useMemo(
     () =>
       FIGURES.map((f) => {
-        const hit = (metrics ?? []).find((m) =>
-          f.match.test(`${m.key} ${m.label ?? ""}`),
-        );
+        const hit = (metrics ?? []).find((m) => f.match.test(`${m.key} ${m.label ?? ""}`));
         return { ...f, metric: hit ?? null };
       }),
     [metrics],
   );
 
   const pendingCritical = (approvals ?? []).filter(
-    (a) => a.status === "PENDING" && CRITICAL.test(`${a.category ?? ""} ${a.action} ${a.reason ?? ""}`),
+    (a) =>
+      a.status === "PENDING" && CRITICAL.test(`${a.category ?? ""} ${a.action} ${a.reason ?? ""}`),
   );
   const pendingOther = (approvals ?? []).filter(
     (a) => a.status === "PENDING" && !pendingCritical.includes(a),
@@ -101,7 +100,8 @@ function BrunoPage() {
       toast.success(approve ? "Aprobado" : "Rechazado");
       const exec = decided.execution;
       if (approve && exec) {
-        if (exec.executed) toast.success(`Ejecutada en n8n · cerrada en DONE (${exec.workflow ?? "workflow"})`);
+        if (exec.executed)
+          toast.success(`Ejecutada en n8n · cerrada en DONE (${exec.workflow ?? "workflow"})`);
         else if (exec.error) toast.warning(`No se pudo ejecutar automáticamente: ${exec.error}`);
       }
 
@@ -141,7 +141,12 @@ function BrunoPage() {
             <Button size="sm" disabled={busy === a.id} onClick={() => act(a.id, true)}>
               Aprobar
             </Button>
-            <Button size="sm" variant="outline" disabled={busy === a.id} onClick={() => act(a.id, false)}>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={busy === a.id}
+              onClick={() => act(a.id, false)}
+            >
               Rechazar
             </Button>
           </div>

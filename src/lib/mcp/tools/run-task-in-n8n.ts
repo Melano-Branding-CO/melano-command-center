@@ -48,7 +48,8 @@ export default defineTool({
       })
       .eq("id", task.id);
 
-    if (!res.ok) return errorResult(`${res.error ?? "Error llamando a n8n"} (trace ${res.traceId ?? "—"})`);
+    if (!res.ok)
+      return errorResult(`${res.error ?? "Error llamando a n8n"} (trace ${res.traceId ?? "—"})`);
     return textResult({
       tarea: task.title,
       estado: "REVIEW",

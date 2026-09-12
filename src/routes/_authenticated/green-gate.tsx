@@ -131,7 +131,6 @@ const LEAD_STATUSES = [
   "DESCARTADO",
 ] as const;
 
-
 function GreenGatePage() {
   const { data: org } = useOrg();
   useRealtime(["tasks", "metrics", "agent_runs", "agents", "leads"]);
@@ -149,7 +148,6 @@ function GreenGatePage() {
   });
   const { data: leads } = useOrgRows<Lead>("leads", org?.id, { order: "created_at" });
 
-
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
 
@@ -165,18 +163,14 @@ function GreenGatePage() {
     () =>
       PHASES.map((p) => ({
         ...p,
-        tasks: luxiaTasks.filter((t) =>
-          p.match.test(`${t.title} ${t.description ?? ""}`),
-        ),
+        tasks: luxiaTasks.filter((t) => p.match.test(`${t.title} ${t.description ?? ""}`)),
       })),
     [luxiaTasks],
   );
 
   const unassigned = luxiaTasks.filter((t) => !phases.some((p) => p.tasks.includes(t)));
 
-  const leadMetrics = (metrics ?? []).filter((m) =>
-    LEAD_MATCH.test(`${m.key} ${m.label ?? ""}`),
-  );
+  const leadMetrics = (metrics ?? []).filter((m) => LEAD_MATCH.test(`${m.key} ${m.label ?? ""}`));
 
   const upcoming = useMemo(
     () =>
@@ -189,7 +183,6 @@ function GreenGatePage() {
 
   const lastRun = (runs ?? [])[0] ?? null;
   const luxiaHealth = luxia ? getAgentHealth(luxia, runs ?? []) : null;
-
 
   async function setStatus(task: Task, status: string) {
     setBusy(task.id);
@@ -235,25 +228,31 @@ function GreenGatePage() {
           {luxia ? (
             <>
               <p className="mb-3 text-xs text-muted-foreground">{luxiaHealth?.reason}</p>
-              {luxiaHealth?.traceId ? <p className="mb-3 font-mono text-[11px] text-muted-foreground">trace {luxiaHealth.traceId}</p> : null}
+              {luxiaHealth?.traceId ? (
+                <p className="mb-3 font-mono text-[11px] text-muted-foreground">
+                  trace {luxiaHealth.traceId}
+                </p>
+              ) : null}
               <dl className="grid gap-2 text-xs sm:grid-cols-2">
-              <div>
-                <dt className="label-caps">Habilitado</dt>
-                <dd className="text-foreground">{luxia.enabled ? "Sí" : "No"}</dd>
-              </div>
-              <div>
-                <dt className="label-caps">Confianza</dt>
-                <dd className="text-foreground">{luxia.confidence}</dd>
-              </div>
-              <div>
-                <dt className="label-caps">Última ejecución</dt>
-                <dd className="text-foreground">{fmtDate(luxia.last_run_at)}</dd>
-              </div>
-              <div>
-                <dt className="label-caps">Último resultado</dt>
-                <dd className="truncate text-foreground">{luxia.last_result ?? "Sin resultado"}</dd>
-              </div>
-            </dl>
+                <div>
+                  <dt className="label-caps">Habilitado</dt>
+                  <dd className="text-foreground">{luxia.enabled ? "Sí" : "No"}</dd>
+                </div>
+                <div>
+                  <dt className="label-caps">Confianza</dt>
+                  <dd className="text-foreground">{luxia.confidence}</dd>
+                </div>
+                <div>
+                  <dt className="label-caps">Última ejecución</dt>
+                  <dd className="text-foreground">{fmtDate(luxia.last_run_at)}</dd>
+                </div>
+                <div>
+                  <dt className="label-caps">Último resultado</dt>
+                  <dd className="truncate text-foreground">
+                    {luxia.last_result ?? "Sin resultado"}
+                  </dd>
+                </div>
+              </dl>
             </>
           ) : (
             <Empty text="Agente LUXIA no encontrado." />
@@ -374,7 +373,6 @@ function GreenGatePage() {
         </Panel>
       </section>
 
-
       {isLoading ? (
         <Empty text="Cargando plan…" />
       ) : (
@@ -412,7 +410,9 @@ function GreenGatePage() {
                               </div>
                               <div>
                                 <dt className="label-caps">Prioridad</dt>
-                                <dd><PriorityBadge priority={t.priority} /></dd>
+                                <dd>
+                                  <PriorityBadge priority={t.priority} />
+                                </dd>
                               </div>
                             </dl>
                           </div>

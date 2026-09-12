@@ -504,8 +504,8 @@ function ClientsPage() {
           ) : null}
         </div>
         <p className="mt-3 text-xs text-muted-foreground">
-          Cada alta, edición o baja queda registrada en <code>activity_logs</code> con actor,
-          acción y fecha.
+          Cada alta, edición o baja queda registrada en <code>activity_logs</code> con actor, acción
+          y fecha.
         </p>
       </Panel>
 
@@ -533,7 +533,8 @@ function ClientsPage() {
                             {[c.segment, c.city, c.contact_name].filter(Boolean).join(" · ") || "—"}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {[c.email, c.phone].filter(Boolean).join(" · ") || "Sin contacto cargado"}
+                            {[c.email, c.phone].filter(Boolean).join(" · ") ||
+                              "Sin contacto cargado"}
                           </div>
                         </div>
                         <div className="text-right text-xs text-muted-foreground">
@@ -546,7 +547,9 @@ function ClientsPage() {
                         </div>
                       </div>
                       {c.next_action ? (
-                        <p className="mt-2 text-sm text-foreground">Próxima acción: {c.next_action}</p>
+                        <p className="mt-2 text-sm text-foreground">
+                          Próxima acción: {c.next_action}
+                        </p>
                       ) : null}
                       <div className="mt-3 flex flex-wrap gap-2">
                         {STAGES.filter((s) => s.key !== c.luxia_stage).map((s) => (

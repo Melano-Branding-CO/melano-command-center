@@ -107,14 +107,10 @@ function CeoDashboard() {
   const activeClients = allClients.filter((c) => c.status !== "BAJA" && c.status !== "PERDIDO");
   const mrr = activeClients.reduce((acc, c) => acc + Number(c.mrr ?? 0), 0);
   const wonLeads = allLeads.filter((l) => l.status === "GANADO").length;
-  const openLeads = allLeads.filter(
-    (l) => !["GANADO", "PERDIDO", "DESCARTADO"].includes(l.status),
-  );
+  const openLeads = allLeads.filter((l) => !["GANADO", "PERDIDO", "DESCARTADO"].includes(l.status));
   const conversion = allLeads.length ? Math.round((wonLeads / allLeads.length) * 100) : null;
   const pendingApprovals = allApprovals.filter((a) => a.status === "PENDING");
-  const openDecisions = allDecisions.filter((d) =>
-    ["PROPOSED", "EXECUTING"].includes(d.status),
-  );
+  const openDecisions = allDecisions.filter((d) => ["PROPOSED", "EXECUTING"].includes(d.status));
   const overdueFollowUps = [
     ...allLeads.filter((l) => isOverdue(l.next_follow_up_at)),
     ...allClients.filter((c) => isOverdue(c.next_follow_up_at)),
@@ -139,7 +135,6 @@ function CeoDashboard() {
         <div className="space-y-6">
           <MomentumPanel />
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-
             <Kpi
               label="Clientes activos"
               value={activeClients.length}

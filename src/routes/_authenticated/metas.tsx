@@ -176,7 +176,8 @@ function GoalsPage() {
         ) : (
           <div className="space-y-4">
             {rows.map((r) => {
-              const pct = r.target > 0 ? Math.min(100, Math.round((r.real / r.target) * 100)) : null;
+              const pct =
+                r.target > 0 ? Math.min(100, Math.round((r.real / r.target) * 100)) : null;
               const fmt = (n: number) =>
                 r.money ? `USD ${n.toLocaleString("es-AR")}` : n.toLocaleString("es-AR");
               return (

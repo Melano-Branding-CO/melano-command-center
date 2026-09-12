@@ -244,18 +244,7 @@ function normalizeRow(table: string, row: Record<string, unknown>): Record<strin
   return { ...row, organization_id: row["tenant_id"] ?? row["organization_id"] };
 }
 
-function matchesVirtualFilters(
-  table: string,
-  row: Record<string, unknown>,
-  filters: Record<string, string | boolean | number | null>,
-) {
-  return Object.entries(filters).every(([key, expected]) => row[key] === expected);
-}
-
-/**
- * Lectura genérica multi-tenant sobre el contrato canónico tenant_id.
- * Mantiene aliases de lectura para pantallas legacy mientras se completa el refactor.
- */
+/** Lectura genérica multi-tenant sobre `organization_id`. */
 export function useOrgRows<T = Record<string, unknown>>(
   table: string,
   orgId?: string,

@@ -8,7 +8,10 @@ export const Route = createFileRoute("/_authenticated/tasks")({
   head: () => ({
     meta: [
       { title: "Tasks — MELANO INC" },
-      { name: "description", content: "Backlog ejecutivo con owner, prioridad, estado y evidencia." },
+      {
+        name: "description",
+        content: "Backlog ejecutivo con owner, prioridad, estado y evidencia.",
+      },
       { property: "og:title", content: "Tasks — MELANO INC" },
       { property: "og:description", content: "Tareas del sistema autónomo de MELANO INC." },
       { name: "robots", content: "noindex" },

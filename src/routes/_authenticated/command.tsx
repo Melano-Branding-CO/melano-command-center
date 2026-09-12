@@ -7,8 +7,11 @@ import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
 import { N8nWorkflowsPanel } from "@/components/melano/n8n-panel";
-import { MiniCommandConsole } from "@/components/melano/mini-command-console";
-import { agentMap, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
+import { N8nRunsHistory } from "@/components/melano/n8n-runs-history";
+import { McpPanel } from "@/components/melano/mcp-panel";
+import { MomentumPanel } from "@/components/melano/momentum";
+
+import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { runCanonicalBoardNow } from "@/lib/canonical-runtime.functions";
 
@@ -118,6 +121,12 @@ function CommandCenter() {
     eq: { status: "BLOCKED" },
     order: "updated_at",
   });
+  const { data: decisions } = useOrgRows<{
+    id: string;
+    title: string;
+    status: string;
+    priority: string;
+  }>("decisions", org?.id, { eq: { status: "PROPOSED" }, order: "created_at", limit: 6 });
   const { data: approvals } = useOrgRows<{ id: string; action: string; risk: string | null }>(
     "approvals",
     org?.id,
@@ -229,55 +238,6 @@ function CommandCenter() {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel title="Leads">
-          <div className="space-y-2">
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-sm text-muted-foreground">Total</span>
-              <span className="text-2xl font-semibold text-foreground">{totalLeads}</span>
-            </div>
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-sm text-muted-foreground">Hot / score alto</span>
-              <span className="text-xl font-semibold text-foreground">{hotLeads}</span>
-            </div>
-            <Link to="/leads" className="text-xs text-muted-foreground hover:text-foreground">
-              Abrir leads →
-            </Link>
-          </div>
-        </Panel>
-
-        <Panel title="Revenue Attribution · Automation / Agent" className="lg:col-span-2">
-          {attributionBreakdown.length === 0 ? (
-            <Empty text="Todavía no hay revenue económico atribuible a una automatización o agente. El ledger ya está listo para capturarlo." />
-          ) : (
-            <ul className="space-y-2 text-sm">
-              {attributionBreakdown.map((item) => (
-                <li key={item.label} className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-border/60 pb-2 last:border-0">
-                  <span className="truncate text-foreground">{item.label}</span>
-                  <span className="text-muted-foreground">{item.events} eventos</span>
-                  <span className="font-semibold text-foreground">{money(item.revenue, currency)}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-
-        <Panel title="Aprobaciones que bloquean ejecución">
-          {(approvals ?? []).length === 0 ? (
-            <Empty text="Nada esperando autorización." />
-          ) : (
-            <ul className="space-y-2 text-sm">
-              {(approvals ?? []).map((a) => (
-                <li key={a.id}>
-                  <Link to="/approvals" className="text-foreground hover:underline">
-                    {a.action}
-                  </Link>
-                  <p className="text-xs text-muted-foreground">Riesgo: {a.risk ?? "—"}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Panel>
-
         <Panel
           title="Hoy — Top 3 de impacto"
           className="lg:col-span-2"
@@ -301,10 +261,22 @@ function CommandCenter() {
                     <span className="text-sm font-medium text-foreground">{t.title}</span>
                   </div>
                   <dl className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
-                    <div><dt className="label-caps">Por qué ahora</dt><dd>{t.why_now ?? "—"}</dd></div>
-                    <div><dt className="label-caps">Próxima acción</dt><dd>{t.next_action ?? "—"}</dd></div>
-                    <div><dt className="label-caps">Responsable</dt><dd>{t.assigned_agent ? map.get(t.assigned_agent)?.name ?? "—" : "—"}</dd></div>
-                    <div><dt className="label-caps">Métrica de éxito</dt><dd>{t.success_metric ?? "—"}</dd></div>
+                    <div>
+                      <dt className="label-caps">Why now</dt>
+                      <dd>{t.why_now ?? "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="label-caps">Next action</dt>
+                      <dd>{t.next_action ?? "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="label-caps">Owner</dt>
+                      <dd>{t.assigned_agent ? (map.get(t.assigned_agent)?.name ?? "—") : "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="label-caps">Success metric</dt>
+                      <dd>{t.success_metric ?? "—"}</dd>
+                    </div>
                   </dl>
                 </li>
               ))}
@@ -317,14 +289,22 @@ function CommandCenter() {
             <Empty text="Sin bloqueos registrados." />
           ) : (
             <ul className="space-y-2 text-sm">
-              {(blocked ?? []).map((t) => <li key={t.id} className="text-foreground">{t.title}</li>)}
+              {(blocked ?? []).map((t) => (
+                <li key={t.id} className="text-foreground">
+                  {t.title}
+                </li>
+              ))}
             </ul>
           )}
         </Panel>
 
         <N8nWorkflowsPanel className="lg:col-span-3" />
 
-        <Panel title="Alertas críticas">
+        <McpPanel className="lg:col-span-3" />
+
+        <N8nRunsHistory className="lg:col-span-3" />
+
+        <Panel title="Alertas">
           {(alerts ?? []).length === 0 ? (
             <Empty text="Sin alertas abiertas." />
           ) : (

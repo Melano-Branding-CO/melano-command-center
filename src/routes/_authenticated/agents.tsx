@@ -49,7 +49,10 @@ function AgentsGrid() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {(agents ?? []).map((a) => {
-            const health = getAgentHealth(a, (runs ?? []).filter((run) => run.agent_id === a.id));
+            const health = getAgentHealth(
+              a,
+              (runs ?? []).filter((run) => run.agent_id === a.id),
+            );
             return (
               <Panel key={a.id} title={a.code} action={<StatusBadge status={health.status} />}>
                 <Link
@@ -63,10 +66,16 @@ function AgentsGrid() {
                 <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{a.objective}</p>
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <ModePill mode={a.execution_mode} />
-                  <span className="text-[11px] text-muted-foreground">Último run: {fmtDate(health.observedAt)}</span>
+                  <span className="text-[11px] text-muted-foreground">
+                    Último run: {fmtDate(health.observedAt)}
+                  </span>
                 </div>
                 <p className="mt-2 text-[11px] text-muted-foreground">{health.reason}</p>
-                {health.traceId ? <p className="mt-1 font-mono text-[10px] text-muted-foreground">trace {health.traceId.slice(0, 8)}</p> : null}
+                {health.traceId ? (
+                  <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                    trace {health.traceId.slice(0, 8)}
+                  </p>
+                ) : null}
               </Panel>
             );
           })}

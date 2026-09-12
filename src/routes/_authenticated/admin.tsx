@@ -237,11 +237,7 @@ function AdminPage() {
                 <tbody>
                   {data.invites.map((inv) => {
                     const expired = new Date(inv.expires_at).getTime() < Date.now();
-                    const status = inv.accepted_at
-                      ? "Aceptada"
-                      : expired
-                        ? "Vencida"
-                        : "Pendiente";
+                    const status = inv.accepted_at ? "Aceptada" : expired ? "Vencida" : "Pendiente";
                     return (
                       <tr key={inv.id} className="border-b border-border/60">
                         <td className="py-2">{inv.email}</td>

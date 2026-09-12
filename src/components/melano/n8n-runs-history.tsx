@@ -41,7 +41,11 @@ export function N8nRunsHistory({
   const { data: rules } = useOrgRows<AutomationRule>("automation_rules", org?.id, {
     order: "created_at",
   });
-  const { data: runs, isLoading, error } = useOrgRows<AutomationRun>("automation_runs", org?.id, {
+  const {
+    data: runs,
+    isLoading,
+    error,
+  } = useOrgRows<AutomationRun>("automation_runs", org?.id, {
     order: "started_at",
     limit,
   });
