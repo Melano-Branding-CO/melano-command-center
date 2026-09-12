@@ -290,7 +290,9 @@ export function useOrgRows<T = Record<string, unknown>>(
       if (error) throw error;
       let rows = (data ?? []).map((row: Record<string, unknown>) => normalizeRow(table, row));
       if (Object.keys(virtualFilters).length) {
-        rows = rows.filter((row) => matchesVirtualFilters(table, row, virtualFilters));
+        rows = rows.filter((row: Record<string, unknown>) =>
+          matchesVirtualFilters(table, row, virtualFilters),
+        );
       }
       return rows as T[];
     },
