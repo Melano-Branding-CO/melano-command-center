@@ -76,18 +76,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "MELANO INC — COMMAND CENTER" },
+      { title: "MELANO INC — Autonomous Command Center" },
       {
         name: "description",
         content:
-          "Command Center empresarial de MELANO INC: agentes ejecutivos de IA, decisiones, tareas y aprobaciones con trazabilidad real.",
+          "Sistema operativo empresarial autónomo de MELANO INC: agentes ejecutivos de IA, decisiones, tareas y aprobaciones con trazabilidad real.",
       },
       { name: "author", content: "MELANO INC" },
       {
         name: "google-site-verification",
         content: "FsrRLM19KuQ_FKU8fLU5QHNOZJGCkLTpvfYnJDybmrU",
       },
-      { property: "og:title", content: "MELANO INC — COMMAND CENTER" },
+      { property: "og:title", content: "MELANO INC — Autonomous Command Center" },
       {
         property: "og:description",
         content: "AI. Automation. Impact. Equipo ejecutivo digital con trazabilidad real.",
