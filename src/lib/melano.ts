@@ -47,13 +47,22 @@ export function useOrg() {
   return useQuery({
     queryKey: ["organization", CANONICAL_TENANT_SLUG],
     queryFn: async (): Promise<Org | null> => {
-      const { data, error } = await supabase
-        .from("organizations")
-        .select("*")
+      const db = supabase as unknown as { from: (table: string) => any };
+      const { data, error } = await db
+        .from("tenants")
+        .select("id,name,slug,created_at")
         .eq("slug", CANONICAL_TENANT_SLUG)
         .maybeSingle();
       if (error) throw error;
-      return (data as Org) ?? null;
+      if (!data) return null;
+
+      return {
+        ...data,
+        autonomy_level: 2,
+        status: "YELLOW",
+        tagline: "AI. Automation. Impact.",
+        timezone: "America/Argentina/Buenos_Aires",
+      } as unknown as Org;
     },
   });
 }
@@ -66,10 +75,11 @@ export function useMyRole(orgId?: string) {
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
       if (!uid || !orgId) return null;
-      const { data, error } = await supabase
-        .from("organization_members")
+      const db = supabase as unknown as { from: (table: string) => any };
+      const { data, error } = await db
+        .from("tenant_members")
         .select("role")
-        .eq("organization_id", orgId)
+        .eq("tenant_id", orgId)
         .eq("user_id", uid)
         .maybeSingle();
       if (error) throw error;
@@ -83,13 +93,26 @@ export function useAgents(orgId?: string) {
     queryKey: ["agents", orgId],
     enabled: !!orgId,
     queryFn: async (): Promise<Agent[]> => {
-      const { data, error } = await supabase
+      const db = supabase as unknown as { from: (table: string) => any };
+      const { data, error } = await db
         .from("agents")
         .select("*")
-        .eq("organization_id", orgId!)
-        .order("sort_order", { ascending: true });
+        .eq("tenant_id", orgId!);
       if (error) throw error;
-      return (data ?? []) as Agent[];
+
+      return (data ?? []).map((row: Record<string, unknown>, index: number) => {
+        const name = String(row["name"] ?? "");
+        const [label, role] = name.split(" — ");
+        return {
+          ...row,
+          organization_id: row["tenant_id"],
+          code: String(row["id"] ?? label).replace(/^ag-/, "").toUpperCase(),
+          role: role ?? label,
+          status: row["state"],
+          enabled: row["state"] !== "PAUSED",
+          sort_order: index,
+        } as unknown as Agent;
+      });
     },
   });
 }

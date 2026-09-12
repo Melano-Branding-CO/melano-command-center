@@ -1,15 +1,25 @@
-import { lovable } from "@/integrations/lovable/index";
+import { supabase } from "@/integrations/supabase/client";
 
 const NEXT_KEY = "melano:auth:next";
+const DEFAULT_TARGET = "/command";
+const LOCAL_BASE = "https://melano.local";
 
-/**
- * Google sign-in a través del proveedor administrado de Lovable Cloud.
- *
- * El destino se guarda aparte y se aplica recién cuando la sesión de Supabase
- * está confirmada, nunca como redirect_uri hacia una ruta protegida.
- */
+export function normalizePostLoginTarget(value?: string): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
+    return DEFAULT_TARGET;
+  }
+
+  try {
+    const url = new URL(value, LOCAL_BASE);
+    if (url.origin !== LOCAL_BASE) return DEFAULT_TARGET;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return DEFAULT_TARGET;
+  }
+}
+
 export async function signInWithGoogle(next?: string): Promise<{ error: Error | null }> {
-  const target = next && /^\/(?!\/)/.test(next) ? next : "/command";
+  const target = normalizePostLoginTarget(next);
 
   try {
     sessionStorage.setItem(NEXT_KEY, target);
@@ -17,24 +27,26 @@ export async function signInWithGoogle(next?: string): Promise<{ error: Error | 
     // sessionStorage puede no estar disponible; el fallback es /command.
   }
 
-  const result = await lovable.auth.signInWithOAuth("google", {
-    redirect_uri: `${window.location.origin}/auth`,
-    extraParams: { prompt: "select_account" },
+  const callbackUrl = new URL("/auth", window.location.origin);
+  callbackUrl.searchParams.set("next", target);
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: callbackUrl.toString(),
+      queryParams: { prompt: "select_account" },
+    },
   });
 
-  if (result.error) return { error: result.error };
-  return { error: null };
+  return { error };
 }
 
 export function takePostLoginTarget(): string {
   try {
     const value = sessionStorage.getItem(NEXT_KEY);
-    if (value) {
-      sessionStorage.removeItem(NEXT_KEY);
-      if (/^\/(?!\/)/.test(value)) return value;
-    }
+    sessionStorage.removeItem(NEXT_KEY);
+    return normalizePostLoginTarget(value ?? undefined);
   } catch {
-    // ignorado
+    return DEFAULT_TARGET;
   }
-  return "/command";
 }

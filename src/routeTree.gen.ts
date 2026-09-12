@@ -34,6 +34,7 @@ import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authentica
 import { Route as AuthenticatedEjecucionesRouteImport } from './routes/_authenticated/ejecuciones'
 import { Route as AuthenticatedGreenGateRouteImport } from './routes/_authenticated/green-gate'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
+import { Route as AuthenticatedMelaniaRouteImport } from './routes/_authenticated/melania'
 import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
 import { Route as AuthenticatedMetricsRouteImport } from './routes/_authenticated/metrics'
 import { Route as AuthenticatedOperadorRouteImport } from './routes/_authenticated/operador'
@@ -183,6 +184,11 @@ const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMelaniaRoute = AuthenticatedMelaniaRouteImport.update({
+  id: '/melania',
+  path: '/melania',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
   id: '/metas',
   path: '/metas',
@@ -305,6 +311,7 @@ export interface FileRoutesByFullPath {
   '/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
+  '/melania': typeof AuthenticatedMelaniaRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/metrics': typeof AuthenticatedMetricsRoute
   '/operador': typeof AuthenticatedOperadorRoute
@@ -349,6 +356,7 @@ export interface FileRoutesByTo {
   '/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
+  '/melania': typeof AuthenticatedMelaniaRoute
   '/metas': typeof AuthenticatedMetasRoute
   '/metrics': typeof AuthenticatedMetricsRoute
   '/operador': typeof AuthenticatedOperadorRoute
@@ -395,6 +403,7 @@ export interface FileRoutesById {
   '/_authenticated/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/_authenticated/green-gate': typeof AuthenticatedGreenGateRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
+  '/_authenticated/melania': typeof AuthenticatedMelaniaRoute
   '/_authenticated/metas': typeof AuthenticatedMetasRoute
   '/_authenticated/metrics': typeof AuthenticatedMetricsRoute
   '/_authenticated/operador': typeof AuthenticatedOperadorRoute
@@ -441,6 +450,7 @@ export interface FileRouteTypes {
     | '/ejecuciones'
     | '/green-gate'
     | '/leads'
+    | '/melania'
     | '/metas'
     | '/metrics'
     | '/operador'
@@ -485,6 +495,7 @@ export interface FileRouteTypes {
     | '/ejecuciones'
     | '/green-gate'
     | '/leads'
+    | '/melania'
     | '/metas'
     | '/metrics'
     | '/operador'
@@ -530,6 +541,7 @@ export interface FileRouteTypes {
     | '/_authenticated/ejecuciones'
     | '/_authenticated/green-gate'
     | '/_authenticated/leads'
+    | '/_authenticated/melania'
     | '/_authenticated/metas'
     | '/_authenticated/metrics'
     | '/_authenticated/operador'
@@ -743,6 +755,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLeadsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/melania': {
+      id: '/_authenticated/melania'
+      path: '/melania'
+      fullPath: '/melania'
+      preLoaderRoute: typeof AuthenticatedMelaniaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/metas': {
       id: '/_authenticated/metas'
       path: '/metas'
@@ -901,6 +920,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEjecucionesRoute: typeof AuthenticatedEjecucionesRoute
   AuthenticatedGreenGateRoute: typeof AuthenticatedGreenGateRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
+  AuthenticatedMelaniaRoute: typeof AuthenticatedMelaniaRoute
   AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
   AuthenticatedMetricsRoute: typeof AuthenticatedMetricsRoute
   AuthenticatedOperadorRoute: typeof AuthenticatedOperadorRoute
@@ -933,6 +953,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEjecucionesRoute: AuthenticatedEjecucionesRoute,
   AuthenticatedGreenGateRoute: AuthenticatedGreenGateRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
+  AuthenticatedMelaniaRoute: AuthenticatedMelaniaRoute,
   AuthenticatedMetasRoute: AuthenticatedMetasRoute,
   AuthenticatedMetricsRoute: AuthenticatedMetricsRoute,
   AuthenticatedOperadorRoute: AuthenticatedOperadorRoute,

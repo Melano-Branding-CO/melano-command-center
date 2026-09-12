@@ -1,8 +1,12 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { signInWithGoogle, takePostLoginTarget } from "@/lib/google-signin";
+import {
+  normalizePostLoginTarget,
+  signInWithGoogle,
+  takePostLoginTarget,
+} from "@/lib/google-signin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,56 +28,130 @@ export const Route = createFileRoute("/auth")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): { next?: string } => {
-    const raw = typeof search["next"] === "string" ? search["next"] : "";
-    // Solo rutas relativas del mismo origen.
-    return /^\/(?!\/)/.test(raw) ? { next: raw } : {};
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { next?: string; code?: string; error?: string; error_description?: string } => {
+    const rawNext = typeof search["next"] === "string" ? search["next"] : "";
+    const result: {
+      next?: string;
+      code?: string;
+      error?: string;
+      error_description?: string;
+    } = {};
+
+    if (rawNext && /^\/(?!\/)/.test(rawNext) && !rawNext.includes("\\")) {
+      result.next = normalizePostLoginTarget(rawNext);
+    }
+    if (typeof search["code"] === "string") result.code = search["code"];
+    if (typeof search["error"] === "string") result.error = search["error"];
+    if (typeof search["error_description"] === "string") {
+      result.error_description = search["error_description"];
+    }
+    return result;
   },
   component: AuthRoute,
 });
 
 function AuthRoute() {
-  const { next } = Route.useSearch();
-  return <AuthPage {...(next ? { next } : {})} />;
+  const search = Route.useSearch();
+  return <AuthPage {...search} />;
 }
 
-export function AuthPage({ next }: { next?: string }) {
-  const navigate = useNavigate();
+export function AuthPage({
+  next,
+  code,
+  error: oauthError,
+  error_description: oauthErrorDescription,
+}: {
+  next?: string;
+  code?: string;
+  error?: string;
+  error_description?: string;
+}) {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState(Boolean(code || oauthError));
   const [checkEmail, setCheckEmail] = useState(false);
 
   useEffect(() => {
     let active = true;
+
     const go = () => {
-      const target = next ?? takePostLoginTarget();
+      // Consume the stored target on every completed auth flow so it cannot
+      // leak into a later login. The callback target wins when present.
+      const storedTarget = takePostLoginTarget();
+      const target = normalizePostLoginTarget(next ?? storedTarget);
       window.location.replace(target);
     };
-    supabase.auth.getSession().then(({ data }) => {
-      if (active && data.session) go();
-    });
+
+    const restoreSession = async () => {
+      try {
+        if (oauthError) {
+          throw new Error(oauthErrorDescription || oauthError);
+        }
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) throw error;
+
+          // Remove one-time OAuth params immediately after a successful exchange.
+          const cleanUrl = new URL(window.location.href);
+          cleanUrl.searchParams.delete("code");
+          cleanUrl.searchParams.delete("error");
+          cleanUrl.searchParams.delete("error_description");
+          window.history.replaceState({}, document.title, cleanUrl.pathname + cleanUrl.search);
+        }
+
+        const { data, error } = await supabase.auth.getSession();
+        if (error) throw error;
+
+        if (active && data.session) {
+          go();
+          return;
+        }
+      } catch (err) {
+        if (active) {
+          toast.error(err instanceof Error ? err.message : "No se pudo restaurar la sesión");
+        }
+      } finally {
+        if (active) setBusy(false);
+      }
+    };
+
+    void restoreSession();
+
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) go();
+      // Never let an older persisted session bypass a pending OAuth result.
+      if (!active || !session || code || oauthError) return;
+      if (event === "SIGNED_IN" || event === "INITIAL_SESSION" || event === "TOKEN_REFRESHED") {
+        go();
+      }
     });
+
     return () => {
       active = false;
       sub.subscription.unsubscribe();
     };
-  }, [navigate, next]);
+  }, [code, next, oauthError, oauthErrorDescription]);
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
     try {
       if (mode === "signup") {
+        const target = normalizePostLoginTarget(next);
+        const callbackUrl = new URL("/auth", window.location.origin);
+        callbackUrl.searchParams.set("next", target);
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            emailRedirectTo: next ? window.location.origin + next : window.location.origin,
+            // PKCE callbacks must return through /auth so the code is exchanged
+            // before entering a protected route.
+            emailRedirectTo: callbackUrl.toString(),
             data: { full_name: fullName || email.split("@")[0] },
           },
         });
@@ -133,7 +211,7 @@ export function AuthPage({ next }: { next?: string }) {
             disabled={busy}
             onClick={handleGoogle}
           >
-            Continuar con Google
+            {busy ? "Restaurando sesión…" : "Continuar con Google"}
           </Button>
 
           <div className="my-4 flex items-center gap-3">
