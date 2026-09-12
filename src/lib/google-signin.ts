@@ -1,9 +1,25 @@
 import { supabase } from "@/integrations/supabase/client";
 
 const NEXT_KEY = "melano:auth:next";
+const DEFAULT_TARGET = "/command";
+const LOCAL_BASE = "https://melano.local";
+
+export function normalizePostLoginTarget(value?: string): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
+    return DEFAULT_TARGET;
+  }
+
+  try {
+    const url = new URL(value, LOCAL_BASE);
+    if (url.origin !== LOCAL_BASE) return DEFAULT_TARGET;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return DEFAULT_TARGET;
+  }
+}
 
 export async function signInWithGoogle(next?: string): Promise<{ error: Error | null }> {
-  const target = next && /^\/(?!\/)/.test(next) ? next : "/command";
+  const target = normalizePostLoginTarget(next);
 
   try {
     sessionStorage.setItem(NEXT_KEY, target);
@@ -28,12 +44,9 @@ export async function signInWithGoogle(next?: string): Promise<{ error: Error | 
 export function takePostLoginTarget(): string {
   try {
     const value = sessionStorage.getItem(NEXT_KEY);
-    if (value) {
-      sessionStorage.removeItem(NEXT_KEY);
-      if (/^\/(?!\/)/.test(value)) return value;
-    }
+    sessionStorage.removeItem(NEXT_KEY);
+    return normalizePostLoginTarget(value ?? undefined);
   } catch {
-    // ignorado
+    return DEFAULT_TARGET;
   }
-  return "/command";
 }
