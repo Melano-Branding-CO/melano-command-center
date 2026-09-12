@@ -69,7 +69,7 @@ function normalizeState(row: RegistryRow): WorkflowState {
   if (explicit === "PENDING_CONFIG") return "PENDING_CONFIG";
   if (explicit === "PAUSED") return "PAUSED";
   if (!row.enabled) return "PAUSED";
-  if (!asBoolean(fields.published)) return "PENDING_CONFIG";
+  if (!asBoolean(fields["published"])) return "PENDING_CONFIG";
   return "ACTIVE";
 }
 
@@ -79,16 +79,16 @@ function toView(row: RegistryRow): WorkflowView {
     id: row.id,
     name: row.title,
     state: normalizeState(row),
-    workflowId: asString(fields.workflow_id),
-    published: asBoolean(fields.published),
-    triggerCount: asNumber(fields.trigger_count),
-    triggerType: asString(fields.trigger_type),
-    webhookUrl: asString(fields.webhook_url),
-    lastExecutionId: asString(fields.last_execution_id),
-    lastExecutionStatus: asString(fields.last_execution_status),
-    lastExecutionAt: asString(fields.last_execution_at),
-    blocker: asString(fields.blocker),
-    source: asString(fields.source),
+    workflowId: asString(fields["workflow_id"]),
+    published: asBoolean(fields["published"]),
+    triggerCount: asNumber(fields["trigger_count"]),
+    triggerType: asString(fields["trigger_type"]),
+    webhookUrl: asString(fields["webhook_url"]),
+    lastExecutionId: asString(fields["last_execution_id"]),
+    lastExecutionStatus: asString(fields["last_execution_status"]),
+    lastExecutionAt: asString(fields["last_execution_at"]),
+    blocker: asString(fields["blocker"]),
+    source: asString(fields["source"]),
   };
 }
 

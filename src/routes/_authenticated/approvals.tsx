@@ -183,7 +183,7 @@ function ApprovalsPage() {
                 {bc?.evidence_note ? <p className="mt-3 text-xs text-muted-foreground">Evidencia: {bc.evidence_note}</p> : null}
                 {editing === a.id ? (
                   <div className="mt-4 grid gap-2 rounded-md border border-border p-3 md:grid-cols-3">
-                    {[["Moneda","currency"],["Revenue 30d","revenue"],["Ahorro 30d","savings"],["Riesgo evitado 30d","riskAvoidance"],["Costo implementación","cost"],["Confianza 0-1","confidence"]].map(([label,key]) => (
+                    {([["Moneda","currency"],["Revenue 30d","revenue"],["Ahorro 30d","savings"],["Riesgo evitado 30d","riskAvoidance"],["Costo implementación","cost"],["Confianza 0-1","confidence"]] as [string, string][]).map(([label,key]) => (
                       <label key={key} className="text-xs text-muted-foreground">{label}<input className="mt-1 w-full rounded border border-border bg-background px-2 py-1 text-foreground" value={form[key as keyof Form]} onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))} /></label>
                     ))}
                     <label className="text-xs text-muted-foreground md:col-span-3">Evidencia / fuente<textarea className="mt-1 min-h-20 w-full rounded border border-border bg-background px-2 py-1 text-foreground" value={form.evidence} onChange={(e) => setForm((f) => ({ ...f, evidence: e.target.value }))} /></label>
