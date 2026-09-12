@@ -1,16 +1,25 @@
 import { supabase } from "@/integrations/supabase/client";
 
 const NEXT_KEY = "melano:auth:next";
+const DEFAULT_TARGET = "/command";
+const LOCAL_BASE = "https://melano.local";
 
-/**
- * Google sign-in mediante Supabase Auth canónico.
- *
- * Google vuelve al callback del proyecto Supabase y Supabase redirige después
- * a /auth en el mismo origen. El destino final se guarda aparte para evitar
- * usar una ruta protegida como callback del proveedor.
- */
+export function normalizePostLoginTarget(value?: string): string {
+  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
+    return DEFAULT_TARGET;
+  }
+
+  try {
+    const url = new URL(value, LOCAL_BASE);
+    if (url.origin !== LOCAL_BASE) return DEFAULT_TARGET;
+    return `${url.pathname}${url.search}${url.hash}`;
+  } catch {
+    return DEFAULT_TARGET;
+  }
+}
+
 export async function signInWithGoogle(next?: string): Promise<{ error: Error | null }> {
-  const target = next && /^\/(?!\/)/.test(next) ? next : "/command";
+  const target = normalizePostLoginTarget(next);
 
   try {
     sessionStorage.setItem(NEXT_KEY, target);
@@ -18,10 +27,13 @@ export async function signInWithGoogle(next?: string): Promise<{ error: Error | 
     // sessionStorage puede no estar disponible; el fallback es /command.
   }
 
+  const callbackUrl = new URL("/auth", window.location.origin);
+  callbackUrl.searchParams.set("next", target);
+
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}/auth`,
+      redirectTo: callbackUrl.toString(),
       queryParams: { prompt: "select_account" },
     },
   });
@@ -32,12 +44,9 @@ export async function signInWithGoogle(next?: string): Promise<{ error: Error | 
 export function takePostLoginTarget(): string {
   try {
     const value = sessionStorage.getItem(NEXT_KEY);
-    if (value) {
-      sessionStorage.removeItem(NEXT_KEY);
-      if (/^\/(?!\/)/.test(value)) return value;
-    }
+    sessionStorage.removeItem(NEXT_KEY);
+    return normalizePostLoginTarget(value ?? undefined);
   } catch {
-    // ignorado
+    return DEFAULT_TARGET;
   }
-  return "/command";
 }
