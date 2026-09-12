@@ -402,53 +402,6 @@ export type Database = {
           },
         ]
       }
-      annual_goals: {
-        Row: {
-          approvals_target: number
-          contracts_target: number
-          created_at: string
-          id: string
-          leads_target: number
-          mrr_target: number
-          notes: string | null
-          organization_id: string
-          updated_at: string
-          year: number
-        }
-        Insert: {
-          approvals_target?: number
-          contracts_target?: number
-          created_at?: string
-          id?: string
-          leads_target?: number
-          mrr_target?: number
-          notes?: string | null
-          organization_id: string
-          updated_at?: string
-          year: number
-        }
-        Update: {
-          approvals_target?: number
-          contracts_target?: number
-          created_at?: string
-          id?: string
-          leads_target?: number
-          mrr_target?: number
-          notes?: string | null
-          organization_id?: string
-          updated_at?: string
-          year?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "annual_goals_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       approvals: {
         Row: {
           action: string
@@ -556,8 +509,6 @@ export type Database = {
           last_error: string | null
           last_result: string | null
           last_run_at: string | null
-          n8n_webhook_url: string | null
-          n8n_workflow: string | null
           name: string
           next_run_at: string | null
           organization_id: string
@@ -577,8 +528,6 @@ export type Database = {
           last_error?: string | null
           last_result?: string | null
           last_run_at?: string | null
-          n8n_webhook_url?: string | null
-          n8n_workflow?: string | null
           name: string
           next_run_at?: string | null
           organization_id: string
@@ -598,8 +547,6 @@ export type Database = {
           last_error?: string | null
           last_result?: string | null
           last_run_at?: string | null
-          n8n_webhook_url?: string | null
-          n8n_workflow?: string | null
           name?: string
           next_run_at?: string | null
           organization_id?: string
@@ -672,95 +619,6 @@ export type Database = {
             columns: ["rule_id"]
             isOneToOne: false
             referencedRelation: "automation_rules"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      clients: {
-        Row: {
-          city: string | null
-          contact_name: string | null
-          created_at: string
-          currency: string
-          email: string | null
-          id: string
-          is_demo: boolean
-          last_contact_at: string | null
-          legal_name: string | null
-          luxia_stage: Database["public"]["Enums"]["lead_phase"]
-          mrr: number
-          name: string
-          next_action: string | null
-          next_follow_up_at: string | null
-          notes: string | null
-          onboarding_at: string | null
-          organization_id: string
-          owner_user: string | null
-          phone: string | null
-          plan: string | null
-          segment: string | null
-          status: string
-          updated_at: string
-          website: string | null
-        }
-        Insert: {
-          city?: string | null
-          contact_name?: string | null
-          created_at?: string
-          currency?: string
-          email?: string | null
-          id?: string
-          is_demo?: boolean
-          last_contact_at?: string | null
-          legal_name?: string | null
-          luxia_stage?: Database["public"]["Enums"]["lead_phase"]
-          mrr?: number
-          name: string
-          next_action?: string | null
-          next_follow_up_at?: string | null
-          notes?: string | null
-          onboarding_at?: string | null
-          organization_id: string
-          owner_user?: string | null
-          phone?: string | null
-          plan?: string | null
-          segment?: string | null
-          status?: string
-          updated_at?: string
-          website?: string | null
-        }
-        Update: {
-          city?: string | null
-          contact_name?: string | null
-          created_at?: string
-          currency?: string
-          email?: string | null
-          id?: string
-          is_demo?: boolean
-          last_contact_at?: string | null
-          legal_name?: string | null
-          luxia_stage?: Database["public"]["Enums"]["lead_phase"]
-          mrr?: number
-          name?: string
-          next_action?: string | null
-          next_follow_up_at?: string | null
-          notes?: string | null
-          onboarding_at?: string | null
-          organization_id?: string
-          owner_user?: string | null
-          phone?: string | null
-          plan?: string | null
-          segment?: string | null
-          status?: string
-          updated_at?: string
-          website?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "clients_organization_id_fkey"
-            columns: ["organization_id"]
-            isOneToOne: false
-            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -1581,7 +1439,6 @@ export type Database = {
       tasks: {
         Row: {
           assigned_agent: string | null
-          assigned_user: string | null
           completed_at: string | null
           created_at: string
           created_by: string | null
@@ -1613,7 +1470,6 @@ export type Database = {
         }
         Insert: {
           assigned_agent?: string | null
-          assigned_user?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -1645,7 +1501,6 @@ export type Database = {
         }
         Update: {
           assigned_agent?: string | null
-          assigned_user?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null

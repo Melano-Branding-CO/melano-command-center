@@ -26,111 +26,27 @@ import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { StatusBadge } from "@/components/melano/badges";
 import { cn } from "@/lib/utils";
 
-type Role = "CEO" | "ADMIN" | "OPERATOR" | "VIEWER" | "AGENT";
+const NAV = [
+  { to: "/command", label: "Command Center", icon: LayoutDashboard },
+  { to: "/dashboards", label: "Dashboards", icon: ChartNoAxesColumn },
+  { to: "/bruno", label: "Bruno", icon: ShieldCheck },
+  { to: "/green-gate", label: "Green Gate", icon: BadgeCheck },
+  { to: "/leads", label: "Leads · LUXIA", icon: Users },
+  { to: "/today", label: "Today", icon: Sun },
+  { to: "/revenue", label: "Revenue", icon: Wallet },
+  { to: "/agents", label: "Agents", icon: Bot },
+  { to: "/meetings", label: "Meetings", icon: CalendarClock },
+  { to: "/decisions", label: "Decisions", icon: GitBranch },
+  { to: "/tasks", label: "Tasks", icon: ListChecks },
+  { to: "/automations", label: "Automations", icon: BadgeCheck },
+  { to: "/products", label: "Products", icon: Package },
+  { to: "/approvals", label: "Approvals", icon: ShieldCheck },
+  { to: "/activity", label: "Activity", icon: Activity },
+  { to: "/metrics", label: "Metrics", icon: ChartNoAxesColumn },
+  { to: "/settings", label: "Settings", icon: Settings },
+] as const;
 
-type NavItem = {
-  to: string;
-  label: string;
-  icon: typeof LayoutDashboard;
-  params?: Record<string, string>;
-  roles?: Role[];
-};
-
-type NavGroup = { title: string; items: NavItem[] };
-
-const NAV_GROUPS: NavGroup[] = [
-  {
-    title: "Ejecutivo",
-    items: [
-      { to: "/command", label: "Command Center", icon: LayoutDashboard },
-      { to: "/today", label: "Today", icon: Sun },
-      { to: "/ceo", label: "CEO Dashboard", icon: ChartNoAxesColumn, roles: ["CEO"] },
-      { to: "/bruno", label: "Bruno", icon: ShieldCheck },
-      { to: "/green-gate", label: "Green Gate", icon: BadgeCheck },
-      { to: "/dashboards", label: "Dashboards", icon: ChartNoAxesColumn },
-    ],
-  },
-  {
-    title: "Comercial",
-    items: [
-      { to: "/leads", label: "Leads · LUXIA", icon: Users, roles: ["CEO", "ADMIN"] },
-      {
-        to: "/luxia/$stage",
-        label: "Pipeline LUXIA",
-        icon: GitBranch,
-        params: { stage: "reunion" },
-        roles: ["CEO", "ADMIN"],
-      },
-      { to: "/clientes", label: "Clientes", icon: Users, roles: ["CEO", "ADMIN"] },
-      {
-        to: "/operador",
-        label: "Mi cartera",
-        icon: Users,
-        roles: ["CEO", "ADMIN", "OPERATOR"],
-      },
-      {
-        to: "/operador-dashboard",
-        label: "Dashboard operador",
-        icon: ChartNoAxesColumn,
-        roles: ["CEO", "ADMIN", "OPERATOR"],
-      },
-      { to: "/revenue", label: "Revenue", icon: Wallet },
-    ],
-  },
-  {
-    title: "Operación",
-    items: [
-      { to: "/asignaciones", label: "Asignaciones", icon: ListChecks },
-      { to: "/tasks", label: "Tasks", icon: ListChecks },
-      { to: "/decisions", label: "Decisions", icon: GitBranch },
-      { to: "/approvals", label: "Approvals", icon: ShieldCheck },
-      { to: "/meetings", label: "Meetings", icon: CalendarClock },
-      { to: "/automations", label: "Automations", icon: BadgeCheck },
-      { to: "/agents", label: "Agents", icon: Bot },
-      { to: "/products", label: "Products", icon: Package },
-    ],
-  },
-  {
-    title: "Sistema",
-    items: [
-      { to: "/metas", label: "Metas anuales", icon: ChartNoAxesColumn, roles: ["CEO", "ADMIN"] },
-      { to: "/metrics", label: "Metrics", icon: ChartNoAxesColumn },
-      { to: "/activity", label: "Activity", icon: Activity },
-      { to: "/admin", label: "Administración", icon: ShieldCheck, roles: ["CEO", "ADMIN"] },
-      { to: "/settings", label: "Settings", icon: Settings },
-    ],
-  },
-];
-
-
-/** Restringe una pantalla a los roles indicados (la RLS del backend vuelve a validar). */
-export function RoleGate({
-  allow,
-  children,
-}: {
-  allow: readonly ("CEO" | "ADMIN" | "OPERATOR" | "VIEWER" | "AGENT")[];
-  children: ReactNode;
-}) {
-  const { data: org, isLoading: orgLoading } = useOrg();
-  const { data: role, isLoading: roleLoading } = useMyRole(org?.id);
-
-  if (orgLoading || roleLoading || (org?.id && role === undefined)) {
-    return <Empty text="Verificando permisos…" />;
-  }
-  if (!role || !allow.includes(role)) {
-    return (
-      <div className="rounded-lg border border-destructive/40 bg-destructive/10 p-6">
-        <h1 className="text-sm font-semibold text-destructive">Acceso restringido</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Esta pantalla está disponible solo para {allow.join(" y ")}. Tu rol actual es{" "}
-          {role ?? "sin rol asignado"}.
-        </p>
-      </div>
-    );
-  }
-  return <>{children}</>;
-}
-
+const ADMIN_NAV = [{ to: "/admin", label: "Administración", icon: ShieldCheck }] as const;
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -186,42 +102,27 @@ export function AppShell({ children }: { children: ReactNode }) {
             <X className="size-4" />
           </button>
         </div>
-        <nav className="flex max-h-[calc(100vh-7rem)] flex-col gap-4 overflow-y-auto p-2 pb-4">
-          {NAV_GROUPS.map((group) => {
-            const items = group.items.filter(
-              (item) => !item.roles || (role ? item.roles.includes(role as Role) : false),
-            );
-            if (items.length === 0) return null;
-            return (
-              <div key={group.title} className="flex flex-col gap-0.5">
-                <p className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70">
-                  {group.title}
-                </p>
-                {items.map(({ to, label, icon: Icon, params }) => (
-                  <Link
-                    key={to}
-                    to={to}
-                    params={params as never}
-                    onClick={() => setOpen(false)}
-                    className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-                    activeProps={{
-                      className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-                    }}
-                  >
-                    <Icon className="size-4 shrink-0" />
-                    <span className="flex-1">{label}</span>
-                    {to === "/approvals" && (pendingApprovals?.length ?? 0) > 0 ? (
-                      <span className="rounded bg-warning/20 px-1.5 text-[11px] font-semibold text-warning">
-                        {pendingApprovals?.length}
-                      </span>
-                    ) : null}
-                  </Link>
-                ))}
-              </div>
-            );
-          })}
+        <nav className="flex flex-col gap-0.5 overflow-y-auto p-2">
+          {[...NAV, ...(role === "CEO" || role === "ADMIN" ? ADMIN_NAV : [])].map(({ to, label, icon: Icon }) => (
+            <Link
+              key={to}
+              to={to}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+              activeProps={{
+                className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+              }}
+            >
+              <Icon className="size-4 shrink-0" />
+              <span className="flex-1">{label}</span>
+              {to === "/approvals" && (pendingApprovals?.length ?? 0) > 0 ? (
+                <span className="rounded bg-warning/20 px-1.5 text-[11px] font-semibold text-warning">
+                  {pendingApprovals?.length}
+                </span>
+              ) : null}
+            </Link>
+          ))}
         </nav>
-
         <div className="border-t border-sidebar-border p-2">
           <button
             onClick={signOut}

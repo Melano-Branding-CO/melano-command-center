@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PageHeader, Panel, Empty, RoleGate } from "@/components/melano/shell";
+import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge } from "@/components/melano/badges";
 import { fmtDate, useOrg, useAgents, useSession } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
@@ -29,7 +29,7 @@ export const Route = createFileRoute("/_authenticated/leads")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: LeadsGuarded,
+  component: LeadsPage,
 });
 
 type Phase = "FASE_0_14" | "FASE_15_45" | "FASE_46_90";
@@ -115,14 +115,6 @@ const PHASE_LABEL: Record<Phase, string> = {
 
 function db() {
   return supabase as unknown as { from: (t: string) => any };
-}
-
-function LeadsGuarded() {
-  return (
-    <RoleGate allow={["CEO", "ADMIN"]}>
-      <LeadsPage />
-    </RoleGate>
-  );
 }
 
 function LeadsPage() {
@@ -232,25 +224,6 @@ function LeadsPage() {
     }
   }
 
-  async function setNextFollowUp(lead: Lead, value: string) {
-    setBusy(lead.id);
-    try {
-      const next = value ? new Date(`${value}T12:00:00`).toISOString() : null;
-      const { error } = await db()
-        .from("leads")
-        .update({ next_follow_up_at: next })
-        .eq("id", lead.id);
-      if (error) throw error;
-      await logEvent(lead, "lead.next_follow_up_set", lead.next_follow_up_at, next);
-      toast.success(next ? "Próximo contacto programado" : "Próximo contacto eliminado");
-      await qc.invalidateQueries();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo programar el contacto");
-    } finally {
-      setBusy(null);
-    }
-  }
-
   async function createLead(e: React.FormEvent) {
     e.preventDefault();
     if (!form.full_name.trim()) return;
@@ -296,10 +269,8 @@ function LeadsPage() {
           email: email || null,
           phone: phone || null,
           zone: zone || null,
-          source: source || "Relevamiento inmobiliarias Mar del Plata",
+          source: source || "Inmobiliarias Mar del Plata",
           cohort: "LUXIA",
-          phase: "FASE_0_14" as const,
-          status: "NUEVO" as const,
           assigned_agent: luxia?.id ?? null,
           owner_user: session?.user?.id ?? null,
         };
@@ -482,14 +453,6 @@ function LeadsPage() {
                               <dt className="label-caps">Último contacto</dt>
                               <dd className="text-foreground">{fmtDate(lead.last_contact_at)}</dd>
                             </div>
-                            <div>
-                              <dt className="label-caps">Próximo contacto</dt>
-                              <dd className="text-foreground">
-                                {lead.next_follow_up_at
-                                  ? fmtDate(lead.next_follow_up_at)
-                                  : "Sin programar"}
-                              </dd>
-                            </div>
                           </dl>
 
                           <div className="mt-4 flex flex-wrap gap-2">
@@ -514,24 +477,6 @@ function LeadsPage() {
                             ) : null}
                           </div>
 
-                          <div className="mt-3 flex flex-wrap items-center gap-2">
-                            <label className="label-caps" htmlFor={`next-${lead.id}`}>
-                              Programar próximo contacto
-                            </label>
-                            <Input
-                              id={`next-${lead.id}`}
-                              type="date"
-                              className="h-8 w-40 text-xs"
-                              disabled={busy === lead.id}
-                              defaultValue={
-                                lead.next_follow_up_at
-                                  ? new Date(lead.next_follow_up_at).toISOString().slice(0, 10)
-                                  : ""
-                              }
-                              onChange={(e) => setNextFollowUp(lead, e.target.value)}
-                            />
-                          </div>
-
                           <div className="mt-3 flex flex-wrap gap-1.5">
                             {STATUSES.filter((s) => s !== lead.status).map((s) => (
                               <Button
@@ -549,7 +494,7 @@ function LeadsPage() {
 
                           {hist.length > 0 ? (
                             <ul className="mt-3 space-y-1 border-t border-border pt-3 text-[11px] text-muted-foreground">
-                              {hist.slice(0, 6).map((e) => (
+                              {hist.slice(0, 3).map((e) => (
                                 <li key={e.id}>
                                   {fmtDate(e.created_at)} · {e.action}
                                   {e.from_value ? ` · ${e.from_value} → ${e.to_value}` : ""}

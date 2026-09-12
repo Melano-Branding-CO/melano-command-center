@@ -17,31 +17,22 @@ import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
-import { Route as AuthenticatedAsignacionesRouteImport } from './routes/_authenticated/asignaciones'
 import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
 import { Route as AuthenticatedBrunoRouteImport } from './routes/_authenticated/bruno'
-import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ceo'
-import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedDashboardsRouteImport } from './routes/_authenticated/dashboards'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
 import { Route as AuthenticatedGreenGateRouteImport } from './routes/_authenticated/green-gate'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
-import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
+import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedMetricsRouteImport } from './routes/_authenticated/metrics'
-import { Route as AuthenticatedOperadorRouteImport } from './routes/_authenticated/operador'
-import { Route as AuthenticatedOperadorDashboardRouteImport } from './routes/_authenticated/operador-dashboard'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedRevenueRouteImport } from './routes/_authenticated/revenue'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
-import { Route as AuthenticatedLuxiaStageRouteImport } from './routes/_authenticated/luxia.$stage'
-import { Route as AuthenticatedMeetingsIndexRouteImport } from './routes/_authenticated/meetings.index'
-import { Route as AuthenticatedMeetingsMeetingIdRouteImport } from './routes/_authenticated/meetings.$meetingId'
 import { Route as ApiPublicCronDailyMeetingRouteImport } from './routes/api/public/cron/daily-meeting'
-import { Route as ApiPublicN8nDispatchRouteImport } from './routes/api/public/n8n/dispatch'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -82,12 +73,6 @@ const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
   path: '/approvals',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAsignacionesRoute =
-  AuthenticatedAsignacionesRouteImport.update({
-    id: '/asignaciones',
-    path: '/asignaciones',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedAutomationsRoute =
   AuthenticatedAutomationsRouteImport.update({
     id: '/automations',
@@ -97,16 +82,6 @@ const AuthenticatedAutomationsRoute =
 const AuthenticatedBrunoRoute = AuthenticatedBrunoRouteImport.update({
   id: '/bruno',
   path: '/bruno',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCeoRoute = AuthenticatedCeoRouteImport.update({
-  id: '/ceo',
-  path: '/ceo',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
@@ -134,9 +109,9 @@ const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
-  id: '/metas',
-  path: '/metas',
+const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
+  id: '/meetings',
+  path: '/meetings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMetricsRoute = AuthenticatedMetricsRouteImport.update({
@@ -144,17 +119,6 @@ const AuthenticatedMetricsRoute = AuthenticatedMetricsRouteImport.update({
   path: '/metrics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedOperadorRoute = AuthenticatedOperadorRouteImport.update({
-  id: '/operador',
-  path: '/operador',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedOperadorDashboardRoute =
-  AuthenticatedOperadorDashboardRouteImport.update({
-    id: '/operador-dashboard',
-    path: '/operador-dashboard',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -186,34 +150,12 @@ const AuthenticatedAgentsAgentIdRoute =
     path: '/$agentId',
     getParentRoute: () => AuthenticatedAgentsRoute,
   } as any)
-const AuthenticatedLuxiaStageRoute = AuthenticatedLuxiaStageRouteImport.update({
-  id: '/luxia/$stage',
-  path: '/luxia/$stage',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedMeetingsIndexRoute =
-  AuthenticatedMeetingsIndexRouteImport.update({
-    id: '/meetings/',
-    path: '/meetings/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedMeetingsMeetingIdRoute =
-  AuthenticatedMeetingsMeetingIdRouteImport.update({
-    id: '/meetings/$meetingId',
-    path: '/meetings/$meetingId',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const ApiPublicCronDailyMeetingRoute =
   ApiPublicCronDailyMeetingRouteImport.update({
     id: '/api/public/cron/daily-meeting',
     path: '/api/public/cron/daily-meeting',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicN8nDispatchRoute = ApiPublicN8nDispatchRouteImport.update({
-  id: '/api/public/n8n/dispatch',
-  path: '/api/public/n8n/dispatch',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -223,31 +165,22 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/approvals': typeof AuthenticatedApprovalsRoute
-  '/asignaciones': typeof AuthenticatedAsignacionesRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/bruno': typeof AuthenticatedBrunoRoute
-  '/ceo': typeof AuthenticatedCeoRoute
-  '/clientes': typeof AuthenticatedClientesRoute
   '/command': typeof AuthenticatedCommandRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
-  '/metas': typeof AuthenticatedMetasRoute
+  '/meetings': typeof AuthenticatedMeetingsRoute
   '/metrics': typeof AuthenticatedMetricsRoute
-  '/operador': typeof AuthenticatedOperadorRoute
-  '/operador-dashboard': typeof AuthenticatedOperadorDashboardRoute
   '/products': typeof AuthenticatedProductsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
-  '/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
-  '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
-  '/meetings/': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
-  '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -257,31 +190,22 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/approvals': typeof AuthenticatedApprovalsRoute
-  '/asignaciones': typeof AuthenticatedAsignacionesRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/bruno': typeof AuthenticatedBrunoRoute
-  '/ceo': typeof AuthenticatedCeoRoute
-  '/clientes': typeof AuthenticatedClientesRoute
   '/command': typeof AuthenticatedCommandRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
-  '/metas': typeof AuthenticatedMetasRoute
+  '/meetings': typeof AuthenticatedMeetingsRoute
   '/metrics': typeof AuthenticatedMetricsRoute
-  '/operador': typeof AuthenticatedOperadorRoute
-  '/operador-dashboard': typeof AuthenticatedOperadorDashboardRoute
   '/products': typeof AuthenticatedProductsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
-  '/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
-  '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
-  '/meetings': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
-  '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -293,31 +217,22 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
-  '/_authenticated/asignaciones': typeof AuthenticatedAsignacionesRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
   '/_authenticated/bruno': typeof AuthenticatedBrunoRoute
-  '/_authenticated/ceo': typeof AuthenticatedCeoRoute
-  '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/dashboards': typeof AuthenticatedDashboardsRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
   '/_authenticated/green-gate': typeof AuthenticatedGreenGateRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
-  '/_authenticated/metas': typeof AuthenticatedMetasRoute
+  '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/metrics': typeof AuthenticatedMetricsRoute
-  '/_authenticated/operador': typeof AuthenticatedOperadorRoute
-  '/_authenticated/operador-dashboard': typeof AuthenticatedOperadorDashboardRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/revenue': typeof AuthenticatedRevenueRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
-  '/_authenticated/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
-  '/_authenticated/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
-  '/_authenticated/meetings/': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
-  '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -329,31 +244,22 @@ export interface FileRouteTypes {
     | '/admin'
     | '/agents'
     | '/approvals'
-    | '/asignaciones'
     | '/automations'
     | '/bruno'
-    | '/ceo'
-    | '/clientes'
     | '/command'
     | '/dashboards'
     | '/decisions'
     | '/green-gate'
     | '/leads'
-    | '/metas'
+    | '/meetings'
     | '/metrics'
-    | '/operador'
-    | '/operador-dashboard'
     | '/products'
     | '/revenue'
     | '/settings'
     | '/tasks'
     | '/today'
     | '/agents/$agentId'
-    | '/luxia/$stage'
-    | '/meetings/$meetingId'
-    | '/meetings/'
     | '/api/public/cron/daily-meeting'
-    | '/api/public/n8n/dispatch'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -363,31 +269,22 @@ export interface FileRouteTypes {
     | '/admin'
     | '/agents'
     | '/approvals'
-    | '/asignaciones'
     | '/automations'
     | '/bruno'
-    | '/ceo'
-    | '/clientes'
     | '/command'
     | '/dashboards'
     | '/decisions'
     | '/green-gate'
     | '/leads'
-    | '/metas'
+    | '/meetings'
     | '/metrics'
-    | '/operador'
-    | '/operador-dashboard'
     | '/products'
     | '/revenue'
     | '/settings'
     | '/tasks'
     | '/today'
     | '/agents/$agentId'
-    | '/luxia/$stage'
-    | '/meetings/$meetingId'
-    | '/meetings'
     | '/api/public/cron/daily-meeting'
-    | '/api/public/n8n/dispatch'
   id:
     | '__root__'
     | '/'
@@ -398,31 +295,22 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/agents'
     | '/_authenticated/approvals'
-    | '/_authenticated/asignaciones'
     | '/_authenticated/automations'
     | '/_authenticated/bruno'
-    | '/_authenticated/ceo'
-    | '/_authenticated/clientes'
     | '/_authenticated/command'
     | '/_authenticated/dashboards'
     | '/_authenticated/decisions'
     | '/_authenticated/green-gate'
     | '/_authenticated/leads'
-    | '/_authenticated/metas'
+    | '/_authenticated/meetings'
     | '/_authenticated/metrics'
-    | '/_authenticated/operador'
-    | '/_authenticated/operador-dashboard'
     | '/_authenticated/products'
     | '/_authenticated/revenue'
     | '/_authenticated/settings'
     | '/_authenticated/tasks'
     | '/_authenticated/today'
     | '/_authenticated/agents/$agentId'
-    | '/_authenticated/luxia/$stage'
-    | '/_authenticated/meetings/$meetingId'
-    | '/_authenticated/meetings/'
     | '/api/public/cron/daily-meeting'
-    | '/api/public/n8n/dispatch'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -431,7 +319,6 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   PublicoRoute: typeof PublicoRoute
   ApiPublicCronDailyMeetingRoute: typeof ApiPublicCronDailyMeetingRoute
-  ApiPublicN8nDispatchRoute: typeof ApiPublicN8nDispatchRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -492,13 +379,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApprovalsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/asignaciones': {
-      id: '/_authenticated/asignaciones'
-      path: '/asignaciones'
-      fullPath: '/asignaciones'
-      preLoaderRoute: typeof AuthenticatedAsignacionesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/automations': {
       id: '/_authenticated/automations'
       path: '/automations'
@@ -511,20 +391,6 @@ declare module '@tanstack/react-router' {
       path: '/bruno'
       fullPath: '/bruno'
       preLoaderRoute: typeof AuthenticatedBrunoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/ceo': {
-      id: '/_authenticated/ceo'
-      path: '/ceo'
-      fullPath: '/ceo'
-      preLoaderRoute: typeof AuthenticatedCeoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/clientes': {
-      id: '/_authenticated/clientes'
-      path: '/clientes'
-      fullPath: '/clientes'
-      preLoaderRoute: typeof AuthenticatedClientesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/command': {
@@ -562,11 +428,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLeadsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/metas': {
-      id: '/_authenticated/metas'
-      path: '/metas'
-      fullPath: '/metas'
-      preLoaderRoute: typeof AuthenticatedMetasRouteImport
+    '/_authenticated/meetings': {
+      id: '/_authenticated/meetings'
+      path: '/meetings'
+      fullPath: '/meetings'
+      preLoaderRoute: typeof AuthenticatedMeetingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/metrics': {
@@ -574,20 +440,6 @@ declare module '@tanstack/react-router' {
       path: '/metrics'
       fullPath: '/metrics'
       preLoaderRoute: typeof AuthenticatedMetricsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/operador': {
-      id: '/_authenticated/operador'
-      path: '/operador'
-      fullPath: '/operador'
-      preLoaderRoute: typeof AuthenticatedOperadorRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/operador-dashboard': {
-      id: '/_authenticated/operador-dashboard'
-      path: '/operador-dashboard'
-      fullPath: '/operador-dashboard'
-      preLoaderRoute: typeof AuthenticatedOperadorDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/products': {
@@ -632,39 +484,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentsAgentIdRouteImport
       parentRoute: typeof AuthenticatedAgentsRoute
     }
-    '/_authenticated/luxia/$stage': {
-      id: '/_authenticated/luxia/$stage'
-      path: '/luxia/$stage'
-      fullPath: '/luxia/$stage'
-      preLoaderRoute: typeof AuthenticatedLuxiaStageRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/meetings/': {
-      id: '/_authenticated/meetings/'
-      path: '/meetings'
-      fullPath: '/meetings/'
-      preLoaderRoute: typeof AuthenticatedMeetingsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/meetings/$meetingId': {
-      id: '/_authenticated/meetings/$meetingId'
-      path: '/meetings/$meetingId'
-      fullPath: '/meetings/$meetingId'
-      preLoaderRoute: typeof AuthenticatedMeetingsMeetingIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/api/public/cron/daily-meeting': {
       id: '/api/public/cron/daily-meeting'
       path: '/api/public/cron/daily-meeting'
       fullPath: '/api/public/cron/daily-meeting'
       preLoaderRoute: typeof ApiPublicCronDailyMeetingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/n8n/dispatch': {
-      id: '/api/public/n8n/dispatch'
-      path: '/api/public/n8n/dispatch'
-      fullPath: '/api/public/n8n/dispatch'
-      preLoaderRoute: typeof ApiPublicN8nDispatchRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -686,28 +510,20 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRouteWithChildren
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
-  AuthenticatedAsignacionesRoute: typeof AuthenticatedAsignacionesRoute
   AuthenticatedAutomationsRoute: typeof AuthenticatedAutomationsRoute
   AuthenticatedBrunoRoute: typeof AuthenticatedBrunoRoute
-  AuthenticatedCeoRoute: typeof AuthenticatedCeoRoute
-  AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedDashboardsRoute: typeof AuthenticatedDashboardsRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
   AuthenticatedGreenGateRoute: typeof AuthenticatedGreenGateRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
-  AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
+  AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
   AuthenticatedMetricsRoute: typeof AuthenticatedMetricsRoute
-  AuthenticatedOperadorRoute: typeof AuthenticatedOperadorRoute
-  AuthenticatedOperadorDashboardRoute: typeof AuthenticatedOperadorDashboardRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
   AuthenticatedRevenueRoute: typeof AuthenticatedRevenueRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
-  AuthenticatedLuxiaStageRoute: typeof AuthenticatedLuxiaStageRoute
-  AuthenticatedMeetingsMeetingIdRoute: typeof AuthenticatedMeetingsMeetingIdRoute
-  AuthenticatedMeetingsIndexRoute: typeof AuthenticatedMeetingsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -715,28 +531,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAgentsRoute: AuthenticatedAgentsRouteWithChildren,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
-  AuthenticatedAsignacionesRoute: AuthenticatedAsignacionesRoute,
   AuthenticatedAutomationsRoute: AuthenticatedAutomationsRoute,
   AuthenticatedBrunoRoute: AuthenticatedBrunoRoute,
-  AuthenticatedCeoRoute: AuthenticatedCeoRoute,
-  AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedDashboardsRoute: AuthenticatedDashboardsRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
   AuthenticatedGreenGateRoute: AuthenticatedGreenGateRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
-  AuthenticatedMetasRoute: AuthenticatedMetasRoute,
+  AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
   AuthenticatedMetricsRoute: AuthenticatedMetricsRoute,
-  AuthenticatedOperadorRoute: AuthenticatedOperadorRoute,
-  AuthenticatedOperadorDashboardRoute: AuthenticatedOperadorDashboardRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedRevenueRoute: AuthenticatedRevenueRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
-  AuthenticatedLuxiaStageRoute: AuthenticatedLuxiaStageRoute,
-  AuthenticatedMeetingsMeetingIdRoute: AuthenticatedMeetingsMeetingIdRoute,
-  AuthenticatedMeetingsIndexRoute: AuthenticatedMeetingsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -748,7 +556,6 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   PublicoRoute: PublicoRoute,
   ApiPublicCronDailyMeetingRoute: ApiPublicCronDailyMeetingRoute,
-  ApiPublicN8nDispatchRoute: ApiPublicN8nDispatchRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
