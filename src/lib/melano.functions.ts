@@ -1,4 +1,3 @@
-import { n8nWebhookHeaders } from "@/lib/n8n-headers";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
@@ -93,110 +92,8 @@ export const decideApproval = createServerFn({ method: "POST" })
       trace_id: approval.trace_id,
     });
 
-    // L2/L3: al aprobar, se ejecuta automáticamente en el workflow real de n8n
-    // y se cierra el ciclo (decisión COMPLETED + tarea DONE con outcome real).
-    let execution: {
-      executed: boolean;
-      traceId: string | null;
-      workflow: string | null;
-      outcome: string | null;
-      error: string | null;
-    } = { executed: false, traceId: null, workflow: null, outcome: null, error: null };
-
-    if (data.approve && approval.decision_id) {
-      const { data: decision } = await context.supabase
-        .from("decisions")
-        .select(
-          "id,title,description,status,priority,risk,expected_impact,confidence,requires_approval,meeting_id",
-        )
-        .eq("id", approval.decision_id)
-        .maybeSingle();
-
-      if (decision) {
-        const { dispatchN8n } = await import("./mcp/n8n");
-        await context.supabase
-          .from("decisions")
-          .update({ status: "EXECUTING" })
-          .eq("id", decision.id);
-
-        const res = await dispatchN8n(
-          context.supabase as never,
-          context.userId,
-          approval.organization_id,
-          "n8n.decision.run",
-          { type: "decision", id: decision.id, meetingId: decision.meeting_id },
-          {
-            decision,
-            approval: { id: approval.id, action: approval.action, category: approval.category },
-            note: data.note ?? null,
-            title: decision.title,
-            stage: "approved_execute",
-            autonomy: "L2",
-          },
-        );
-
-        const finishedAt = new Date().toISOString();
-        const outcome = res.ok
-          ? (res.output?.slice(0, 2000) || "Ejecutada automáticamente tras aprobación")
-          : null;
-
-        await context.supabase
-          .from("decisions")
-          .update({
-            status: res.ok ? "COMPLETED" : "FAILED",
-            outcome: outcome ?? res.error,
-            outcome_at: finishedAt,
-            ...(res.traceId ? { trace_id: res.traceId } : {}),
-          })
-          .eq("id", decision.id);
-
-        // Cierra la tarea vinculada (por approval.task_id o por decision_id)
-        const taskFilter = context.supabase
-          .from("tasks")
-          .update({
-            status: res.ok ? "DONE" : "FAILED",
-            result: outcome,
-            error: res.error,
-            completed_at: res.ok ? finishedAt : null,
-            ...(res.traceId ? { trace_id: res.traceId } : {}),
-          })
-          .eq("organization_id", approval.organization_id);
-        if (approval.task_id) {
-          await taskFilter.eq("id", approval.task_id);
-        } else {
-          await taskFilter.eq("decision_id", decision.id).neq("status", "DONE");
-        }
-
-        await context.supabase.from("activity_logs").insert({
-          organization_id: approval.organization_id,
-          actor_type: "system",
-          actor_user: context.userId,
-          action: "approval.auto_execute",
-          entity_type: "decision",
-          entity_id: decision.id,
-          trace_id: res.traceId,
-          detail: {
-            approval_id: approval.id,
-            workflow: res.rule,
-            status: res.ok ? "SUCCESS" : res.status,
-            outcome,
-            error: res.error,
-          } as never,
-        });
-
-        execution = {
-          executed: res.ok,
-          traceId: res.traceId,
-          workflow: res.rule,
-          outcome,
-          error: res.error,
-        };
-      }
-    }
-
-    return { status: approval.status, execution };
+    return { status: approval.status };
   });
-
 
 export const clearDemoData = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -1066,7 +963,7 @@ export const runN8nAutomation = createServerFn({ method: "POST" })
     try {
       const res = await fetch(rule.n8n_webhook_url, {
         method: "POST",
-        headers: n8nWebhookHeaders(),
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           source: "melano-command-center",
           organization_id: data.organizationId,
@@ -1119,128 +1016,18 @@ export const runN8nAutomation = createServerFn({ method: "POST" })
     return { traceId, output };
   });
 
-/* ──────────────── Aprobaciones → n8n (aviso a Bruno + pipeline) ──────────────── */
+/* ──────────────────── Ejecución de tareas en n8n (task → workflow) ──────────────────── */
 
-type N8nAuthedContext = {
-  supabase: {
-    from: (t: string) => any;
-  };
-  userId: string;
-};
+const TASK_RUN_ROLES = ["CEO", "ADMIN", "OPERATOR"];
 
 /**
- * Envía un evento al workflow de n8n activo y deja traza auditable:
- * automation_runs + activity_logs. No lanza: devuelve el resultado.
+ * Envía una tarea a un workflow de n8n y deja traza auditable:
+ * automation_runs + activity_logs (n8n.task) + estado/resultado en la tarea.
  */
-async function dispatchN8nEvent(
-  context: N8nAuthedContext,
-  organizationId: string,
-  event: string,
-  entity: { type: string; id: string },
-  payload: Record<string, unknown>,
-) {
-  const { data: rules } = await context.supabase
-    .from("automation_rules")
-    .select("id, name, n8n_webhook_url, n8n_workflow")
-    .eq("organization_id", organizationId)
-    .eq("enabled", true)
-    .not("n8n_webhook_url", "is", null)
-    .order("created_at")
-    .limit(1);
-  const rule = rules?.[0];
-  if (!rule?.n8n_webhook_url) {
-    return { ok: false as const, error: "No hay workflow de n8n activo. Configuralo en Automations." };
-  }
-
-  const traceId = crypto.randomUUID();
-  const startedAt = new Date().toISOString();
-  const { data: run } = await context.supabase
-    .from("automation_runs")
-    .insert({
-      organization_id: organizationId,
-      rule_id: rule.id,
-      status: "RUNNING",
-      started_at: startedAt,
-      trace_id: traceId,
-    })
-    .select("id")
-    .maybeSingle();
-
-  let status: "SUCCESS" | "FAILED" = "SUCCESS";
-  let output = "";
-  let errorText: string | null = null;
-  try {
-    const res = await fetch(rule.n8n_webhook_url as string, {
-      method: "POST",
-      headers: n8nWebhookHeaders(),
-      body: JSON.stringify({
-        source: "melano-command-center",
-        event,
-        organization_id: organizationId,
-        rule_id: rule.id,
-        rule_name: rule.name,
-        workflow: rule.n8n_workflow,
-        trace_id: traceId,
-        triggered_by: context.userId,
-        triggered_at: startedAt,
-        entity_type: entity.type,
-        entity_id: entity.id,
-        callback_url: (await import("./n8n-callback")).n8nCallbackUrl(),
-        callback_token: await (await import("./n8n-callback")).n8nCallbackToken(traceId),
-        ...payload,
-      }),
-    });
-    output = (await res.text()).slice(0, 4000);
-    if (!res.ok) {
-      status = "FAILED";
-      errorText = `HTTP ${res.status}`;
-    }
-  } catch (err) {
-    status = "FAILED";
-    errorText = err instanceof Error ? err.message : String(err);
-  }
-
-  const finishedAt = new Date().toISOString();
-  if (run?.id) {
-    await context.supabase
-      .from("automation_runs")
-      .update({ status, finished_at: finishedAt, output, error: errorText })
-      .eq("id", run.id);
-  }
-  await context.supabase
-    .from("automation_rules")
-    .update({
-      last_run_at: finishedAt,
-      last_result: status === "SUCCESS" ? output.slice(0, 500) || "OK" : null,
-      last_error: errorText,
-      status: status === "SUCCESS" ? "OK" : "ERROR",
-    })
-    .eq("id", rule.id);
-  await context.supabase.from("activity_logs").insert({
-    organization_id: organizationId,
-    actor_type: "user",
-    actor_user: context.userId,
-    action: event,
-    entity_type: entity.type,
-    entity_id: entity.id,
-    trace_id: traceId,
-    detail: {
-      rule: rule.name,
-      workflow: rule.n8n_workflow,
-      status,
-      error: errorText,
-      output: output.slice(0, 500),
-    },
-  });
-
-  return { ok: status === "SUCCESS", traceId, output, error: errorText, rule: (rule.n8n_workflow ?? rule.name) as string };
-}
-
-/** Avisa a Bruno por n8n de una aprobación pendiente (decisión crítica). */
-export const notifyApprovalInN8n = createServerFn({ method: "POST" })
+export const runTaskInN8n = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { organizationId: string; approvalId: string }) => {
-    if (!input?.organizationId || !input?.approvalId) throw new Error("Parámetros inválidos");
+  .inputValidator((input: { organizationId: string; taskId: string; ruleId?: string | undefined }) => {
+    if (!input?.organizationId || !input?.taskId) throw new Error("Parámetros inválidos");
     return input;
   })
   .handler(async ({ data, context }) => {
@@ -1250,172 +1037,130 @@ export const notifyApprovalInN8n = createServerFn({ method: "POST" })
       .eq("organization_id", data.organizationId)
       .eq("user_id", context.userId)
       .maybeSingle();
-    if (!member || !["CEO", "ADMIN", "OPERATOR"].includes(member.role)) {
-      throw new Error("Sin permisos para notificar aprobaciones");
+    if (!member || !TASK_RUN_ROLES.includes(member.role)) {
+      throw new Error("Sin permisos para ejecutar tareas en n8n");
     }
 
-    const { data: approval, error } = await context.supabase
-      .from("approvals")
-      .select("id, action, category, reason, impact, risk, status, requested_at, decision_id, task_id, agent_id, trace_id")
-      .eq("id", data.approvalId)
-      .eq("organization_id", data.organizationId)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!approval) throw new Error("Aprobación no encontrada");
-
-    let decision: Record<string, unknown> | null = null;
-    if (approval.decision_id) {
-      const { data: d } = await context.supabase
-        .from("decisions")
-        .select("id, title, description, priority, status, expected_impact, risk, confidence")
-        .eq("id", approval.decision_id)
-        .maybeSingle();
-      decision = d ?? null;
-    }
-
-    const res = await dispatchN8nEvent(
-      context as unknown as N8nAuthedContext,
-      data.organizationId,
-      "n8n.approval",
-      { type: "approval", id: approval.id },
-      { approval, decision, notify: "bruno", stage: "pending" },
-    );
-    if (!res.ok) throw new Error(res.error ?? "Error llamando a n8n");
-    return { traceId: res.traceId, rule: res.rule };
-  });
-
-/** Notifica a n8n el resultado de una aprobación para que actualice el pipeline. */
-export const notifyApprovalDecisionInN8n = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { organizationId: string; approvalId: string }) => {
-    if (!input?.organizationId || !input?.approvalId) throw new Error("Parámetros inválidos");
-    return input;
-  })
-  .handler(async ({ data, context }) => {
-    const { data: approval } = await context.supabase
-      .from("approvals")
-      .select("id, action, category, status, decided_at, decision_note, decision_id, task_id, trace_id")
-      .eq("id", data.approvalId)
-      .eq("organization_id", data.organizationId)
-      .maybeSingle();
-    if (!approval) throw new Error("Aprobación no encontrada");
-
-    let decision: Record<string, unknown> | null = null;
-    if (approval.decision_id) {
-      const { data: d } = await context.supabase
-        .from("decisions")
-        .select("id, title, priority, status, approved_at")
-        .eq("id", approval.decision_id)
-        .maybeSingle();
-      decision = d ?? null;
-    }
-
-    const res = await dispatchN8nEvent(
-      context as unknown as N8nAuthedContext,
-      data.organizationId,
-      "n8n.approval.decided",
-      { type: "approval", id: approval.id },
-      { approval, decision, stage: "decided", pipeline_update: true },
-    );
-    return { ok: res.ok, traceId: res.traceId ?? null, error: res.error ?? null };
-  });
-
-/* ──────────────── Panel MCP → n8n (mismo puente que el endpoint /mcp) ──────────────── */
-
-async function assertMcpActor(context: { supabase: any; userId: string }, organizationId: string) {
-  const { data: member } = await context.supabase
-    .from("organization_members")
-    .select("role")
-    .eq("organization_id", organizationId)
-    .eq("user_id", context.userId)
-    .maybeSingle();
-  if (!member || !["CEO", "ADMIN", "OPERATOR"].includes(member.role)) {
-    throw new Error("Sin permisos para ejecutar desde el panel MCP");
-  }
-}
-
-/** Ejecuta una tarea en el workflow real de n8n usando el puente del endpoint /mcp. */
-export const runTaskViaMcp = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { organizationId: string; taskId: string; note?: string | undefined }) => {
-    if (!input?.organizationId || !input?.taskId) throw new Error("Parámetros inválidos");
-    return input;
-  })
-  .handler(async ({ data, context }) => {
-    await assertMcpActor(context as never, data.organizationId);
-    const { data: task, error } = await context.supabase
+    const { data: task, error: taskError } = await context.supabase
       .from("tasks")
       .select(
-        "id,title,description,status,priority,why_now,next_action,success_metric,assigned_agent,meeting_id,deadline",
+        "id, title, description, priority, status, next_action, success_metric, why_now, deadline, meeting_id, decision_id, assigned_agent, assigned_user, trace_id",
       )
       .eq("id", data.taskId)
       .eq("organization_id", data.organizationId)
       .maybeSingle();
-    if (error) throw new Error(error.message);
+    if (taskError) throw new Error(taskError.message);
     if (!task) throw new Error("Tarea no encontrada");
 
-    const { dispatchN8n } = await import("./mcp/n8n");
-    await context.supabase.from("tasks").update({ status: "RUNNING" }).eq("id", task.id);
-    const res = await dispatchN8n(
-      context.supabase as never,
-      context.userId,
-      data.organizationId,
-      "n8n.task.run",
-      { type: "task", id: task.id, meetingId: task.meeting_id },
-      { task, note: data.note ?? null, title: task.title },
-    );
+    let ruleQuery = context.supabase
+      .from("automation_rules")
+      .select("id, name, n8n_webhook_url, n8n_workflow, enabled")
+      .eq("organization_id", data.organizationId)
+      .eq("enabled", true)
+      .not("n8n_webhook_url", "is", null);
+    if (data.ruleId) ruleQuery = ruleQuery.eq("id", data.ruleId);
+    const { data: rules, error: ruleError } = await ruleQuery.order("created_at").limit(1);
+    if (ruleError) throw new Error(ruleError.message);
+    const rule = rules?.[0];
+    if (!rule?.n8n_webhook_url) {
+      throw new Error("No hay workflow de n8n activo. Configuralo en Automations.");
+    }
+
+    const traceId = crypto.randomUUID();
+    const startedAt = new Date().toISOString();
+    const { data: run } = await context.supabase
+      .from("automation_runs")
+      .insert({
+        organization_id: data.organizationId,
+        rule_id: rule.id,
+        status: "RUNNING",
+        started_at: startedAt,
+        trace_id: traceId,
+      })
+      .select("id")
+      .single();
+
+    let status: "SUCCESS" | "FAILED" = "SUCCESS";
+    let output = "";
+    let errorText: string | null = null;
+    try {
+      const res = await fetch(rule.n8n_webhook_url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          source: "melano-command-center",
+          event: "task.execute",
+          organization_id: data.organizationId,
+          rule_id: rule.id,
+          rule_name: rule.name,
+          workflow: rule.n8n_workflow,
+          trace_id: traceId,
+          triggered_by: context.userId,
+          triggered_at: startedAt,
+          task,
+        }),
+      });
+      output = (await res.text()).slice(0, 4000);
+      if (!res.ok) {
+        status = "FAILED";
+        errorText = `HTTP ${res.status}`;
+      }
+    } catch (err) {
+      status = "FAILED";
+      errorText = err instanceof Error ? err.message : String(err);
+    }
+
+    const finishedAt = new Date().toISOString();
+    if (run?.id) {
+      await context.supabase
+        .from("automation_runs")
+        .update({ status, finished_at: finishedAt, output, error: errorText })
+        .eq("id", run.id);
+    }
+    await context.supabase
+      .from("automation_rules")
+      .update({
+        last_run_at: finishedAt,
+        last_result: status === "SUCCESS" ? output.slice(0, 500) || "OK" : null,
+        last_error: errorText,
+        status: status === "SUCCESS" ? "OK" : "ERROR",
+      })
+      .eq("id", rule.id);
+
     await context.supabase
       .from("tasks")
-      .update({
-        status: res.ok ? "REVIEW" : res.status === "SKIPPED" ? "READY" : "FAILED",
-        ...(res.traceId ? { trace_id: res.traceId } : {}),
-      })
-      .eq("id", task.id);
-    if (!res.ok) throw new Error(res.error ?? "Error llamando a n8n");
-    return { traceId: res.traceId, workflow: res.rule, output: res.output.slice(0, 1000) };
-  });
-
-/** Ejecuta una decisión en n8n; si requiere aprobación, sólo notifica a Bruno. */
-export const runDecisionViaMcp = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: { organizationId: string; decisionId: string; note?: string | undefined }) => {
-    if (!input?.organizationId || !input?.decisionId) throw new Error("Parámetros inválidos");
-    return input;
-  })
-  .handler(async ({ data, context }) => {
-    await assertMcpActor(context as never, data.organizationId);
-    const { data: decision, error } = await context.supabase
-      .from("decisions")
-      .select(
-        "id,title,description,status,priority,risk,expected_impact,confidence,requires_approval,meeting_id",
+      .update(
+        status === "SUCCESS"
+          ? {
+              status: "RUNNING",
+              started_at: startedAt,
+              trace_id: traceId,
+              result: `n8n · ${rule.n8n_workflow ?? rule.name}: ${output.slice(0, 300) || "OK"}`,
+              error: null,
+            }
+          : { trace_id: traceId, error: `n8n · ${errorText}` },
       )
-      .eq("id", data.decisionId)
-      .eq("organization_id", data.organizationId)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!decision) throw new Error("Decisión no encontrada");
+      .eq("id", task.id)
+      .eq("organization_id", data.organizationId);
 
-    const blocked = decision.requires_approval && decision.status !== "APPROVED";
-    const { dispatchN8n } = await import("./mcp/n8n");
-    const res = await dispatchN8n(
-      context.supabase as never,
-      context.userId,
-      data.organizationId,
-      blocked ? "n8n.decision.approval_required" : "n8n.decision.run",
-      { type: "decision", id: decision.id, meetingId: decision.meeting_id },
-      {
-        decision,
-        note: data.note ?? null,
-        title: decision.title,
-        notify: blocked ? "bruno" : null,
-        stage: blocked ? "pending_approval" : "execute",
-      },
-    );
-    if (!res.ok) throw new Error(res.error ?? "Error llamando a n8n");
-    return {
-      traceId: res.traceId,
-      workflow: res.rule,
-      executed: !blocked,
-      output: res.output.slice(0, 1000),
-    };
+    await context.supabase.from("activity_logs").insert({
+      organization_id: data.organizationId,
+      actor_type: "user",
+      actor_user: context.userId,
+      action: "n8n.task",
+      entity_type: "task",
+      entity_id: task.id,
+      trace_id: traceId,
+      detail: {
+        task: task.title,
+        rule: rule.name,
+        workflow: rule.n8n_workflow,
+        status,
+        error: errorText,
+        output: output.slice(0, 500),
+      } as never,
+    });
+
+    if (status === "FAILED") throw new Error(errorText ?? "Error llamando a n8n");
+    return { traceId, output, rule: rule.n8n_workflow ?? rule.name };
   });

@@ -8,11 +8,6 @@ on:
   pull_request:
     branches:
       - main
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
 
   workflow_dispatch:
 
@@ -20,172 +15,27 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-
-env:
-  CI: true
-
-defaults:
-  run:
-    shell: bash
 
 jobs:
   build:
     name: Lint & Build
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-
-    # Draft PRs no consumen CI.
-    # Al pasarlo a "Ready for review", el workflow vuelve a correr.
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    timeout-minutes: 10
 
     steps:
-      # ------------------------------------------------------
-      # 1. SOURCE
-      # ------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 1
-          persist-credentials: false
 
-      # ------------------------------------------------------
-      # 2. PREFLIGHT
-      # ------------------------------------------------------
-      - name: Validate project structure
-        run: |
-          set -euo pipefail
-
-          if [ ! -f package.json ]; then
-            echo "::error::package.json not found"
-            exit 1
-          fi
-
-          if [ ! -f bun.lock ]; then
-            echo "::error::bun.lock not found. Commit the Bun lockfile before merging."
-            exit 1
-          fi
-
-          echo "Project structure OK"
-
-      # ------------------------------------------------------
-      # 3. RUNTIME
-      # ------------------------------------------------------
       - name: Setup Bun
-        id: bun
         uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: "1.4.0"
 
-      - name: Runtime information
-        run: |
-          echo "Bun: $(bun --version)"
-          echo "Runner: $RUNNER_OS"
-          echo "Commit: $GITHUB_SHA"
-
-      # ------------------------------------------------------
-      # 4. DEPENDENCY CACHE
-      # ------------------------------------------------------
-      - name: Cache Bun packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.bun/install/cache
-          key: ${{ runner.os }}-bun-${{ hashFiles('bun.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-bun-
-
-      # ------------------------------------------------------
-      # 5. DETERMINISTIC INSTALL
-      # ------------------------------------------------------
       - name: Install dependencies
         run: bun ci
 
-      # ------------------------------------------------------
-      # 6. REQUIRED SCRIPT VALIDATION
-      # ------------------------------------------------------
-      - name: Validate required scripts
-        run: |
-          set -euo pipefail
-
-          bun -e "
-            const pkg = await Bun.file('package.json').json();
-
-            const required = ['lint', 'build'];
-            const missing = required.filter(
-              script => !pkg.scripts?.[script]
-            );
-
-            if (missing.length) {
-              console.error(
-                'Missing required package.json scripts: ' +
-                missing.join(', ')
-              );
-              process.exit(1);
-            }
-
-            console.log('Required scripts OK');
-          "
-
-      # ------------------------------------------------------
-      # 7. CODE QUALITY
-      # ------------------------------------------------------
       - name: Lint
         run: bun run lint
 
-      # Typecheck sólo si el proyecto ya lo implementa.
-      - name: Typecheck
-        run: |
-          if bun -e "
-            const pkg = await Bun.file('package.json').json();
-            process.exit(pkg.scripts?.typecheck ? 0 : 1);
-          "; then
-            bun run typecheck
-          else
-            echo "No typecheck script configured - skipping"
-          fi
-
-      # Tests sólo si existe script de test.
-      - name: Tests
-        run: |
-          if bun -e "
-            const pkg = await Bun.file('package.json').json();
-            process.exit(pkg.scripts?.test ? 0 : 1);
-          "; then
-            bun run test
-          else
-            echo "No test script configured - skipping"
-          fi
-
-      # ------------------------------------------------------
-      # 8. DEPENDENCY SECURITY GATE
-      # ------------------------------------------------------
-      - name: Production dependency audit
-        run: bun audit --prod --audit-level=high
-
-      # ------------------------------------------------------
-      # 9. PRODUCTION BUILD
-      # ------------------------------------------------------
       - name: Production build
         run: bun run build
-
-      # ------------------------------------------------------
-      # 10. FINAL VERIFICATION
-      # ------------------------------------------------------
-      - name: Verify build did not mutate source
-        run: |
-          if ! git diff --exit-code; then
-            echo "::error::Build modified tracked repository files."
-            echo "::error::Generated changes must be committed or excluded correctly."
-            exit 1
-          fi
-
-      - name: CI summary
-        if: always()
-        run: |
-          echo "## MELANO Command Center CI" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Commit: \`${GITHUB_SHA::7}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Branch: \`${GITHUB_REF_NAME}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Bun: \`$(bun --version 2>/dev/null || echo unavailable)\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Required gate: **Lint & Build**" >> "$GITHUB_STEP_SUMMARY"

@@ -83,10 +83,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Sistema operativo empresarial autónomo de MELANO INC: agentes ejecutivos de IA, decisiones, tareas y aprobaciones con trazabilidad real.",
       },
       { name: "author", content: "MELANO INC" },
-      {
-        name: "google-site-verification",
-        content: "FsrRLM19KuQ_FKU8fLU5QHNOZJGCkLTpvfYnJDybmrU",
-      },
       { property: "og:title", content: "MELANO INC — Autonomous Command Center" },
       {
         property: "og:description",
@@ -103,7 +99,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap",
       },
-      { rel: "icon", type: "image/png", href: "/favicon.png" },
+      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
     ],
   }),
   shellComponent: RootShell,

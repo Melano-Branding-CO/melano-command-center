@@ -1,9 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader, Panel, Empty, RoleGate } from "@/components/melano/shell";
 import { StatusBadge } from "@/components/melano/badges";
-import { N8nWorkflowsPanel } from "@/components/melano/n8n-panel";
-import { MomentumPanel } from "@/components/melano/momentum";
-
 import { fmtDate, useOrg } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { cn } from "@/lib/utils";
@@ -137,9 +134,7 @@ function CeoDashboard() {
         <Empty text="Cargando indicadores…" />
       ) : (
         <div className="space-y-6">
-          <MomentumPanel />
           <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-
             <Kpi
               label="Clientes activos"
               value={activeClients.length}
@@ -234,8 +229,6 @@ function CeoDashboard() {
               )}
             </Panel>
           </div>
-
-          <N8nWorkflowsPanel />
 
           <Panel title="Clientes · próxima acción">
             {allClients.length === 0 ? (

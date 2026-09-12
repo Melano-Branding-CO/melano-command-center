@@ -3,7 +3,12 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge, PriorityBadge } from "@/components/melano/badges";
 import { fmtDate, useOrg, agentMap } from "@/lib/melano";
 import { useOrgRows, useRowById } from "@/lib/melano-queries";
-import { McpN8nLog } from "@/components/melano/mcp-n8n-log";
+import {
+  RunTaskInN8nButton,
+  TaskN8nLogList,
+  useTaskN8nLogs,
+  type TaskN8nLog,
+} from "@/components/melano/task-n8n";
 
 export const Route = createFileRoute("/_authenticated/meetings/$meetingId")({
   head: () => ({
@@ -74,10 +79,6 @@ type TaskRow = {
   next_action: string | null;
   success_metric: string | null;
   assigned_agent: string | null;
-  result: string | null;
-  error: string | null;
-  completed_at: string | null;
-  trace_id: string | null;
 };
 
 type AgentRow = { id: string; name: string; code: string; role: string };
@@ -129,6 +130,12 @@ function MeetingDetail() {
   });
   const { data: agents } = useOrgRows<AgentRow>("agents", org?.id, { order: "sort_order", asc: true });
   const byAgent = agentMap(agents as never);
+  const { data: n8nLogs } = useTaskN8nLogs(org?.id, 100);
+  const n8nByTask = new Map<string, TaskN8nLog[]>();
+  for (const log of n8nLogs ?? []) {
+    if (!log.entity_id) continue;
+    n8nByTask.set(log.entity_id, [...(n8nByTask.get(log.entity_id) ?? []), log]);
+  }
 
   if (isLoading) return <Empty text="Cargando…" />;
   if (!meeting) return <Empty text="Reunión no encontrada." />;
@@ -264,24 +271,13 @@ function MeetingDetail() {
                       <Field label="Por qué ahora" value={t.why_now} />
                       <Field label="Próxima acción" value={t.next_action} />
                       <Field label="Métrica de éxito" value={t.success_metric} />
-                      {t.result ? (
-                        <div className="rounded-md border border-border/60 bg-muted/30 p-2">
-                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
-                            Outcome{t.completed_at ? ` · ${fmtDate(t.completed_at)}` : ""}
-                          </p>
-                          <p className="whitespace-pre-wrap text-sm text-foreground">{t.result}</p>
-                        </div>
-                      ) : null}
-                      {t.error ? (
-                        <div className="rounded-md border border-destructive/40 bg-destructive/10 p-2">
-                          <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Error</p>
-                          <p className="whitespace-pre-wrap text-sm text-foreground">{t.error}</p>
-                        </div>
-                      ) : null}
                       <p className="text-[11px] text-muted-foreground">
                         Agente: {t.assigned_agent ? (byAgent.get(t.assigned_agent)?.name ?? "—") : "—"}
-                        {t.trace_id ? ` · trace ${t.trace_id.slice(0, 8)}` : ""}
                       </p>
+                      <RunTaskInN8nButton organizationId={org?.id} taskId={t.id} />
+                      {n8nByTask.get(t.id)?.length ? (
+                        <TaskN8nLogList logs={n8nByTask.get(t.id) ?? []} />
+                      ) : null}
                     </div>
                   </li>
                 ))}
@@ -289,10 +285,6 @@ function MeetingDetail() {
             )}
           </Panel>
         </div>
-      </div>
-
-      <div className="mt-4">
-        <McpN8nLog orgId={org?.id} meetingId={meetingId} limit={20} />
       </div>
     </>
   );

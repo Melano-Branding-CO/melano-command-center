@@ -1,13 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useServerFn } from "@tanstack/react-start";
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { fmtDate, useOrg } from "@/lib/melano";
 import { useOrgRows } from "@/lib/melano-queries";
-import { refreshOperationalMetrics } from "@/lib/metrics.functions";
 
 export const Route = createFileRoute("/_authenticated/metrics")({
   head: () => ({
@@ -26,50 +20,25 @@ type Metric = {
   id: string;
   key: string;
   label: string | null;
-  category: string | null;
   value: number | null;
   unit: string | null;
   captured_at: string | null;
+  source: string | null;
 };
 
 function MetricsPage() {
   const { data: org } = useOrg();
-  const qc = useQueryClient();
-  const [busy, setBusy] = useState(false);
-  const refresh = useServerFn(refreshOperationalMetrics);
   const { data: metrics, isLoading } = useOrgRows<Metric>("metrics", org?.id, {
     order: "captured_at",
   });
 
-  async function onRefresh() {
-    if (!org?.id) return;
-    setBusy(true);
-    try {
-      const res = await refresh({ data: { organizationId: org.id } });
-      toast.success(`${res.count} métricas recalculadas desde la base real`);
-      await qc.invalidateQueries();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudieron recalcular las métricas");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <>
-      <PageHeader
-        title="Metrics"
-        subtitle="Calculadas desde clientes, leads, tareas, aprobaciones y ejecuciones reales."
-        actions={
-          <Button onClick={onRefresh} disabled={busy || !org?.id}>
-            {busy ? "Recalculando…" : "Recalcular métricas"}
-          </Button>
-        }
-      />
+      <PageHeader title="Metrics" subtitle="Sin dato verificado, el sistema dice SIN DATOS." />
       {isLoading ? (
         <Empty text="Cargando…" />
       ) : (metrics ?? []).length === 0 ? (
-        <Empty text="SIN DATOS: usá “Recalcular métricas” para generarlas desde la base." />
+        <Empty text="SIN DATOS: todavía no hay métricas cargadas." />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {(metrics ?? []).map((m) => (
@@ -79,7 +48,7 @@ function MetricsPage() {
                 <span className="ml-1 text-sm text-muted-foreground">{m.unit ?? ""}</span>
               </p>
               <p className="mt-2 text-[11px] text-muted-foreground">
-                {m.category ?? "—"} · {fmtDate(m.captured_at)}
+                {m.source ?? "—"} · {fmtDate(m.captured_at)}
               </p>
             </Panel>
           ))}

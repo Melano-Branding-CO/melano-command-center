@@ -1,1 +1,0 @@
-Verified runtime evidence is stored in canonical `routing_rules.fields` with `kind=n8n_workflow` and `source=n8n_verified`. The UI must not infer ACTIVE from a checkbox alone and must never treat a legacy 404 webhook as operational.

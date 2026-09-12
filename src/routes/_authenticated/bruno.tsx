@@ -97,14 +97,8 @@ function BrunoPage() {
   async function act(approvalId: string, approve: boolean) {
     setBusy(approvalId);
     try {
-      const decided = await decide({ data: { approvalId, approve } });
+      await decide({ data: { approvalId, approve } });
       toast.success(approve ? "Aprobado" : "Rechazado");
-      const exec = decided.execution;
-      if (approve && exec) {
-        if (exec.executed) toast.success(`Ejecutada en n8n · cerrada en DONE (${exec.workflow ?? "workflow"})`);
-        else if (exec.error) toast.warning(`No se pudo ejecutar automáticamente: ${exec.error}`);
-      }
-
       await qc.invalidateQueries();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error al decidir");

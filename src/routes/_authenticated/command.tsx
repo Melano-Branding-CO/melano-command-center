@@ -6,24 +6,23 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
-import { N8nWorkflowsPanel } from "@/components/melano/n8n-panel";
-import { MiniCommandConsole } from "@/components/melano/mini-command-console";
-import { agentMap, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
+import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
-import { runCanonicalBoardNow } from "@/lib/canonical-runtime.functions";
+import { runMeetingNow } from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({
     meta: [
-      { title: "Revenue Command — MELANO INC" },
+      { title: "Command Center — MELANO INC" },
       {
         name: "description",
-        content: "MRR, pipeline, revenue atribuido, ROI, conversión y ejecución comercial verificable.",
+        content:
+          "Estado ejecutivo en vivo: Top 3 del día, agentes, decisiones pendientes, aprobaciones y alertas de MELANO INC.",
       },
-      { property: "og:title", content: "Revenue Command — MELANO INC" },
+      { property: "og:title", content: "Command Center — MELANO INC" },
       {
         property: "og:description",
-        content: "Control operativo centrado en revenue verificable.",
+        content: "Estado ejecutivo en vivo del sistema autónomo de MELANO INC.",
       },
       { name: "robots", content: "noindex" },
     ],
@@ -43,69 +42,22 @@ type Task = {
   deadline: string | null;
 };
 
-type Lead = {
-  id: string;
-  score: number | null;
-  top: boolean | null;
-};
-
-type Ledger = {
-  id: string;
-  currency: string | null;
-  product: string | null;
-  realized_amount: number | null;
-  mrr_amount: number | null;
-  pipeline_amount: number | null;
-  ai_revenue_amount: number | null;
-  automation_cost_amount: number | null;
-  roi_multiple: number | null;
-  conversion_rate: number | null;
-  attributed_lead_count: number;
-  won_count: number;
-  attribution_status: string;
-  updated_at: string;
-};
-
-type AttributionEvent = {
-  id: string;
-  workflow_id: string | null;
-  workflow_name: string | null;
-  agent_id: string | null;
-  event_type: string;
-  currency: string | null;
-  realized_revenue: number | null;
-  mrr_amount: number | null;
-  automation_cost: number | null;
-  attribution_weight: number;
-  confidence: number;
-  updated_at: string;
-};
-
-function money(value: number | null | undefined, currency = "USD") {
-  if (value === null || value === undefined || !Number.isFinite(Number(value))) return "—";
-  return new Intl.NumberFormat("es-AR", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 2,
-  }).format(Number(value));
-}
-
 function CommandCenter() {
   const { data: org } = useOrg();
   const { data: agents } = useAgents(org?.id);
   const map = agentMap(agents as Agent[] | undefined);
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const runMeeting = useServerFn(runCanonicalBoardNow);
+  const runMeeting = useServerFn(runMeetingNow);
 
   useRealtime([
     "tasks",
+    "decisions",
     "approvals",
     "alerts",
     "automation_rules",
-    "leads",
-    "revenue_ledger_snapshot",
-    "revenue_attribution_events",
+    "metrics",
+    "agents",
   ]);
 
   const today = todayKey(org?.timezone ?? undefined);
@@ -118,6 +70,11 @@ function CommandCenter() {
     eq: { status: "BLOCKED" },
     order: "updated_at",
   });
+  const { data: decisions } = useOrgRows<{ id: string; title: string; status: string; priority: string }>(
+    "decisions",
+    org?.id,
+    { eq: { status: "PROPOSED" }, order: "created_at", limit: 6 },
+  );
   const { data: approvals } = useOrgRows<{ id: string; action: string; risk: string | null }>(
     "approvals",
     org?.id,
@@ -128,47 +85,29 @@ function CommandCenter() {
     org?.id,
     { eq: { status: "OPEN" }, order: "created_at" },
   );
-  const { data: leads } = useOrgRows<Lead>("leads", org?.id, { order: "updated_at", limit: 5000 });
-  const { data: ledgers } = useOrgRows<Ledger>("revenue_ledger_snapshot", org?.id, {
-    order: "updated_at",
-    asc: false,
-    limit: 10,
-  });
-  const { data: attributionEvents } = useOrgRows<AttributionEvent>("revenue_attribution_events", org?.id, {
-    order: "updated_at",
-    asc: false,
-    limit: 100,
-  });
-
-  const ledger = (ledgers ?? []).find((row) => (row.product ?? "").toLowerCase() === "luxia") ?? ledgers?.[0];
-  const currency = ledger?.currency ?? "USD";
-  const totalLeads = leads?.length ?? 0;
-  const hotLeads = (leads ?? []).filter((lead) => lead.top || (lead.score ?? 0) >= 80).length;
-  const costKnown = ledger?.automation_cost_amount !== null && ledger?.automation_cost_amount !== undefined;
-
-  const byActor = new Map<string, { label: string; revenue: number; cost: number; events: number }>();
-  for (const event of attributionEvents ?? []) {
-    const key = event.agent_id ? `agent:${event.agent_id}` : `workflow:${event.workflow_id ?? "unknown"}`;
-    const label = event.agent_id
-      ? map.get(event.agent_id)?.name ?? event.agent_id
-      : event.workflow_name ?? event.workflow_id ?? "Sin responsable";
-    const current = byActor.get(key) ?? { label, revenue: 0, cost: 0, events: 0 };
-    current.revenue += Number(event.realized_revenue ?? 0) * Number(event.attribution_weight ?? 1);
-    current.cost += Number(event.automation_cost ?? 0);
-    current.events += 1;
-    byActor.set(key, current);
-  }
-  const attributionBreakdown = [...byActor.values()].sort((a, b) => b.revenue - a.revenue).slice(0, 8);
+  const { data: automations } = useOrgRows<{
+    id: string;
+    name: string;
+    status: string;
+    next_run_at: string | null;
+  }>("automation_rules", org?.id, { order: "created_at" });
+  const { data: revenueMetrics } = useOrgRows<{
+    id: string;
+    label: string;
+    value: number;
+    unit: string | null;
+    captured_at: string;
+  }>("metrics", org?.id, { eq: { category: "revenue" }, order: "captured_at", limit: 4 });
 
   async function onRunMeeting() {
     if (!org?.id) return;
     setBusy(true);
     try {
-      const res = await runMeeting({ data: { tenantId: org.id } });
-      toast.success(`Board aceptado por n8n · trace ${res.traceId.slice(0, 8)}`);
-      window.setTimeout(() => qc.invalidateQueries(), 2500);
+      const res = await runMeeting({ data: { organizationId: org.id } });
+      toast.success(`Reunión ejecutada · trace ${res.traceId.slice(0, 8)}`);
+      qc.invalidateQueries();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo ejecutar el Board");
+      toast.error(err instanceof Error ? err.message : "No se pudo ejecutar la reunión");
     } finally {
       setBusy(false);
     }
@@ -177,91 +116,121 @@ function CommandCenter() {
   return (
     <>
       <PageHeader
-        title="Revenue Command"
-        subtitle="Cada cifra económica requiere evidencia. Sin revenue ni costos inventados."
+        title="Command Center"
+        subtitle="Todo lo que ves sale de la base de datos real. Sin datos inventados."
         actions={
           <Button onClick={onRunMeeting} disabled={busy || !org?.id}>
-            {busy ? "Ejecutando…" : "Ejecutar Revenue Board"}
+            {busy ? "Ejecutando…" : "Ejecutar reunión ahora"}
           </Button>
         }
       />
 
-      <div className="mb-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-6">
-        <Panel title="MRR">
-          <p className="text-xl font-semibold text-foreground">{money(ledger?.mrr_amount, currency)}</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">LUXIA verificado</p>
-        </Panel>
-        <Panel title="Pipeline">
-          <p className="text-xl font-semibold text-foreground">{money(ledger?.pipeline_amount, currency)}</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">valor documentado</p>
-        </Panel>
-        <Panel title="Revenue IA">
-          <p className="text-xl font-semibold text-foreground">{money(ledger?.ai_revenue_amount, currency)}</p>
-          <p className="mt-1 text-[11px] text-muted-foreground">atribución explícita</p>
-        </Panel>
-        <Panel title="Costo automatización">
-          <p className="text-xl font-semibold text-foreground">
-            {costKnown ? money(ledger?.automation_cost_amount, currency) : "Sin evidencia"}
-          </p>
-          <p className="mt-1 text-[11px] text-muted-foreground">no se presume $0</p>
-        </Panel>
-        <Panel title="ROI">
-          <p className="text-xl font-semibold text-foreground">
-            {ledger?.roi_multiple === null || ledger?.roi_multiple === undefined
-              ? "Pendiente"
-              : `${Number(ledger.roi_multiple).toFixed(2)}x`}
-          </p>
-          <p className="mt-1 text-[11px] text-muted-foreground">requiere costo medido</p>
-        </Panel>
-        <Panel title="Conversión">
-          <p className="text-xl font-semibold text-foreground">
-            {ledger?.conversion_rate === null || ledger?.conversion_rate === undefined
-              ? "Pendiente"
-              : `${(Number(ledger.conversion_rate) * 100).toFixed(1)}%`}
-          </p>
-          <p className="mt-1 text-[11px] text-muted-foreground">{ledger?.won_count ?? 0} cierres verificados</p>
-        </Panel>
-      </div>
-
-      <div className="mb-4 rounded-md border border-border bg-card px-3 py-2 text-xs text-muted-foreground">
-        Attribution status: <span className="font-medium text-foreground">{ledger?.attribution_status ?? "PENDING_EVIDENCE"}</span>
-        {ledger?.updated_at ? ` · actualizado ${new Date(ledger.updated_at).toLocaleString("es-AR")}` : ""}
-      </div>
-
       <div className="grid gap-4 lg:grid-cols-3">
-        <Panel title="Leads">
-          <div className="space-y-2">
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-sm text-muted-foreground">Total</span>
-              <span className="text-2xl font-semibold text-foreground">{totalLeads}</span>
-            </div>
-            <div className="flex items-baseline justify-between gap-2">
-              <span className="text-sm text-muted-foreground">Hot / score alto</span>
-              <span className="text-xl font-semibold text-foreground">{hotLeads}</span>
-            </div>
-            <Link to="/leads" className="text-xs text-muted-foreground hover:text-foreground">
-              Abrir leads →
+        <Panel
+          title="Hoy — Top 3"
+          className="lg:col-span-2"
+          action={
+            <Link to="/today" className="text-xs text-muted-foreground hover:text-foreground">
+              Ver detalle
             </Link>
-          </div>
-        </Panel>
-
-        <Panel title="Revenue Attribution · Automation / Agent" className="lg:col-span-2">
-          {attributionBreakdown.length === 0 ? (
-            <Empty text="Todavía no hay revenue económico atribuible a una automatización o agente. El ledger ya está listo para capturarlo." />
+          }
+        >
+          {loadingToday ? (
+            <Empty text="Cargando prioridades desde la base…" />
+          ) : (todayTasks ?? []).length === 0 ? (
+            <Empty text="Sin prioridades definidas hoy. Ejecutá la reunión ejecutiva para generarlas." />
           ) : (
-            <ul className="space-y-2 text-sm">
-              {attributionBreakdown.map((item) => (
-                <li key={item.label} className="grid grid-cols-[1fr_auto_auto] gap-3 border-b border-border/60 pb-2 last:border-0">
-                  <span className="truncate text-foreground">{item.label}</span>
-                  <span className="text-muted-foreground">{item.events} eventos</span>
-                  <span className="font-semibold text-foreground">{money(item.revenue, currency)}</span>
+            <ul className="space-y-3">
+              {(todayTasks ?? []).slice(0, 3).map((t) => (
+                <li key={t.id} className="rounded-md border border-border p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <PriorityBadge priority={t.priority} />
+                    <StatusBadge status={t.status} />
+                    <span className="text-sm font-medium text-foreground">{t.title}</span>
+                  </div>
+                  <dl className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
+                    <div>
+                      <dt className="label-caps">Why now</dt>
+                      <dd>{t.why_now ?? "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="label-caps">Next action</dt>
+                      <dd>{t.next_action ?? "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="label-caps">Owner</dt>
+                      <dd>{t.assigned_agent ? map.get(t.assigned_agent)?.name ?? "—" : "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="label-caps">Success metric</dt>
+                      <dd>{t.success_metric ?? "—"}</dd>
+                    </div>
+                  </dl>
                 </li>
               ))}
             </ul>
           )}
         </Panel>
 
-        <Panel title="Aprobaciones que bloquean ejecución">
+        <Panel title="Revenue">
+          {(revenueMetrics ?? []).length === 0 ? (
+            <Empty text="Sin métricas de revenue registradas." />
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {(revenueMetrics ?? []).map((m) => (
+                <li key={m.id} className="flex items-baseline justify-between gap-2">
+                  <span className="text-muted-foreground">{m.label}</span>
+                  <span className="font-semibold text-foreground">
+                    {m.value} {m.unit ?? ""}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title="Agentes">
+          {(agents ?? []).length === 0 ? (
+            <Empty text="Sin agentes configurados." />
+          ) : (
+            <ul className="space-y-1.5 text-sm">
+              {(agents ?? []).map((a) => (
+                <li key={a.id} className="flex items-center justify-between gap-2">
+                  <Link
+                    to="/agents/$agentId"
+                    params={{ agentId: a.id }}
+                    className="truncate text-foreground hover:underline"
+                  >
+                    {a.name}
+                  </Link>
+                  <StatusBadge status={a.status} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title="Decisiones pendientes">
+          {(decisions ?? []).length === 0 ? (
+            <Empty text="Sin decisiones propuestas." />
+          ) : (
+            <ul className="space-y-2 text-sm">
+              {(decisions ?? []).map((d) => (
+                <li key={d.id} className="flex items-center justify-between gap-2">
+                  <Link
+                    to="/decisions"
+                    className="truncate text-foreground hover:underline"
+                  >
+                    {d.title}
+                  </Link>
+                  <PriorityBadge priority={d.priority} />
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
+
+        <Panel title="Aprobaciones humanas">
           {(approvals ?? []).length === 0 ? (
             <Empty text="Nada esperando autorización." />
           ) : (
@@ -278,58 +247,41 @@ function CommandCenter() {
           )}
         </Panel>
 
-        <Panel
-          title="Hoy — Top 3 de impacto"
-          className="lg:col-span-2"
-          action={
-            <Link to="/today" className="text-xs text-muted-foreground hover:text-foreground">
-              Ver detalle
-            </Link>
-          }
-        >
-          {loadingToday ? (
-            <Empty text="Cargando prioridades desde la base…" />
-          ) : (todayTasks ?? []).length === 0 ? (
-            <Empty text="Sin prioridades definidas hoy. Ejecutá Revenue Board." />
+        <Panel title="Bloqueos">
+          {(blocked ?? []).length === 0 ? (
+            <Empty text="Sin bloqueos registrados." />
           ) : (
-            <ul className="space-y-3">
-              {(todayTasks ?? []).slice(0, 3).map((t) => (
-                <li key={t.id} className="rounded-md border border-border p-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <PriorityBadge priority={t.priority} />
-                    <StatusBadge status={t.status} />
-                    <span className="text-sm font-medium text-foreground">{t.title}</span>
-                  </div>
-                  <dl className="mt-2 grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">
-                    <div><dt className="label-caps">Por qué ahora</dt><dd>{t.why_now ?? "—"}</dd></div>
-                    <div><dt className="label-caps">Próxima acción</dt><dd>{t.next_action ?? "—"}</dd></div>
-                    <div><dt className="label-caps">Responsable</dt><dd>{t.assigned_agent ? map.get(t.assigned_agent)?.name ?? "—" : "—"}</dd></div>
-                    <div><dt className="label-caps">Métrica de éxito</dt><dd>{t.success_metric ?? "—"}</dd></div>
-                  </dl>
+            <ul className="space-y-2 text-sm">
+              {(blocked ?? []).map((t) => (
+                <li key={t.id} className="text-foreground">
+                  {t.title}
                 </li>
               ))}
             </ul>
           )}
         </Panel>
 
-        <Panel title="Bloqueos de revenue">
-          {(blocked ?? []).length === 0 ? (
-            <Empty text="Sin bloqueos registrados." />
+        <Panel title="Automatizaciones">
+          {(automations ?? []).length === 0 ? (
+            <Empty text="Sin automatizaciones configuradas." />
           ) : (
             <ul className="space-y-2 text-sm">
-              {(blocked ?? []).map((t) => <li key={t.id} className="text-foreground">{t.title}</li>)}
+              {(automations ?? []).map((r) => (
+                <li key={r.id} className="flex items-center justify-between gap-2">
+                  <span className="truncate text-foreground">{r.name}</span>
+                  <span className="text-xs text-muted-foreground">{fmtDate(r.next_run_at)}</span>
+                </li>
+              ))}
             </ul>
           )}
         </Panel>
 
-        <N8nWorkflowsPanel className="lg:col-span-3" />
-
-        <Panel title="Alertas críticas">
+        <Panel title="Alertas">
           {(alerts ?? []).length === 0 ? (
             <Empty text="Sin alertas abiertas." />
           ) : (
             <ul className="space-y-2 text-sm">
-              {(alerts ?? []).slice(0, 8).map((a) => (
+              {(alerts ?? []).map((a) => (
                 <li key={a.id} className="flex items-center justify-between gap-2">
                   <span className="truncate text-foreground">{a.title}</span>
                   <StatusBadge status={a.severity} />
@@ -339,8 +291,6 @@ function CommandCenter() {
           )}
         </Panel>
       </div>
-
-      <MiniCommandConsole />
     </>
   );
 }

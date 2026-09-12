@@ -1,6 +1,3 @@
 User-agent: *
 Allow: /publico
-Allow: /sitemap.xml
 Disallow: /
-
-Sitemap: https://comandcenter.tech/sitemap.xml
