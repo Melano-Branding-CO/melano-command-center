@@ -72,6 +72,7 @@ const NAV_GROUPS: NavGroup[] = [
     title: "Ejecución",
     items: [
       { to: "/melania", label: "MELANIA", icon: Bot, roles: ["CEO", "ADMIN"] },
+      { to: "/agents-control", label: "Control de Agentes", icon: Bot, roles: ["CEO", "ADMIN", "OPERATOR"] },
       { to: "/approvals", label: "Aprobaciones", icon: ShieldCheck },
       { to: "/automations", label: "Automatizaciones", icon: BadgeCheck },
       { to: "/ejecuciones", label: "Ejecuciones", icon: Activity },
