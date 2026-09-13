@@ -83,7 +83,7 @@ function AutomationsPage() {
   };
 
   const run = useMutation({
-    mutationFn: (vars: { ruleId: string; test?: boolean }) =>
+    mutationFn: (vars: { ruleId: string; test: boolean }) =>
       runFn({ data: { organizationId: org!.id, ruleId: vars.ruleId, test: vars.test } }),
     onSuccess: (r) => {
       invalidate();
@@ -172,7 +172,7 @@ function RuleCard({
   runs: Run[];
   canOperate: boolean;
   busy: boolean;
-  onRun: (test?: boolean) => void;
+  onRun: (test: boolean) => void;
   onToggle: (enabled: boolean) => void;
   onSave: (workflow: string) => void;
 }) {
