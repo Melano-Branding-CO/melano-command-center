@@ -12,47 +12,27 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
-import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PublicoRouteImport } from './routes/publico'
-import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
-import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated/activity'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedAgentsRouteImport } from './routes/_authenticated/agents'
 import { Route as AuthenticatedApprovalsRouteImport } from './routes/_authenticated/approvals'
-import { Route as AuthenticatedAsignacionesRouteImport } from './routes/_authenticated/asignaciones'
 import { Route as AuthenticatedAutomationsRouteImport } from './routes/_authenticated/automations'
 import { Route as AuthenticatedBrunoRouteImport } from './routes/_authenticated/bruno'
-import { Route as AuthenticatedCeoRouteImport } from './routes/_authenticated/ceo'
-import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
 import { Route as AuthenticatedCommandRouteImport } from './routes/_authenticated/command'
 import { Route as AuthenticatedDashboardsRouteImport } from './routes/_authenticated/dashboards'
-import { Route as AuthenticatedDebugAccessRouteImport } from './routes/_authenticated/debug-access'
-import { Route as AuthenticatedDebugDataRouteImport } from './routes/_authenticated/debug-data'
 import { Route as AuthenticatedDecisionsRouteImport } from './routes/_authenticated/decisions'
-import { Route as AuthenticatedEjecucionesRouteImport } from './routes/_authenticated/ejecuciones'
 import { Route as AuthenticatedGreenGateRouteImport } from './routes/_authenticated/green-gate'
 import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
-import { Route as AuthenticatedMelaniaRouteImport } from './routes/_authenticated/melania'
-import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
+import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedMetricsRouteImport } from './routes/_authenticated/metrics'
-import { Route as AuthenticatedOperadorRouteImport } from './routes/_authenticated/operador'
-import { Route as AuthenticatedOperadorDashboardRouteImport } from './routes/_authenticated/operador-dashboard'
 import { Route as AuthenticatedProductsRouteImport } from './routes/_authenticated/products'
 import { Route as AuthenticatedRevenueRouteImport } from './routes/_authenticated/revenue'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
-import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
-import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
-import { Route as AuthenticatedLuxiaStageRouteImport } from './routes/_authenticated/luxia.$stage'
-import { Route as AuthenticatedMeetingsIndexRouteImport } from './routes/_authenticated/meetings.index'
-import { Route as AuthenticatedMeetingsMeetingIdRouteImport } from './routes/_authenticated/meetings.$meetingId'
 import { Route as ApiPublicCronDailyMeetingRouteImport } from './routes/api/public/cron/daily-meeting'
-import { Route as ApiPublicN8nCallbackRouteImport } from './routes/api/public/n8n/callback'
-import { Route as ApiPublicN8nDispatchRouteImport } from './routes/api/public/n8n/dispatch'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -68,33 +48,11 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const PublicoRoute = PublicoRouteImport.update({
   id: '/publico',
   path: '/publico',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
-  id: '/sitemap.xml',
-  path: '/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Char91DotmcpChar93ListToolsRoute =
-  Char91DotmcpChar93ListToolsRouteImport.update({
-    id: '/.mcp/list-tools',
-    path: '/.mcp/list-tools',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
   id: '/activity',
   path: '/activity',
@@ -115,12 +73,6 @@ const AuthenticatedApprovalsRoute = AuthenticatedApprovalsRouteImport.update({
   path: '/approvals',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedAsignacionesRoute =
-  AuthenticatedAsignacionesRouteImport.update({
-    id: '/asignaciones',
-    path: '/asignaciones',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedAutomationsRoute =
   AuthenticatedAutomationsRouteImport.update({
     id: '/automations',
@@ -130,16 +82,6 @@ const AuthenticatedAutomationsRoute =
 const AuthenticatedBrunoRoute = AuthenticatedBrunoRouteImport.update({
   id: '/bruno',
   path: '/bruno',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedCeoRoute = AuthenticatedCeoRouteImport.update({
-  id: '/ceo',
-  path: '/ceo',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedClientesRoute = AuthenticatedClientesRouteImport.update({
-  id: '/clientes',
-  path: '/clientes',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCommandRoute = AuthenticatedCommandRouteImport.update({
@@ -152,28 +94,11 @@ const AuthenticatedDashboardsRoute = AuthenticatedDashboardsRouteImport.update({
   path: '/dashboards',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedDebugAccessRoute =
-  AuthenticatedDebugAccessRouteImport.update({
-    id: '/debug-access',
-    path: '/debug-access',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedDebugDataRoute = AuthenticatedDebugDataRouteImport.update({
-  id: '/debug-data',
-  path: '/debug-data',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedDecisionsRoute = AuthenticatedDecisionsRouteImport.update({
   id: '/decisions',
   path: '/decisions',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedEjecucionesRoute =
-  AuthenticatedEjecucionesRouteImport.update({
-    id: '/ejecuciones',
-    path: '/ejecuciones',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedGreenGateRoute = AuthenticatedGreenGateRouteImport.update({
   id: '/green-gate',
   path: '/green-gate',
@@ -184,14 +109,9 @@ const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
   path: '/leads',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedMelaniaRoute = AuthenticatedMelaniaRouteImport.update({
-  id: '/melania',
-  path: '/melania',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
-  id: '/metas',
-  path: '/metas',
+const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
+  id: '/meetings',
+  path: '/meetings',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedMetricsRoute = AuthenticatedMetricsRouteImport.update({
@@ -199,17 +119,6 @@ const AuthenticatedMetricsRoute = AuthenticatedMetricsRouteImport.update({
   path: '/metrics',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedOperadorRoute = AuthenticatedOperadorRouteImport.update({
-  id: '/operador',
-  path: '/operador',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedOperadorDashboardRoute =
-  AuthenticatedOperadorDashboardRouteImport.update({
-    id: '/operador-dashboard',
-    path: '/operador-dashboard',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
 const AuthenticatedProductsRoute = AuthenticatedProductsRouteImport.update({
   id: '/products',
   path: '/products',
@@ -235,39 +144,11 @@ const AuthenticatedTodayRoute = AuthenticatedTodayRouteImport.update({
   path: '/today',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const Char91DotmcpChar93InvokeToolToolRoute =
-  Char91DotmcpChar93InvokeToolToolRouteImport.update({
-    id: '/.mcp/invoke-tool/$tool',
-    path: '/.mcp/invoke-tool/$tool',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const AuthenticatedAgentsAgentIdRoute =
   AuthenticatedAgentsAgentIdRouteImport.update({
     id: '/$agentId',
     path: '/$agentId',
     getParentRoute: () => AuthenticatedAgentsRoute,
-  } as any)
-const AuthenticatedLuxiaStageRoute = AuthenticatedLuxiaStageRouteImport.update({
-  id: '/luxia/$stage',
-  path: '/luxia/$stage',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedMeetingsIndexRoute =
-  AuthenticatedMeetingsIndexRouteImport.update({
-    id: '/meetings/',
-    path: '/meetings/',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
-const AuthenticatedMeetingsMeetingIdRoute =
-  AuthenticatedMeetingsMeetingIdRouteImport.update({
-    id: '/meetings/$meetingId',
-    path: '/meetings/$meetingId',
-    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const ApiPublicCronDailyMeetingRoute =
   ApiPublicCronDailyMeetingRouteImport.update({
@@ -275,307 +156,169 @@ const ApiPublicCronDailyMeetingRoute =
     path: '/api/public/cron/daily-meeting',
     getParentRoute: () => rootRouteImport,
   } as any)
-const ApiPublicN8nCallbackRoute = ApiPublicN8nCallbackRouteImport.update({
-  id: '/api/public/n8n/callback',
-  path: '/api/public/n8n/callback',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiPublicN8nDispatchRoute = ApiPublicN8nDispatchRouteImport.update({
-  id: '/api/public/n8n/dispatch',
-  path: '/api/public/n8n/dispatch',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/mcp': typeof McpRoute
   '/publico': typeof PublicoRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/activity': typeof AuthenticatedActivityRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/approvals': typeof AuthenticatedApprovalsRoute
-  '/asignaciones': typeof AuthenticatedAsignacionesRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/bruno': typeof AuthenticatedBrunoRoute
-  '/ceo': typeof AuthenticatedCeoRoute
-  '/clientes': typeof AuthenticatedClientesRoute
   '/command': typeof AuthenticatedCommandRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
-  '/debug-access': typeof AuthenticatedDebugAccessRoute
-  '/debug-data': typeof AuthenticatedDebugDataRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
-  '/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
-  '/melania': typeof AuthenticatedMelaniaRoute
-  '/metas': typeof AuthenticatedMetasRoute
+  '/meetings': typeof AuthenticatedMeetingsRoute
   '/metrics': typeof AuthenticatedMetricsRoute
-  '/operador': typeof AuthenticatedOperadorRoute
-  '/operador-dashboard': typeof AuthenticatedOperadorDashboardRoute
   '/products': typeof AuthenticatedProductsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
-  '/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
-  '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
-  '/meetings/': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
-  '/api/public/n8n/callback': typeof ApiPublicN8nCallbackRoute
-  '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
-  '/mcp': typeof McpRoute
   '/publico': typeof PublicoRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/activity': typeof AuthenticatedActivityRoute
   '/admin': typeof AuthenticatedAdminRoute
   '/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/approvals': typeof AuthenticatedApprovalsRoute
-  '/asignaciones': typeof AuthenticatedAsignacionesRoute
   '/automations': typeof AuthenticatedAutomationsRoute
   '/bruno': typeof AuthenticatedBrunoRoute
-  '/ceo': typeof AuthenticatedCeoRoute
-  '/clientes': typeof AuthenticatedClientesRoute
   '/command': typeof AuthenticatedCommandRoute
   '/dashboards': typeof AuthenticatedDashboardsRoute
-  '/debug-access': typeof AuthenticatedDebugAccessRoute
-  '/debug-data': typeof AuthenticatedDebugDataRoute
   '/decisions': typeof AuthenticatedDecisionsRoute
-  '/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/green-gate': typeof AuthenticatedGreenGateRoute
   '/leads': typeof AuthenticatedLeadsRoute
-  '/melania': typeof AuthenticatedMelaniaRoute
-  '/metas': typeof AuthenticatedMetasRoute
+  '/meetings': typeof AuthenticatedMeetingsRoute
   '/metrics': typeof AuthenticatedMetricsRoute
-  '/operador': typeof AuthenticatedOperadorRoute
-  '/operador-dashboard': typeof AuthenticatedOperadorDashboardRoute
   '/products': typeof AuthenticatedProductsRoute
   '/revenue': typeof AuthenticatedRevenueRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
-  '/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
-  '/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
-  '/meetings': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
-  '/api/public/n8n/callback': typeof ApiPublicN8nCallbackRoute
-  '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
-  '/mcp': typeof McpRoute
   '/publico': typeof PublicoRoute
-  '/sitemap.xml': typeof SitemapDotxmlRoute
-  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRoute
   '/_authenticated/agents': typeof AuthenticatedAgentsRouteWithChildren
   '/_authenticated/approvals': typeof AuthenticatedApprovalsRoute
-  '/_authenticated/asignaciones': typeof AuthenticatedAsignacionesRoute
   '/_authenticated/automations': typeof AuthenticatedAutomationsRoute
   '/_authenticated/bruno': typeof AuthenticatedBrunoRoute
-  '/_authenticated/ceo': typeof AuthenticatedCeoRoute
-  '/_authenticated/clientes': typeof AuthenticatedClientesRoute
   '/_authenticated/command': typeof AuthenticatedCommandRoute
   '/_authenticated/dashboards': typeof AuthenticatedDashboardsRoute
-  '/_authenticated/debug-access': typeof AuthenticatedDebugAccessRoute
-  '/_authenticated/debug-data': typeof AuthenticatedDebugDataRoute
   '/_authenticated/decisions': typeof AuthenticatedDecisionsRoute
-  '/_authenticated/ejecuciones': typeof AuthenticatedEjecucionesRoute
   '/_authenticated/green-gate': typeof AuthenticatedGreenGateRoute
   '/_authenticated/leads': typeof AuthenticatedLeadsRoute
-  '/_authenticated/melania': typeof AuthenticatedMelaniaRoute
-  '/_authenticated/metas': typeof AuthenticatedMetasRoute
+  '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/metrics': typeof AuthenticatedMetricsRoute
-  '/_authenticated/operador': typeof AuthenticatedOperadorRoute
-  '/_authenticated/operador-dashboard': typeof AuthenticatedOperadorDashboardRoute
   '/_authenticated/products': typeof AuthenticatedProductsRoute
   '/_authenticated/revenue': typeof AuthenticatedRevenueRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
-  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
-  '/_authenticated/luxia/$stage': typeof AuthenticatedLuxiaStageRoute
-  '/_authenticated/meetings/$meetingId': typeof AuthenticatedMeetingsMeetingIdRoute
-  '/_authenticated/meetings/': typeof AuthenticatedMeetingsIndexRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
-  '/api/public/n8n/callback': typeof ApiPublicN8nCallbackRoute
-  '/api/public/n8n/dispatch': typeof ApiPublicN8nDispatchRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/auth'
-    | '/mcp'
     | '/publico'
-    | '/sitemap.xml'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/activity'
     | '/admin'
     | '/agents'
     | '/approvals'
-    | '/asignaciones'
     | '/automations'
     | '/bruno'
-    | '/ceo'
-    | '/clientes'
     | '/command'
     | '/dashboards'
-    | '/debug-access'
-    | '/debug-data'
     | '/decisions'
-    | '/ejecuciones'
     | '/green-gate'
     | '/leads'
-    | '/melania'
-    | '/metas'
+    | '/meetings'
     | '/metrics'
-    | '/operador'
-    | '/operador-dashboard'
     | '/products'
     | '/revenue'
     | '/settings'
     | '/tasks'
     | '/today'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/agents/$agentId'
-    | '/luxia/$stage'
-    | '/meetings/$meetingId'
-    | '/meetings/'
     | '/api/public/cron/daily-meeting'
-    | '/api/public/n8n/callback'
-    | '/api/public/n8n/dispatch'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
-    | '/mcp'
     | '/publico'
-    | '/sitemap.xml'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/activity'
     | '/admin'
     | '/agents'
     | '/approvals'
-    | '/asignaciones'
     | '/automations'
     | '/bruno'
-    | '/ceo'
-    | '/clientes'
     | '/command'
     | '/dashboards'
-    | '/debug-access'
-    | '/debug-data'
     | '/decisions'
-    | '/ejecuciones'
     | '/green-gate'
     | '/leads'
-    | '/melania'
-    | '/metas'
+    | '/meetings'
     | '/metrics'
-    | '/operador'
-    | '/operador-dashboard'
     | '/products'
     | '/revenue'
     | '/settings'
     | '/tasks'
     | '/today'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/agents/$agentId'
-    | '/luxia/$stage'
-    | '/meetings/$meetingId'
-    | '/meetings'
     | '/api/public/cron/daily-meeting'
-    | '/api/public/n8n/callback'
-    | '/api/public/n8n/dispatch'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/auth'
-    | '/mcp'
     | '/publico'
-    | '/sitemap.xml'
-    | '/.mcp/list-tools'
-    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/activity'
     | '/_authenticated/admin'
     | '/_authenticated/agents'
     | '/_authenticated/approvals'
-    | '/_authenticated/asignaciones'
     | '/_authenticated/automations'
     | '/_authenticated/bruno'
-    | '/_authenticated/ceo'
-    | '/_authenticated/clientes'
     | '/_authenticated/command'
     | '/_authenticated/dashboards'
-    | '/_authenticated/debug-access'
-    | '/_authenticated/debug-data'
     | '/_authenticated/decisions'
-    | '/_authenticated/ejecuciones'
     | '/_authenticated/green-gate'
     | '/_authenticated/leads'
-    | '/_authenticated/melania'
-    | '/_authenticated/metas'
+    | '/_authenticated/meetings'
     | '/_authenticated/metrics'
-    | '/_authenticated/operador'
-    | '/_authenticated/operador-dashboard'
     | '/_authenticated/products'
     | '/_authenticated/revenue'
     | '/_authenticated/settings'
     | '/_authenticated/tasks'
     | '/_authenticated/today'
-    | '/.lovable/oauth/consent'
-    | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/agents/$agentId'
-    | '/_authenticated/luxia/$stage'
-    | '/_authenticated/meetings/$meetingId'
-    | '/_authenticated/meetings/'
     | '/api/public/cron/daily-meeting'
-    | '/api/public/n8n/callback'
-    | '/api/public/n8n/dispatch'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
-  McpRoute: typeof McpRoute
   PublicoRoute: typeof PublicoRoute
-  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
-  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
-  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
-  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
-  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicCronDailyMeetingRoute: typeof ApiPublicCronDailyMeetingRoute
-  ApiPublicN8nCallbackRoute: typeof ApiPublicN8nCallbackRoute
-  ApiPublicN8nDispatchRoute: typeof ApiPublicN8nDispatchRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -601,39 +344,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/publico': {
       id: '/publico'
       path: '/publico'
       fullPath: '/publico'
       preLoaderRoute: typeof PublicoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/sitemap.xml': {
-      id: '/sitemap.xml'
-      path: '/sitemap.xml'
-      fullPath: '/sitemap.xml'
-      preLoaderRoute: typeof SitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.mcp/list-tools': {
-      id: '/.mcp/list-tools'
-      path: '/.mcp/list-tools'
-      fullPath: '/.mcp/list-tools'
-      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/activity': {
@@ -664,13 +379,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedApprovalsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/asignaciones': {
-      id: '/_authenticated/asignaciones'
-      path: '/asignaciones'
-      fullPath: '/asignaciones'
-      preLoaderRoute: typeof AuthenticatedAsignacionesRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/automations': {
       id: '/_authenticated/automations'
       path: '/automations'
@@ -683,20 +391,6 @@ declare module '@tanstack/react-router' {
       path: '/bruno'
       fullPath: '/bruno'
       preLoaderRoute: typeof AuthenticatedBrunoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/ceo': {
-      id: '/_authenticated/ceo'
-      path: '/ceo'
-      fullPath: '/ceo'
-      preLoaderRoute: typeof AuthenticatedCeoRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/clientes': {
-      id: '/_authenticated/clientes'
-      path: '/clientes'
-      fullPath: '/clientes'
-      preLoaderRoute: typeof AuthenticatedClientesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/command': {
@@ -713,32 +407,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/debug-access': {
-      id: '/_authenticated/debug-access'
-      path: '/debug-access'
-      fullPath: '/debug-access'
-      preLoaderRoute: typeof AuthenticatedDebugAccessRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/debug-data': {
-      id: '/_authenticated/debug-data'
-      path: '/debug-data'
-      fullPath: '/debug-data'
-      preLoaderRoute: typeof AuthenticatedDebugDataRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/decisions': {
       id: '/_authenticated/decisions'
       path: '/decisions'
       fullPath: '/decisions'
       preLoaderRoute: typeof AuthenticatedDecisionsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/ejecuciones': {
-      id: '/_authenticated/ejecuciones'
-      path: '/ejecuciones'
-      fullPath: '/ejecuciones'
-      preLoaderRoute: typeof AuthenticatedEjecucionesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/green-gate': {
@@ -755,18 +428,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLeadsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/melania': {
-      id: '/_authenticated/melania'
-      path: '/melania'
-      fullPath: '/melania'
-      preLoaderRoute: typeof AuthenticatedMelaniaRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/metas': {
-      id: '/_authenticated/metas'
-      path: '/metas'
-      fullPath: '/metas'
-      preLoaderRoute: typeof AuthenticatedMetasRouteImport
+    '/_authenticated/meetings': {
+      id: '/_authenticated/meetings'
+      path: '/meetings'
+      fullPath: '/meetings'
+      preLoaderRoute: typeof AuthenticatedMeetingsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/metrics': {
@@ -774,20 +440,6 @@ declare module '@tanstack/react-router' {
       path: '/metrics'
       fullPath: '/metrics'
       preLoaderRoute: typeof AuthenticatedMetricsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/operador': {
-      id: '/_authenticated/operador'
-      path: '/operador'
-      fullPath: '/operador'
-      preLoaderRoute: typeof AuthenticatedOperadorRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/operador-dashboard': {
-      id: '/_authenticated/operador-dashboard'
-      path: '/operador-dashboard'
-      fullPath: '/operador-dashboard'
-      preLoaderRoute: typeof AuthenticatedOperadorDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/products': {
@@ -825,20 +477,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTodayRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/.lovable/oauth/consent': {
-      id: '/.lovable/oauth/consent'
-      path: '/.lovable/oauth/consent'
-      fullPath: '/.lovable/oauth/consent'
-      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.mcp/invoke-tool/$tool': {
-      id: '/.mcp/invoke-tool/$tool'
-      path: '/.mcp/invoke-tool/$tool'
-      fullPath: '/.mcp/invoke-tool/$tool'
-      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/agents/$agentId': {
       id: '/_authenticated/agents/$agentId'
       path: '/$agentId'
@@ -846,46 +484,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentsAgentIdRouteImport
       parentRoute: typeof AuthenticatedAgentsRoute
     }
-    '/_authenticated/luxia/$stage': {
-      id: '/_authenticated/luxia/$stage'
-      path: '/luxia/$stage'
-      fullPath: '/luxia/$stage'
-      preLoaderRoute: typeof AuthenticatedLuxiaStageRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/meetings/': {
-      id: '/_authenticated/meetings/'
-      path: '/meetings'
-      fullPath: '/meetings/'
-      preLoaderRoute: typeof AuthenticatedMeetingsIndexRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/meetings/$meetingId': {
-      id: '/_authenticated/meetings/$meetingId'
-      path: '/meetings/$meetingId'
-      fullPath: '/meetings/$meetingId'
-      preLoaderRoute: typeof AuthenticatedMeetingsMeetingIdRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/api/public/cron/daily-meeting': {
       id: '/api/public/cron/daily-meeting'
       path: '/api/public/cron/daily-meeting'
       fullPath: '/api/public/cron/daily-meeting'
       preLoaderRoute: typeof ApiPublicCronDailyMeetingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/n8n/callback': {
-      id: '/api/public/n8n/callback'
-      path: '/api/public/n8n/callback'
-      fullPath: '/api/public/n8n/callback'
-      preLoaderRoute: typeof ApiPublicN8nCallbackRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/n8n/dispatch': {
-      id: '/api/public/n8n/dispatch'
-      path: '/api/public/n8n/dispatch'
-      fullPath: '/api/public/n8n/dispatch'
-      preLoaderRoute: typeof ApiPublicN8nDispatchRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -907,32 +510,20 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
   AuthenticatedAgentsRoute: typeof AuthenticatedAgentsRouteWithChildren
   AuthenticatedApprovalsRoute: typeof AuthenticatedApprovalsRoute
-  AuthenticatedAsignacionesRoute: typeof AuthenticatedAsignacionesRoute
   AuthenticatedAutomationsRoute: typeof AuthenticatedAutomationsRoute
   AuthenticatedBrunoRoute: typeof AuthenticatedBrunoRoute
-  AuthenticatedCeoRoute: typeof AuthenticatedCeoRoute
-  AuthenticatedClientesRoute: typeof AuthenticatedClientesRoute
   AuthenticatedCommandRoute: typeof AuthenticatedCommandRoute
   AuthenticatedDashboardsRoute: typeof AuthenticatedDashboardsRoute
-  AuthenticatedDebugAccessRoute: typeof AuthenticatedDebugAccessRoute
-  AuthenticatedDebugDataRoute: typeof AuthenticatedDebugDataRoute
   AuthenticatedDecisionsRoute: typeof AuthenticatedDecisionsRoute
-  AuthenticatedEjecucionesRoute: typeof AuthenticatedEjecucionesRoute
   AuthenticatedGreenGateRoute: typeof AuthenticatedGreenGateRoute
   AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
-  AuthenticatedMelaniaRoute: typeof AuthenticatedMelaniaRoute
-  AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
+  AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
   AuthenticatedMetricsRoute: typeof AuthenticatedMetricsRoute
-  AuthenticatedOperadorRoute: typeof AuthenticatedOperadorRoute
-  AuthenticatedOperadorDashboardRoute: typeof AuthenticatedOperadorDashboardRoute
   AuthenticatedProductsRoute: typeof AuthenticatedProductsRoute
   AuthenticatedRevenueRoute: typeof AuthenticatedRevenueRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
   AuthenticatedTodayRoute: typeof AuthenticatedTodayRoute
-  AuthenticatedLuxiaStageRoute: typeof AuthenticatedLuxiaStageRoute
-  AuthenticatedMeetingsMeetingIdRoute: typeof AuthenticatedMeetingsMeetingIdRoute
-  AuthenticatedMeetingsIndexRoute: typeof AuthenticatedMeetingsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
@@ -940,32 +531,20 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRoute,
   AuthenticatedAgentsRoute: AuthenticatedAgentsRouteWithChildren,
   AuthenticatedApprovalsRoute: AuthenticatedApprovalsRoute,
-  AuthenticatedAsignacionesRoute: AuthenticatedAsignacionesRoute,
   AuthenticatedAutomationsRoute: AuthenticatedAutomationsRoute,
   AuthenticatedBrunoRoute: AuthenticatedBrunoRoute,
-  AuthenticatedCeoRoute: AuthenticatedCeoRoute,
-  AuthenticatedClientesRoute: AuthenticatedClientesRoute,
   AuthenticatedCommandRoute: AuthenticatedCommandRoute,
   AuthenticatedDashboardsRoute: AuthenticatedDashboardsRoute,
-  AuthenticatedDebugAccessRoute: AuthenticatedDebugAccessRoute,
-  AuthenticatedDebugDataRoute: AuthenticatedDebugDataRoute,
   AuthenticatedDecisionsRoute: AuthenticatedDecisionsRoute,
-  AuthenticatedEjecucionesRoute: AuthenticatedEjecucionesRoute,
   AuthenticatedGreenGateRoute: AuthenticatedGreenGateRoute,
   AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
-  AuthenticatedMelaniaRoute: AuthenticatedMelaniaRoute,
-  AuthenticatedMetasRoute: AuthenticatedMetasRoute,
+  AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
   AuthenticatedMetricsRoute: AuthenticatedMetricsRoute,
-  AuthenticatedOperadorRoute: AuthenticatedOperadorRoute,
-  AuthenticatedOperadorDashboardRoute: AuthenticatedOperadorDashboardRoute,
   AuthenticatedProductsRoute: AuthenticatedProductsRoute,
   AuthenticatedRevenueRoute: AuthenticatedRevenueRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
   AuthenticatedTodayRoute: AuthenticatedTodayRoute,
-  AuthenticatedLuxiaStageRoute: AuthenticatedLuxiaStageRoute,
-  AuthenticatedMeetingsMeetingIdRoute: AuthenticatedMeetingsMeetingIdRoute,
-  AuthenticatedMeetingsIndexRoute: AuthenticatedMeetingsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -975,17 +554,8 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
-  McpRoute: McpRoute,
   PublicoRoute: PublicoRoute,
-  SitemapDotxmlRoute: SitemapDotxmlRoute,
-  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
-  Char91DotwellKnownChar93OauthProtectedResourceRoute:
-    Char91DotwellKnownChar93OauthProtectedResourceRoute,
-  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
-  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicCronDailyMeetingRoute: ApiPublicCronDailyMeetingRoute,
-  ApiPublicN8nCallbackRoute: ApiPublicN8nCallbackRoute,
-  ApiPublicN8nDispatchRoute: ApiPublicN8nDispatchRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

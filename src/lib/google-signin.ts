@@ -1,52 +1,30 @@
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 
-const NEXT_KEY = "melano:auth:next";
-const DEFAULT_TARGET = "/command";
-const LOCAL_BASE = "https://melano.local";
+/**
+ * Google sign-in that works on every hosting domain.
+ *
+ * On *.lovable.app the Lovable proxy intercepts /~oauth/*, so the managed
+ * broker flow works. On self-hosted domains (workers.dev, custom domains
+ * served by our own Worker) that interception does not exist, so we use
+ * Supabase's native OAuth flow instead — same managed Google credentials,
+ * callback handled by Supabase Auth, session restored from the URL hash.
+ */
+export async function signInWithGoogle(): Promise<{ error: Error | null }> {
+  const origin = window.location.origin;
+  const isLovableHosted =
+    origin.endsWith(".lovable.app") || origin.includes("localhost");
 
-export function normalizePostLoginTarget(value?: string): string {
-  if (!value || !value.startsWith("/") || value.startsWith("//") || value.includes("\\")) {
-    return DEFAULT_TARGET;
+  if (isLovableHosted) {
+    const result = await lovable.auth.signInWithOAuth("google", {
+      redirect_uri: origin,
+    });
+    return { error: result.error ?? null };
   }
-
-  try {
-    const url = new URL(value, LOCAL_BASE);
-    if (url.origin !== LOCAL_BASE) return DEFAULT_TARGET;
-    return `${url.pathname}${url.search}${url.hash}`;
-  } catch {
-    return DEFAULT_TARGET;
-  }
-}
-
-export async function signInWithGoogle(next?: string): Promise<{ error: Error | null }> {
-  const target = normalizePostLoginTarget(next);
-
-  try {
-    sessionStorage.setItem(NEXT_KEY, target);
-  } catch {
-    // sessionStorage puede no estar disponible; el fallback es /command.
-  }
-
-  const callbackUrl = new URL("/auth", window.location.origin);
-  callbackUrl.searchParams.set("next", target);
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
-    options: {
-      redirectTo: callbackUrl.toString(),
-      queryParams: { prompt: "select_account" },
-    },
+    options: { redirectTo: `${origin}/command` },
   });
-
-  return { error };
-}
-
-export function takePostLoginTarget(): string {
-  try {
-    const value = sessionStorage.getItem(NEXT_KEY);
-    sessionStorage.removeItem(NEXT_KEY);
-    return normalizePostLoginTarget(value ?? undefined);
-  } catch {
-    return DEFAULT_TARGET;
-  }
+  return { error: error ?? null };
 }

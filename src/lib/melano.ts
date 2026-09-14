@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database, Tables } from "@/integrations/supabase/types";
-import { CANONICAL_TENANT_SLUG } from "@/lib/runtime-contract";
 
-// Legacy UI types are kept temporarily while reads are normalized through the
-// canonical tenant schema. The physical source of truth is tenants/tenant_id.
 export type Org = Tables<"organizations">;
 export type Agent = Tables<"agents">;
 export type Task = Tables<"tasks">;
@@ -45,24 +42,11 @@ export function useSession() {
 
 export function useOrg() {
   return useQuery({
-    queryKey: ["organization", CANONICAL_TENANT_SLUG],
+    queryKey: ["organization"],
     queryFn: async (): Promise<Org | null> => {
-      const db = supabase as unknown as { from: (table: string) => any };
-      const { data, error } = await db
-        .from("tenants")
-        .select("id,name,slug,created_at")
-        .eq("slug", CANONICAL_TENANT_SLUG)
-        .maybeSingle();
+      const { data, error } = await supabase.from("organizations").select("*").limit(1);
       if (error) throw error;
-      if (!data) return null;
-
-      return {
-        ...data,
-        autonomy_level: 2,
-        status: "YELLOW",
-        tagline: "AI. Automation. Impact.",
-        timezone: "America/Argentina/Buenos_Aires",
-      } as unknown as Org;
+      return data?.[0] ?? null;
     },
   });
 }
@@ -75,11 +59,10 @@ export function useMyRole(orgId?: string) {
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
       if (!uid || !orgId) return null;
-      const db = supabase as unknown as { from: (table: string) => any };
-      const { data, error } = await db
-        .from("tenant_members")
+      const { data, error } = await supabase
+        .from("organization_members")
         .select("role")
-        .eq("tenant_id", orgId)
+        .eq("organization_id", orgId)
         .eq("user_id", uid)
         .maybeSingle();
       if (error) throw error;
@@ -92,27 +75,14 @@ export function useAgents(orgId?: string) {
   return useQuery({
     queryKey: ["agents", orgId],
     enabled: !!orgId,
-    queryFn: async (): Promise<Agent[]> => {
-      const db = supabase as unknown as { from: (table: string) => any };
-      const { data, error } = await db
+    queryFn: async () => {
+      const { data, error } = await supabase
         .from("agents")
         .select("*")
-        .eq("tenant_id", orgId!);
+        .eq("organization_id", orgId!)
+        .order("sort_order");
       if (error) throw error;
-
-      return (data ?? []).map((row: Record<string, unknown>, index: number) => {
-        const name = String(row["name"] ?? "");
-        const [label, role] = name.split(" — ");
-        return {
-          ...row,
-          organization_id: row["tenant_id"],
-          code: String(row["id"] ?? label).replace(/^ag-/, "").toUpperCase(),
-          role: role ?? label,
-          status: row["state"],
-          enabled: row["state"] !== "PAUSED",
-          sort_order: index,
-        } as unknown as Agent;
-      });
+      return data;
     },
   });
 }

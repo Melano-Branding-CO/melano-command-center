@@ -16,8 +16,8 @@ enabled = true
 
 # Variables públicas (no secretas). Los secretos se cargan con `wrangler secret put`.
 [vars]
-VITE_SUPABASE_URL = "https://fotlgptsjnhmkgjgrzxv.supabase.co"
-VITE_SUPABASE_PROJECT_ID = "fotlgptsjnhmkgjgrzxv"
-VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_J6v-ctU4kYueFa9J8YK34g_3ZUnwCgU"
-SUPABASE_URL = "https://fotlgptsjnhmkgjgrzxv.supabase.co"
-SUPABASE_PUBLISHABLE_KEY = "sb_publishable_J6v-ctU4kYueFa9J8YK34g_3ZUnwCgU"
+VITE_SUPABASE_URL = "https://iuuzheclayeiytmxahdp.supabase.co"
+VITE_SUPABASE_PROJECT_ID = "iuuzheclayeiytmxahdp"
+VITE_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zDnhMGy8W-q-ZKMGiOvMkg_RpXqgDGy"
+SUPABASE_URL = "https://iuuzheclayeiytmxahdp.supabase.co"
+SUPABASE_PUBLISHABLE_KEY = "sb_publishable_zDnhMGy8W-q-ZKMGiOvMkg_RpXqgDGy"

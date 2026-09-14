@@ -9,7 +9,6 @@ import { StatusBadge, ModePill } from "@/components/melano/badges";
 import { fmtDate, useOrg } from "@/lib/melano";
 import { useOrgRows, useRowById } from "@/lib/melano-queries";
 import { runAgentNow } from "@/lib/melano.functions";
-import { getAgentHealth } from "@/lib/agent-health";
 
 export const Route = createFileRoute("/_authenticated/agents/$agentId")({
   head: () => ({
@@ -29,7 +28,6 @@ type AgentRow = {
   code: string;
   name: string;
   role: string;
-  enabled: boolean;
   objective: string;
   status: string;
   execution_mode: string;
@@ -115,6 +113,7 @@ function RunOutput({ output }: { output: Record<string, unknown> }) {
   );
 }
 
+
 function AgentDetail() {
   const { agentId } = Route.useParams();
   const { data: org } = useOrg();
@@ -145,8 +144,6 @@ function AgentDetail() {
   if (isLoading) return <Empty text="Cargando…" />;
   if (!agent) return <Empty text="Agente no encontrado." />;
 
-  const health = getAgentHealth(agent, runs ?? []);
-
   return (
     <>
       <PageHeader
@@ -164,14 +161,8 @@ function AgentDetail() {
         }
       />
       <div className="grid gap-4 lg:grid-cols-2">
-        <Panel title="Estado operativo" action={<StatusBadge status={health.status} />}>
+        <Panel title="Estado" action={<StatusBadge status={agent.status} />}>
           <p className="text-sm text-muted-foreground">{agent.objective}</p>
-          <p className="mt-2 text-xs text-muted-foreground">{health.reason}</p>
-          {health.traceId ? (
-            <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-              trace {health.traceId}
-            </p>
-          ) : null}
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <ModePill mode={agent.execution_mode} />
             <span className="text-[11px] text-muted-foreground">
@@ -205,6 +196,7 @@ function AgentDetail() {
                   ) : r.output ? (
                     <RunOutput output={r.output} />
                   ) : null}
+
                 </li>
               ))}
             </ul>
@@ -228,9 +220,7 @@ function AgentDetail() {
             ).map(([label, value]) =>
               value ? (
                 <div key={label}>
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                    {label}
-                  </p>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
                   <p className="text-sm text-foreground">{value}</p>
                 </div>
               ) : null,

@@ -59,10 +59,7 @@ function SettingsPage() {
 
   return (
     <>
-      <PageHeader
-        title="Settings"
-        subtitle={`Organización: ${org?.name ?? "—"} · Rol: ${role ?? "—"}`}
-      />
+      <PageHeader title="Settings" subtitle={`Organización: ${org?.name ?? "—"} · Rol: ${role ?? "—"}`} />
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Nivel de autonomía">
           <div className="grid gap-2">
