@@ -24,20 +24,10 @@ export const Route = createFileRoute("/auth")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  validateSearch: (search: Record<string, unknown>): { next?: string } => {
-    const raw = typeof search["next"] === "string" ? search["next"] : "";
-    // Solo rutas relativas del mismo origen.
-    return /^\/(?!\/)/.test(raw) ? { next: raw } : {};
-  },
-  component: AuthRoute,
+  component: AuthPage,
 });
 
-function AuthRoute() {
-  const { next } = Route.useSearch();
-  return <AuthPage {...(next ? { next } : {})} />;
-}
-
-export function AuthPage({ next }: { next?: string }) {
+export function AuthPage() {
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
@@ -48,21 +38,19 @@ export function AuthPage({ next }: { next?: string }) {
 
   useEffect(() => {
     let active = true;
-    const go = () => {
-      if (next) window.location.replace(next);
-      else navigate({ to: "/command", replace: true });
-    };
     supabase.auth.getSession().then(({ data }) => {
-      if (active && data.session) go();
+      if (active && data.session) navigate({ to: "/command", replace: true });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) go();
+      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+        navigate({ to: "/command", replace: true });
+      }
     });
     return () => {
       active = false;
       sub.subscription.unsubscribe();
     };
-  }, [navigate, next]);
+  }, [navigate]);
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();
@@ -73,7 +61,7 @@ export function AuthPage({ next }: { next?: string }) {
           email,
           password,
           options: {
-            emailRedirectTo: next ? window.location.origin + next : window.location.origin,
+            emailRedirectTo: window.location.origin,
             data: { full_name: fullName || email.split("@")[0] },
           },
         });
@@ -97,7 +85,7 @@ export function AuthPage({ next }: { next?: string }) {
   async function handleGoogle() {
     setBusy(true);
     try {
-      const { error } = await signInWithGoogle(next);
+      const { error } = await signInWithGoogle();
       if (error) throw error;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo iniciar con Google");

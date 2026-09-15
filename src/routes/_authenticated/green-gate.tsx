@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -91,49 +91,9 @@ const NEXT_STATUS: Record<string, string> = {
 
 const LEAD_MATCH = /lead|prospect|contacto/i;
 
-type Lead = {
-  id: string;
-  full_name: string;
-  phase: string;
-  status: string;
-  next_follow_up_at: string | null;
-};
-
-const LEAD_PHASES = [
-  {
-    key: "FASE_0_14",
-    stage: "reunion",
-    label: "Fase 0–14 · Contacto y reunión",
-    desc: "Primer contacto, calificación y reunión agendada.",
-  },
-  {
-    key: "FASE_15_45",
-    stage: "propuesta",
-    label: "Fase 15–45 · Propuesta",
-    desc: "Propuesta enviada, negociación y aprobación comercial.",
-  },
-  {
-    key: "FASE_46_90",
-    stage: "contrato",
-    label: "Fase 46–90 · Contrato",
-    desc: "Contrato firmado, onboarding y revenue recurrente.",
-  },
-] as const;
-
-const LEAD_STATUSES = [
-  "NUEVO",
-  "CONTACTADO",
-  "CALIFICADO",
-  "NEGOCIACION",
-  "GANADO",
-  "PERDIDO",
-  "DESCARTADO",
-] as const;
-
-
 function GreenGatePage() {
   const { data: org } = useOrg();
-  useRealtime(["tasks", "metrics", "agent_runs", "agents", "leads"]);
+  useRealtime(["tasks", "metrics", "agent_runs", "agents"]);
   const { data: agents } = useAgents(org?.id);
   const luxia = (agents ?? []).find((a) => a.code === "LUXIA");
 
@@ -146,8 +106,6 @@ function GreenGatePage() {
     order: "started_at",
     limit: 5,
   });
-  const { data: leads } = useOrgRows<Lead>("leads", org?.id, { order: "created_at" });
-
 
   const qc = useQueryClient();
   const [busy, setBusy] = useState<string | null>(null);
@@ -177,17 +135,7 @@ function GreenGatePage() {
     LEAD_MATCH.test(`${m.key} ${m.label ?? ""}`),
   );
 
-  const upcoming = useMemo(
-    () =>
-      (leads ?? [])
-        .filter((l) => !!l.next_follow_up_at)
-        .sort((a, b) => (a.next_follow_up_at! < b.next_follow_up_at! ? -1 : 1))
-        .slice(0, 5),
-    [leads],
-  );
-
   const lastRun = (runs ?? [])[0] ?? null;
-
 
   async function setStatus(task: Task, status: string) {
     setBusy(task.id);
@@ -283,91 +231,6 @@ function GreenGatePage() {
           )}
         </Panel>
       </section>
-
-      <section className="mb-8 grid gap-4 lg:grid-cols-2">
-        <Panel
-          title="Leads por fase LUXIA"
-          action={
-            <span className="text-[11px] text-muted-foreground">{leads?.length ?? 0} totales</span>
-          }
-        >
-          {(leads?.length ?? 0) === 0 ? (
-            <Empty text="Sin leads cargados. Importalos desde Leads · LUXIA." />
-          ) : (
-            <div className="grid gap-3">
-              {LEAD_PHASES.map((p) => {
-                const rows = (leads ?? []).filter((l) => l.phase === p.key);
-                const pct = Math.round((rows.length / Math.max(leads!.length, 1)) * 100);
-                return (
-                  <div key={p.key} className="rounded-md border border-border p-3">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <p className="label-caps">{p.label}</p>
-                      <span className="text-sm font-semibold text-foreground">{rows.length}</span>
-                    </div>
-                    <div className="mt-2 h-1.5 w-full overflow-hidden rounded bg-muted">
-                      <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
-                    </div>
-                    <p className="mt-2 text-[11px] text-muted-foreground">{p.desc}</p>
-                    <Link
-                      to="/luxia/$stage"
-                      params={{ stage: p.stage }}
-                      className="mt-2 inline-block text-[11px] font-medium text-primary hover:underline"
-                    >
-                      Abrir pipeline →
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </Panel>
-
-        <Panel title="Pipeline comercial">
-          {(leads?.length ?? 0) === 0 ? (
-            <Empty text="Sin pipeline: no hay leads verificados todavía." />
-          ) : (
-            <>
-              <div className="grid gap-2">
-                {LEAD_STATUSES.map((s) => {
-                  const rows = (leads ?? []).filter((l) => l.status === s);
-                  const pct = Math.round((rows.length / Math.max(leads!.length, 1)) * 100);
-                  return (
-                    <div key={s} className="flex items-center gap-3">
-                      <span className="w-28 shrink-0 text-[11px] text-muted-foreground">{s}</span>
-                      <div className="h-2 flex-1 overflow-hidden rounded bg-muted">
-                        <div className="h-full bg-primary/70" style={{ width: `${pct}%` }} />
-                      </div>
-                      <span className="w-8 text-right text-xs font-semibold text-foreground">
-                        {rows.length}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="mt-4 border-t border-border pt-3">
-                <p className="label-caps mb-2">Próximos contactos</p>
-                {upcoming.length === 0 ? (
-                  <p className="text-[11px] text-muted-foreground">
-                    Sin próximos contactos agendados.
-                  </p>
-                ) : (
-                  <ul className="grid gap-1.5">
-                    {upcoming.map((l) => (
-                      <li key={l.id} className="flex justify-between gap-2 text-xs">
-                        <span className="truncate text-foreground">{l.full_name}</span>
-                        <span className="shrink-0 text-muted-foreground">
-                          {fmtDate(l.next_follow_up_at)}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-            </>
-          )}
-        </Panel>
-      </section>
-
 
       {isLoading ? (
         <Empty text="Cargando plan…" />
