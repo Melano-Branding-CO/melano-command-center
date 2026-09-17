@@ -58,6 +58,7 @@ function CommandCenter() {
     "automation_rules",
     "metrics",
     "agents",
+    "leads",
   ]);
 
   const today = todayKey(org?.timezone ?? undefined);
@@ -98,6 +99,20 @@ function CommandCenter() {
     unit: string | null;
     captured_at: string;
   }>("metrics", org?.id, { eq: { category: "revenue" }, order: "captured_at", limit: 4 });
+  const { data: leads } = useOrgRows<{
+    id: string;
+    full_name: string;
+    phase: string;
+    status: string;
+    zone: string | null;
+  }>("leads", org?.id, { order: "created_at" });
+
+  const leadStats = (() => {
+    const rows = leads ?? [];
+    const byStatus = new Map<string, number>();
+    for (const l of rows) byStatus.set(l.status, (byStatus.get(l.status) ?? 0) + 1);
+    return { total: rows.length, byStatus, recientes: rows.slice(0, 5) };
+  })();
 
   async function onRunMeeting() {
     if (!org?.id) return;
@@ -273,6 +288,44 @@ function CommandCenter() {
                 </li>
               ))}
             </ul>
+          )}
+        </Panel>
+
+        <Panel
+          title="Leads · LUXIA"
+          action={
+            <Link to="/leads" className="text-xs text-muted-foreground hover:text-foreground">
+              Ver cohorte
+            </Link>
+          }
+        >
+          {leadStats.total === 0 ? (
+            <Empty text="Sin leads cargados todavía." />
+          ) : (
+            <>
+              <p className="text-sm">
+                <span className="font-semibold text-foreground">{leadStats.total}</span>{" "}
+                <span className="text-muted-foreground">leads en la cohorte</span>
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {Array.from(leadStats.byStatus.entries()).map(([status, count]) => (
+                  <span
+                    key={status}
+                    className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
+                  >
+                    {status} · {count}
+                  </span>
+                ))}
+              </div>
+              <ul className="mt-3 space-y-1.5 border-t border-border pt-3 text-sm">
+                {leadStats.recientes.map((l) => (
+                  <li key={l.id} className="flex items-center justify-between gap-2">
+                    <span className="truncate text-foreground">{l.full_name}</span>
+                    <span className="text-xs text-muted-foreground">{l.zone ?? "—"}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </Panel>
 
