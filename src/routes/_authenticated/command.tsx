@@ -291,6 +291,44 @@ function CommandCenter() {
           )}
         </Panel>
 
+        <Panel
+          title="Leads · LUXIA"
+          action={
+            <Link to="/leads" className="text-xs text-muted-foreground hover:text-foreground">
+              Ver cohorte
+            </Link>
+          }
+        >
+          {leadStats.total === 0 ? (
+            <Empty text="Sin leads cargados todavía." />
+          ) : (
+            <>
+              <p className="text-sm">
+                <span className="font-semibold text-foreground">{leadStats.total}</span>{" "}
+                <span className="text-muted-foreground">leads en la cohorte</span>
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {Array.from(leadStats.byStatus.entries()).map(([status, count]) => (
+                  <span
+                    key={status}
+                    className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
+                  >
+                    {status} · {count}
+                  </span>
+                ))}
+              </div>
+              <ul className="mt-3 space-y-1.5 border-t border-border pt-3 text-sm">
+                {leadStats.recientes.map((l) => (
+                  <li key={l.id} className="flex items-center justify-between gap-2">
+                    <span className="truncate text-foreground">{l.full_name}</span>
+                    <span className="text-xs text-muted-foreground">{l.zone ?? "—"}</span>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </Panel>
+
         <Panel title="Alertas">
           {(alerts ?? []).length === 0 ? (
             <Empty text="Sin alertas abiertas." />
