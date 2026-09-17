@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database, Tables } from "@/integrations/supabase/types";
 
+const CANONICAL_TENANT_SLUG = "melano-inc";
+
 export type Org = Tables<"organizations">;
 export type Agent = Tables<"agents">;
 export type Task = Tables<"tasks">;
@@ -42,13 +44,36 @@ export function useSession() {
 
 export function useOrg() {
   return useQuery({
-    queryKey: ["organization"],
+    queryKey: ["organization", CANONICAL_TENANT_SLUG],
     queryFn: async (): Promise<Org | null> => {
-      const { data, error } = await supabase.from("organizations").select("*").limit(1);
+      const db = supabase as unknown as { from: (table: string) => any };
+      const { data, error } = await db
+        .from("tenants")
+        .select("id,name,slug,created_at")
+        .eq("slug", CANONICAL_TENANT_SLUG)
+        .maybeSingle();
       if (error) throw error;
-      return data?.[0] ?? null;
+      if (!data) return null;
+      return {
+        ...data,
+        autonomy_level: 2,
+        status: "YELLOW",
+        system_health: "YELLOW",
+        tagline: "AI. Automation. Impact.",
+        timezone: "America/Argentina/Buenos_Aires",
+      } as unknown as Org;
     },
   });
+}
+
+function uiRole(role: unknown): string | null {
+  switch (String(role ?? "").toLowerCase()) {
+    case "owner": return "CEO";
+    case "admin": return "ADMIN";
+    case "member": return "OPERATOR";
+    case "viewer": return "VIEWER";
+    default: return role ? String(role).toUpperCase() : null;
+  }
 }
 
 export function useMyRole(orgId?: string) {
@@ -59,14 +84,15 @@ export function useMyRole(orgId?: string) {
       const { data: userData } = await supabase.auth.getUser();
       const uid = userData.user?.id;
       if (!uid || !orgId) return null;
-      const { data, error } = await supabase
-        .from("organization_members")
+      const db = supabase as unknown as { from: (table: string) => any };
+      const { data, error } = await db
+        .from("tenant_members")
         .select("role")
-        .eq("organization_id", orgId)
+        .eq("tenant_id", orgId)
         .eq("user_id", uid)
         .maybeSingle();
       if (error) throw error;
-      return data?.role ?? null;
+      return uiRole(data?.role);
     },
   });
 }
@@ -75,46 +101,39 @@ export function useAgents(orgId?: string) {
   return useQuery({
     queryKey: ["agents", orgId],
     enabled: !!orgId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("agents")
-        .select("*")
-        .eq("organization_id", orgId!)
-        .order("sort_order");
+    queryFn: async (): Promise<Agent[]> => {
+      const db = supabase as unknown as { from: (table: string) => any };
+      const { data, error } = await db.from("agents").select("*").eq("tenant_id", orgId!);
       if (error) throw error;
-      return data;
+      return (data ?? []).map((row: Record<string, unknown>, index: number) => {
+        const name = String(row["name"] ?? "");
+        const [label, role] = name.split(" — ");
+        return {
+          ...row,
+          organization_id: row["tenant_id"],
+          code: String(row["id"] ?? label).replace(/^ag-/, "").toUpperCase(),
+          role: role ?? label,
+          status: String(row["state"] ?? "").toUpperCase(),
+          enabled: String(row["state"] ?? "").toLowerCase() !== "paused",
+          sort_order: index,
+        } as unknown as Agent;
+      });
     },
   });
 }
 
-/** Fecha operativa del día en la zona horaria de MELANO INC (Buenos Aires). */
 export function todayKey(timeZone = "America/Argentina/Buenos_Aires") {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
+  return new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 }
 
 export function fmtDate(value?: string | null) {
   if (!value) return "—";
-  return new Date(value).toLocaleString("es-AR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return new Date(value).toLocaleString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }
 
 export function fmtDay(value?: string | null) {
   if (!value) return "—";
-  return new Date(value).toLocaleDateString("es-AR", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  });
+  return new Date(value).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" });
 }
 
 export function agentMap(agents?: Agent[] | null) {
