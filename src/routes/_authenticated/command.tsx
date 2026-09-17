@@ -8,7 +8,7 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
-import { runMeetingNow } from "@/lib/melano.functions";
+import { runCanonicalBoardNow } from "@/lib/canonical-runtime.functions";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({
@@ -48,7 +48,7 @@ function CommandCenter() {
   const map = agentMap(agents as Agent[] | undefined);
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const runMeeting = useServerFn(runMeetingNow);
+  const runMeeting = useServerFn(runCanonicalBoardNow);
 
   useRealtime([
     "tasks",
@@ -118,9 +118,9 @@ function CommandCenter() {
     if (!org?.id) return;
     setBusy(true);
     try {
-      const res = await runMeeting({ data: { organizationId: org.id } });
-      toast.success(`Reunión ejecutada · trace ${res.traceId.slice(0, 8)}`);
-      qc.invalidateQueries();
+      const res = await runMeeting({ data: { tenantId: org.id } });
+      toast.success(`Board enviado · trace ${res.traceId.slice(0, 8)}`);
+      window.setTimeout(() => qc.invalidateQueries(), 2500);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo ejecutar la reunión");
     } finally {
