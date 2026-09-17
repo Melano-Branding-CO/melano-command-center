@@ -58,6 +58,7 @@ function CommandCenter() {
     "automation_rules",
     "metrics",
     "agents",
+    "leads",
   ]);
 
   const today = todayKey(org?.timezone ?? undefined);
@@ -98,6 +99,20 @@ function CommandCenter() {
     unit: string | null;
     captured_at: string;
   }>("metrics", org?.id, { eq: { category: "revenue" }, order: "captured_at", limit: 4 });
+  const { data: leads } = useOrgRows<{
+    id: string;
+    full_name: string;
+    phase: string;
+    status: string;
+    zone: string | null;
+  }>("leads", org?.id, { order: "created_at" });
+
+  const leadStats = (() => {
+    const rows = leads ?? [];
+    const byStatus = new Map<string, number>();
+    for (const l of rows) byStatus.set(l.status, (byStatus.get(l.status) ?? 0) + 1);
+    return { total: rows.length, byStatus, recientes: rows.slice(0, 5) };
+  })();
 
   async function onRunMeeting() {
     if (!org?.id) return;
