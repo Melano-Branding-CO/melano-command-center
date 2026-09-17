@@ -30,13 +30,15 @@ export const runCanonicalBoardNow = createServerFn({ method: "POST" })
     }
 
     const traceId = crypto.randomUUID();
-    const headers: Record<string, string> = { "Content-Type": "application/json" };
     const webhookToken = process.env["N8N_COMMAND_CENTER_TOKEN"]?.trim();
-    if (webhookToken) headers["Authorization"] = `Bearer ${webhookToken}`;
+    if (!webhookToken) throw new Error("Falta N8N_COMMAND_CENTER_TOKEN en el servidor");
 
     const response = await fetch(commandCenterWebhookUrl(), {
       method: "POST",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Command-Center-Token": webhookToken,
+      },
       body: JSON.stringify({
         event: "board.execute",
         source: "command-center-ui",
