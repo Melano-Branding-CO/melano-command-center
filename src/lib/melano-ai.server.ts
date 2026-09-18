@@ -2,7 +2,7 @@
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 const MODEL = "google/gemini-2.5-flash";
-const GATEWAY = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const GATEWAY = "https://ai-gateway.vercel.sh/v1/chat/completions";
 
 import type { Json as DbJson } from "@/integrations/supabase/types";
 
@@ -11,8 +11,8 @@ export type Json = DbJson;
 export type AiResult = { text: string; tokens: number; model: string; ms: number };
 
 async function aiFull(system: string, user: string): Promise<AiResult> {
-  const key = process.env["LOVABLE_API_KEY"];
-  if (!key) throw new Error("Falta LOVABLE_API_KEY en el servidor");
+  const key = process.env["AI_GATEWAY_API_KEY"] || process.env["VERCEL_OIDC_TOKEN"];
+  if (!key) throw new Error("Falta AI_GATEWAY_API_KEY o VERCEL_OIDC_TOKEN en el servidor");
   const t0 = Date.now();
   const res = await fetch(GATEWAY, {
     method: "POST",
@@ -46,7 +46,6 @@ async function aiFull(system: string, user: string): Promise<AiResult> {
 async function ai(system: string, user: string): Promise<string> {
   return (await aiFull(system, user)).text;
 }
-
 
 function parseJson<T>(text: string, fallback: T): T {
   const cleaned = text
@@ -258,7 +257,6 @@ export async function runAgentServer(agentId: string, meetingId?: string) {
 
     return { agent, parsed, traceId, runId: run?.id ?? null, tokens: result.tokens };
   } catch (err) {
-
     const message = err instanceof Error ? err.message : String(err);
     if (run?.id) {
       await db
