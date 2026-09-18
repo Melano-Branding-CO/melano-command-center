@@ -460,6 +460,16 @@ function LeadsPage() {
                               <dd className="text-foreground">{lead.source ?? "—"}</dd>
                             </div>
                             <div>
+                              <dt className="label-caps">Prioridad</dt>
+                              <dd className="text-foreground">
+                                {priorityLabel(lead.score)} · {lead.score ?? 0}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="label-caps">Cohorte</dt>
+                              <dd className="text-foreground">{lead.cohort || "—"}</dd>
+                            </div>
+                            <div>
                               <dt className="label-caps">Último contacto</dt>
                               <dd className="text-foreground">{fmtDate(lead.last_contact_at)}</dd>
                             </div>
