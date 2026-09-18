@@ -140,6 +140,7 @@ function LeadsPage() {
   const [importing, setImporting] = useState(false);
   const [bulk, setBulk] = useState("");
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", source: "", zone: "" });
+  const [cohort, setCohort] = useState<string>("TODAS");
 
 
   const cohorts = useMemo(() => {
