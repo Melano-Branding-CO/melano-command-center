@@ -53,6 +53,7 @@ type Lead = {
   zone: string | null;
   budget: number | null;
   currency: string;
+  score: number;
   phase: Phase;
   status: LeadStatus;
   notes: string | null;
@@ -113,6 +114,13 @@ const PHASE_LABEL: Record<Phase, string> = {
   FASE_46_90: "46–90",
 };
 
+function priorityLabel(score: number | null | undefined) {
+  const s = score ?? 0;
+  if (s >= 60) return "Alta";
+  if (s >= 30) return "Media";
+  return "Baja";
+}
+
 function db() {
   return supabase as unknown as { from: (t: string) => any };
 }
@@ -140,11 +148,20 @@ function LeadsPage() {
   const [importing, setImporting] = useState(false);
   const [bulk, setBulk] = useState("");
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", source: "", zone: "" });
+  const [cohort, setCohort] = useState<string>("TODAS");
 
+
+  const cohorts = useMemo(() => {
+    const set = new Set<string>();
+    for (const l of leads ?? []) set.add(l.cohort || "SIN_COHORTE");
+    return Array.from(set).sort();
+  }, [leads]);
 
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    const base = (leads ?? []).filter((l) => l.cohort === "LUXIA" || !l.cohort);
+    const base = (leads ?? []).filter(
+      (l) => cohort === "TODAS" || (l.cohort || "SIN_COHORTE") === cohort,
+    );
     if (!term) return base;
     return base.filter((l) =>
       `${l.full_name} ${l.email ?? ""} ${l.phone ?? ""} ${l.zone ?? ""} ${l.source ?? ""}`
@@ -332,6 +349,20 @@ function LeadsPage() {
         </span>
       </div>
 
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        {["TODAS", ...cohorts].map((c) => (
+          <Button
+            key={c}
+            size="sm"
+            variant={cohort === c ? "default" : "outline"}
+            className="h-7 px-3 text-[11px]"
+            onClick={() => setCohort(c)}
+          >
+            {c}
+          </Button>
+        ))}
+      </div>
+
       {creating ? (
         <Panel title="Alta de lead verificado">
           <form className="grid gap-3 sm:grid-cols-5" onSubmit={createLead}>
@@ -448,6 +479,16 @@ function LeadsPage() {
                             <div>
                               <dt className="label-caps">Origen</dt>
                               <dd className="text-foreground">{lead.source ?? "—"}</dd>
+                            </div>
+                            <div>
+                              <dt className="label-caps">Prioridad</dt>
+                              <dd className="text-foreground">
+                                {priorityLabel(lead.score)} · {lead.score ?? 0}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="label-caps">Cohorte</dt>
+                              <dd className="text-foreground">{lead.cohort || "—"}</dd>
                             </div>
                             <div>
                               <dt className="label-caps">Último contacto</dt>
