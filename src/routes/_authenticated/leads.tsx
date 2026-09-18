@@ -342,6 +342,20 @@ function LeadsPage() {
         </span>
       </div>
 
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        {["TODAS", ...cohorts].map((c) => (
+          <Button
+            key={c}
+            size="sm"
+            variant={cohort === c ? "default" : "outline"}
+            className="h-7 px-3 text-[11px]"
+            onClick={() => setCohort(c)}
+          >
+            {c}
+          </Button>
+        ))}
+      </div>
+
       {creating ? (
         <Panel title="Alta de lead verificado">
           <form className="grid gap-3 sm:grid-cols-5" onSubmit={createLead}>
