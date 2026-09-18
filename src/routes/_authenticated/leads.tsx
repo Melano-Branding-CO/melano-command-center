@@ -142,9 +142,17 @@ function LeadsPage() {
   const [form, setForm] = useState({ full_name: "", email: "", phone: "", source: "", zone: "" });
 
 
+  const cohorts = useMemo(() => {
+    const set = new Set<string>();
+    for (const l of leads ?? []) set.add(l.cohort || "SIN_COHORTE");
+    return Array.from(set).sort();
+  }, [leads]);
+
   const filtered = useMemo(() => {
     const term = q.trim().toLowerCase();
-    const base = (leads ?? []).filter((l) => l.cohort === "LUXIA" || !l.cohort);
+    const base = (leads ?? []).filter(
+      (l) => cohort === "TODAS" || (l.cohort || "SIN_COHORTE") === cohort,
+    );
     if (!term) return base;
     return base.filter((l) =>
       `${l.full_name} ${l.email ?? ""} ${l.phone ?? ""} ${l.zone ?? ""} ${l.source ?? ""}`
