@@ -53,6 +53,7 @@ type Lead = {
   zone: string | null;
   budget: number | null;
   currency: string;
+  score: number;
   phase: Phase;
   status: LeadStatus;
   notes: string | null;
