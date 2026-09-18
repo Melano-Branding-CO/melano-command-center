@@ -114,6 +114,13 @@ const PHASE_LABEL: Record<Phase, string> = {
   FASE_46_90: "46–90",
 };
 
+function priorityLabel(score: number | null | undefined) {
+  const s = score ?? 0;
+  if (s >= 60) return "Alta";
+  if (s >= 30) return "Media";
+  return "Baja";
+}
+
 function db() {
   return supabase as unknown as { from: (t: string) => any };
 }
