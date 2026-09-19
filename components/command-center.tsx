@@ -79,6 +79,8 @@ export function CommandCenter() {
   const [activeSection, setActiveSection] = useState<SectionKey>('Command')
   const [running, setRunning] = useState(false)
   const [query, setQuery] = useState('')
+  const [configOpen, setConfigOpen] = useState(false)
+  const [configSaved, setConfigSaved] = useState(false)
 
   const filteredNavigation = useMemo(() => navigation.filter(({ label }) => label.toLowerCase().includes(query.toLowerCase())), [query])
   const detail = activeSection === 'Command' ? null : detailSections[activeSection]
@@ -93,6 +95,16 @@ export function CommandCenter() {
     window.setTimeout(() => setRunning(false), 1800)
   }
 
+  function openConfiguration() {
+    setConfigSaved(false)
+    setConfigOpen(true)
+  }
+
+  function saveConfiguration() {
+    setConfigSaved(true)
+    window.setTimeout(() => setConfigOpen(false), 900)
+  }
+
   return <div className="app-shell">
     <aside className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}>
       <div className="brand-lockup"><div className="brand-mark"><Command size={17} strokeWidth={1.7} /></div><div><strong>MELANO</strong><span>INC / COMMAND CENTER</span></div><button className="mobile-close" onClick={() => setSidebarOpen(false)} aria-label="Close navigation"><X size={18} /></button></div>
@@ -103,7 +115,7 @@ export function CommandCenter() {
     </aside>
     {sidebarOpen && <button className="sidebar-backdrop" aria-label="Close navigation" onClick={() => setSidebarOpen(false)} />}
     <main className="main-content">
-      <header className="topbar"><button className="mobile-menu" onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={21} /></button><div className="breadcrumb"><span>Workspace</span><span>/</span><strong>{activeSection}</strong></div><div className="topbar-actions"><button className="icon-button" aria-label="Notifications"><Bell size={18} /><i /></button><div className="user-chip"><div className="user-avatar">MC</div><span>Melano Corp</span><ChevronDown size={14} /></div></div></header>
+      <header className="topbar"><button className="mobile-menu" onClick={() => setSidebarOpen(true)} aria-label="Open navigation"><Menu size={21} /></button><div className="breadcrumb"><span>Workspace</span><span>/</span><strong>{activeSection}</strong></div><div className="topbar-actions"><button className="icon-button" aria-label="Notifications" onClick={() => setActiveSection('Approvals')}><Bell size={18} /><i /></button><div className="user-chip"><div className="user-avatar">MC</div><span>Melano Corp</span><ChevronDown size={14} /></div></div></header>
       <div className="content-wrap">
         {activeSection === 'Command' ? <>
           <div className="page-heading"><div><p className="eyebrow">THURSDAY, 18 SEPTEMBER 2026</p><h1>Good morning, Melano.</h1><p className="subtitle">Your executive view across AI, automation, and impact.</p></div><button className="primary-button" onClick={runMeeting} disabled={running}><Play size={15} fill="currentColor" />{running ? 'Starting board…' : 'Execute meeting now'}</button></div>
@@ -113,12 +125,22 @@ export function CommandCenter() {
           <div className="dashboard-grid lower-grid"><section className="panel"><SectionHeader eyebrow="Growth" title="LUXIA leads" action="Open leads" onAction={() => selectSection('Leads')} /><div className="metric-empty"><Users size={20} /><span>Awaiting connected data</span></div></section><section className="panel"><SectionHeader eyebrow="Automations" title="Recent activity" action="Open automations" onAction={() => selectSection('Automations')} /><div className="metric-empty"><Zap size={20} /><span>No automation logs yet</span></div></section><section className="panel"><SectionHeader eyebrow="Governance" title="Decisions & approvals" action="Review" onAction={() => selectSection('Approvals')} /><div className="metric-empty"><CheckCircle2 size={20} /><span>Nothing to review</span></div></section></div>
         </> : <>
           <div className="page-heading"><div><p className="eyebrow">{detail?.eyebrow}</p><h1>{detail?.title}</h1><p className="subtitle">{detail?.description}</p></div><button className="primary-button" onClick={() => selectSection('Command')}><LayoutDashboard size={15} />Back to command</button></div>
-          <div className="detail-toolbar"><div className="connection-state"><span className="status-dot" /><span>Production surface</span><small>Waiting for verified source data</small></div><button className="secondary-button"><Plus size={13} />Configure</button></div>
+          <div className="detail-toolbar"><div className="connection-state"><span className="status-dot" /><span>Production surface</span><small>Waiting for verified source data</small></div><button className="secondary-button" onClick={openConfiguration}><Settings2 size={13} />Configure</button></div>
           <section className="detail-grid"><div className="detail-card"><SectionHeader eyebrow="Current state" title="Workspace signal" /><div className="detail-list">{detail?.items.map((item) => <article className="detail-row" key={item.title}><div className="detail-icon"><detail.icon size={17} /></div><div><strong>{item.title}</strong><p>{item.detail}</p></div><span className="state-pill"><Check size={12} />{item.status}</span></article>)}</div></div><aside className="detail-card side-card"><p className="eyebrow">Control notes</p><h2>Built for verified operations</h2><p className="side-copy">This surface will only show production values after the connected source and tenant permissions are verified. No placeholder business data is being displayed.</p><div className="note-line"><AlertTriangle size={15} /><span>Schema verification required</span></div></aside></section>
         </>}
         <footer className="page-footer"><span>MELANO INC — AUTONOMOUS COMMAND CENTER</span><span>AI. AUTOMATION. IMPACT.</span></footer>
       </div>
     </main>
+    {configOpen && <div className="config-overlay" role="dialog" aria-modal="true" aria-labelledby="config-title">
+      <button className="config-dismiss" aria-label="Close configuration" onClick={() => setConfigOpen(false)} />
+      <div className="config-panel">
+        <div className="config-header"><div><p className="eyebrow">SECTION CONFIGURATION</p><h2 id="config-title">Configure {activeSection}</h2></div><button className="icon-button" aria-label="Close configuration" onClick={() => setConfigOpen(false)}><X size={18} /></button></div>
+        <p className="config-copy">Connect the verified source and define the permissions for this production surface.</p>
+        <label className="config-field"><span>Data source</span><select defaultValue="supabase"><option value="supabase">Supabase — connected</option><option value="manual">Manual review queue</option></select></label>
+        <label className="config-field"><span>Refresh policy</span><select defaultValue="realtime"><option value="realtime">Realtime</option><option value="hourly">Every hour</option><option value="daily">Daily</option></select></label>
+        <div className="config-actions"><button className="secondary-button" onClick={() => setConfigOpen(false)}>Cancel</button><button className="primary-button" onClick={saveConfiguration}>{configSaved ? 'Saved' : 'Save configuration'}</button></div>
+      </div>
+    </div>}
   </div>
 }
 
