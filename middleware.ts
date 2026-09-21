@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const PUBLIC_PATHS = ['/favicon.ico', '/robots.txt', '/sitemap.xml']
+const PUBLIC_PATHS = ['/favicon.ico', '/robots.txt', '/sitemap.xml', '/api/health']
 
 function unauthorized() {
   return new NextResponse('Authentication required', {
@@ -33,15 +33,10 @@ export function middleware(request: NextRequest) {
   const expectedUser = process.env.COMMAND_CENTER_USER
   const expectedPassword = process.env.COMMAND_CENTER_PASSWORD
 
-  // Fail closed: never expose the command center when credentials are missing.
-  if (!expectedUser || !expectedPassword) {
-    return unauthorized()
-  }
+  if (!expectedUser || !expectedPassword) return unauthorized()
 
   const authorization = request.headers.get('authorization')
-  if (!authorization?.startsWith('Basic ')) {
-    return unauthorized()
-  }
+  if (!authorization?.startsWith('Basic ')) return unauthorized()
 
   try {
     const decoded = atob(authorization.slice(6))
@@ -64,5 +59,5 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|.*\\..*).*)'],
+  matcher: ['/((?!_next/static|_next/image|.*\\..*).*)'],
 }
