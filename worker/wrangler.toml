@@ -1,0 +1,19 @@
+name = "melano-agent-worker"
+main = "src/index.ts"
+compatibility_date = "2026-09-21"
+
+[triggers]
+crons = ["*/5 * * * *"]
+
+[[kv_namespaces]]
+binding = "AGENTS"
+id = "REPLACE_WITH_AGENTS_KV_ID"
+
+[[kv_namespaces]]
+binding = "TASKS"
+id = "REPLACE_WITH_TASKS_KV_ID"
+
+[vars]
+# Set secrets with: wrangler secret put AGENT_TOKEN
+# Set secrets with: wrangler secret put TASK_SIGNING_SECRET
+# TASKS_JSON may be configured as a secret or variable.
