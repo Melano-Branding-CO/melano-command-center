@@ -5,8 +5,8 @@
   "packageManager": "pnpm@12.3.4",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
-    "build:dev": "next build",
+    "build": "next build && rm -rf dist && mv out dist",
+    "build:dev": "next build && rm -rf dist && mv out dist",
     "start": "next start"
   },
   "dependencies": {
