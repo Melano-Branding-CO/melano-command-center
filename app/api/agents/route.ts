@@ -42,7 +42,7 @@ async function readWorkerAgents(): Promise<Agent[] | null> {
   if (!workerUrl || !workerToken) return null
 
   try {
-    const response = await fetch(`${workerUrl.replace(/\\/$/, '')}/agents`, {
+    const response = await fetch(`${workerUrl.replace(/\/$/, '')}/agents`, {
       headers: { Authorization: `Bearer ${workerToken}` },
       cache: 'no-store',
     })
