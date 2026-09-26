@@ -11,6 +11,7 @@ import {
 const SUPABASE_URL = 'https://fotlgptsjnhmkgjgrzxv.supabase.co'
 const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_J6v-ctU4kYueFa9J8YK34g_3ZUnwCgU'
 const SESSION_KEY = 'melano-command-center-session'
+const CANONICAL_TENANT_ID = 'c26b11fb-46be-46b8-a8f6-7bbd1ece622f'
 
 type SectionKey = 'Command' | 'Agents' | 'Approvals' | 'Decisions' | 'Tasks' | 'Today' | 'Leads' | 'Metrics' | 'Revenue' | 'Automations' | 'Settings'
 type Session = {
@@ -148,9 +149,10 @@ function today() {
 }
 
 async function loadSnapshot(session: Session): Promise<Snapshot> {
-  const memberships = await rest('tenant_members', `select=tenant_id,role&user_id=eq.${encodeURIComponent(session.user.id)}&limit=1`, session) as Membership[]
+  const memberships = await rest('tenant_members', `select=tenant_id,role&user_id=eq.${encodeURIComponent(session.user.id)}`, session) as Membership[]
   if (!memberships.length) throw new Error('TENANT_MEMBERSHIP_NOT_FOUND')
-  const membership = memberships[0]
+  const membership = memberships.find(item => item.tenant_id === CANONICAL_TENANT_ID)
+  if (!membership) throw new Error('CANONICAL_TENANT_ACCESS_REQUIRED')
   const t = encodeURIComponent(membership.tenant_id)
 
   const [agents, approvals, decisions, tasks, critical, logs, revenue, pipeline, mrr, meetings] = await Promise.all([
