@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  distDir: '.next',
   typescript: {
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: false,
   },
   images: {
     unoptimized: true,
