@@ -1,12 +1,12 @@
 {
-  "name": "my-project",
+  "name": "melano-command-center",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@12.3.4",
   "scripts": {
     "dev": "next dev",
-    "build": "next build && rm -rf dist && mv out dist",
-    "build:dev": "next build && rm -rf dist && mv out dist",
+    "build": "next build",
+    "build:dev": "next build",
     "start": "next start"
   },
   "dependencies": {
