@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { CommandCenter } from '@/components/command-center'
-import { PasswordGate } from '@/components/password-gate'
+import { AuthGate } from '@/components/auth-gate'
 
 export const metadata: Metadata = {
   title: 'Command Center | Melano Inc',
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <PasswordGate>
+    <AuthGate>
       <CommandCenter />
-    </PasswordGate>
+    </AuthGate>
   )
 }
