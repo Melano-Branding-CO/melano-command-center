@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { CommandCenter } from '@/components/command-center'
+import { PasswordGate } from '@/components/password-gate'
 
 export const metadata: Metadata = {
   title: 'Command Center | Melano Inc',
