@@ -35,5 +35,9 @@ export const metadata: Metadata = {
 }
 
 export default function Page() {
-  return <CommandCenter />
+  return (
+    <PasswordGate>
+      <CommandCenter />
+    </PasswordGate>
+  )
 }
