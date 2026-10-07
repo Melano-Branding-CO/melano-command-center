@@ -1,0 +1,10 @@
+revoke execute on function public.is_org_member(uuid) from public, anon;
+revoke execute on function public.org_role(uuid) from public, anon;
+revoke execute on function public.can_write(uuid) from public, anon;
+revoke execute on function public.can_admin(uuid) from public, anon;
+revoke execute on function public.handle_new_user() from public, anon, authenticated;
+revoke execute on function public.set_updated_at() from public, anon, authenticated;
+grant execute on function public.is_org_member(uuid) to authenticated;
+grant execute on function public.org_role(uuid) to authenticated;
+grant execute on function public.can_write(uuid) to authenticated;
+grant execute on function public.can_admin(uuid) to authenticated;
