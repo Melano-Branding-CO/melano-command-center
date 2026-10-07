@@ -136,7 +136,7 @@ export function useOrgRows<T = Record<string, unknown>>(table: string, orgId?: s
       const { data, error } = await q;
       if (error) throw error;
       let rows = (data ?? []).map((row: Record<string, unknown>) => normalizeRow(table, row));
-      if (Object.keys(virtualFilters).length) rows = rows.filter((row) => matchesVirtualFilters(row, virtualFilters));
+      if (Object.keys(virtualFilters).length) rows = rows.filter((row: Record<string, unknown>) => matchesVirtualFilters(row, virtualFilters));
       if (opts.limit) rows = rows.slice(0, opts.limit);
       return rows as T[];
     },
