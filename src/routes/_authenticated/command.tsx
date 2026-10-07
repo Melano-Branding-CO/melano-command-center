@@ -8,7 +8,7 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
-import { runCanonicalBoardNow } from "@/lib/canonical-runtime.functions";
+import { runMeetingNow } from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({
@@ -48,7 +48,7 @@ function CommandCenter() {
   const map = agentMap(agents as Agent[] | undefined);
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
-  const runMeeting = useServerFn(runCanonicalBoardNow);
+  const runMeeting = useServerFn(runMeetingNow);
 
   useRealtime([
     "tasks",
