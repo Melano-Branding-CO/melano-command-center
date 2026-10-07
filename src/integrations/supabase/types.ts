@@ -454,6 +454,7 @@ export type Database = {
           action: string
           agent_id: string | null
           category: string
+          client_id: string | null
           decided_at: string | null
           decided_by: string | null
           decision_id: string | null
@@ -475,6 +476,7 @@ export type Database = {
           action: string
           agent_id?: string | null
           category?: string
+          client_id?: string | null
           decided_at?: string | null
           decided_by?: string | null
           decision_id?: string | null
@@ -496,6 +498,7 @@ export type Database = {
           action?: string
           agent_id?: string | null
           category?: string
+          client_id?: string | null
           decided_at?: string | null
           decided_by?: string | null
           decision_id?: string | null
@@ -519,6 +522,13 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "approvals_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
@@ -676,6 +686,51 @@ export type Database = {
           },
         ]
       }
+      client_portal_access: {
+        Row: {
+          client_id: string
+          created_at: string
+          email: string
+          id: string
+          invited_by: string | null
+          organization_id: string
+          revoked_at: string | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          email: string
+          id?: string
+          invited_by?: string | null
+          organization_id: string
+          revoked_at?: string | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string | null
+          organization_id?: string
+          revoked_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_portal_access_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_portal_access_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clients: {
         Row: {
           city: string | null
@@ -818,6 +873,7 @@ export type Database = {
           analysis: string | null
           approved_at: string | null
           approved_by: string | null
+          client_id: string | null
           confidence: number
           created_at: string
           description: string | null
@@ -844,6 +900,7 @@ export type Database = {
           analysis?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          client_id?: string | null
           confidence?: number
           created_at?: string
           description?: string | null
@@ -870,6 +927,7 @@ export type Database = {
           analysis?: string | null
           approved_at?: string | null
           approved_by?: string | null
+          client_id?: string | null
           confidence?: number
           created_at?: string
           description?: string | null
@@ -893,6 +951,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "decisions_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "decisions_meeting_id_fkey"
             columns: ["meeting_id"]
@@ -1582,6 +1647,7 @@ export type Database = {
         Row: {
           assigned_agent: string | null
           assigned_user: string | null
+          client_id: string | null
           completed_at: string | null
           created_at: string
           created_by: string | null
@@ -1614,6 +1680,7 @@ export type Database = {
         Insert: {
           assigned_agent?: string | null
           assigned_user?: string | null
+          client_id?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -1646,6 +1713,7 @@ export type Database = {
         Update: {
           assigned_agent?: string | null
           assigned_user?: string | null
+          client_id?: string | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -1681,6 +1749,13 @@ export type Database = {
             columns: ["assigned_agent"]
             isOneToOne: false
             referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
