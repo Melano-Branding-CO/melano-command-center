@@ -32,6 +32,8 @@ import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedTodayRouteImport } from './routes/_authenticated/today'
 import { Route as AuthenticatedAgentsAgentIdRouteImport } from './routes/_authenticated/agents.$agentId'
+import { Route as ApiPublicAgentsRouteImport } from './routes/api/public/agents'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicCronDailyMeetingRouteImport } from './routes/api/public/cron/daily-meeting'
 
 const IndexRoute = IndexRouteImport.update({
@@ -150,6 +152,16 @@ const AuthenticatedAgentsAgentIdRoute =
     path: '/$agentId',
     getParentRoute: () => AuthenticatedAgentsRoute,
   } as any)
+const ApiPublicAgentsRoute = ApiPublicAgentsRouteImport.update({
+  id: '/api/public/agents',
+  path: '/api/public/agents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronDailyMeetingRoute =
   ApiPublicCronDailyMeetingRouteImport.update({
     id: '/api/public/cron/daily-meeting',
@@ -180,6 +192,8 @@ export interface FileRoutesByFullPath {
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
+  '/api/public/agents': typeof ApiPublicAgentsRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRoutesByTo {
@@ -205,6 +219,8 @@ export interface FileRoutesByTo {
   '/tasks': typeof AuthenticatedTasksRoute
   '/today': typeof AuthenticatedTodayRoute
   '/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
+  '/api/public/agents': typeof ApiPublicAgentsRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRoutesById {
@@ -232,6 +248,8 @@ export interface FileRoutesById {
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
   '/_authenticated/today': typeof AuthenticatedTodayRoute
   '/_authenticated/agents/$agentId': typeof AuthenticatedAgentsAgentIdRoute
+  '/api/public/agents': typeof ApiPublicAgentsRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/cron/daily-meeting': typeof ApiPublicCronDailyMeetingRoute
 }
 export interface FileRouteTypes {
@@ -259,6 +277,8 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/today'
     | '/agents/$agentId'
+    | '/api/public/agents'
+    | '/api/public/health'
     | '/api/public/cron/daily-meeting'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -284,6 +304,8 @@ export interface FileRouteTypes {
     | '/tasks'
     | '/today'
     | '/agents/$agentId'
+    | '/api/public/agents'
+    | '/api/public/health'
     | '/api/public/cron/daily-meeting'
   id:
     | '__root__'
@@ -310,6 +332,8 @@ export interface FileRouteTypes {
     | '/_authenticated/tasks'
     | '/_authenticated/today'
     | '/_authenticated/agents/$agentId'
+    | '/api/public/agents'
+    | '/api/public/health'
     | '/api/public/cron/daily-meeting'
   fileRoutesById: FileRoutesById
 }
@@ -318,6 +342,8 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
   PublicoRoute: typeof PublicoRoute
+  ApiPublicAgentsRoute: typeof ApiPublicAgentsRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicCronDailyMeetingRoute: typeof ApiPublicCronDailyMeetingRoute
 }
 
@@ -484,6 +510,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAgentsAgentIdRouteImport
       parentRoute: typeof AuthenticatedAgentsRoute
     }
+    '/api/public/agents': {
+      id: '/api/public/agents'
+      path: '/api/public/agents'
+      fullPath: '/api/public/agents'
+      preLoaderRoute: typeof ApiPublicAgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/daily-meeting': {
       id: '/api/public/cron/daily-meeting'
       path: '/api/public/cron/daily-meeting'
@@ -555,6 +595,8 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
   PublicoRoute: PublicoRoute,
+  ApiPublicAgentsRoute: ApiPublicAgentsRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicCronDailyMeetingRoute: ApiPublicCronDailyMeetingRoute,
 }
 export const routeTree = rootRouteImport
