@@ -183,7 +183,7 @@ function AdminPage() {
               onClick={() =>
                 guard(async () => {
                   await invite({
-                    data: { organizationId: org!.id, email, role: inviteRole },
+                    data: { organizationId, email, role: inviteRole },
                   });
                   setEmail("");
                 }, "Invitación creada")
@@ -279,7 +279,7 @@ function AdminPage() {
                                 guard(
                                   () =>
                                     revoke({
-                                      data: { organizationId: org!.id, inviteId: inv.id },
+                                      data: { organizationId, inviteId: inv.id },
                                     }),
                                   "Invitación revocada",
                                 )
@@ -337,7 +337,7 @@ function AdminPage() {
                                 () =>
                                   changeRole({
                                     data: {
-                                      organizationId: org!.id,
+                                      organizationId,
                                       userId: m.userId,
                                       role: v,
                                     },
@@ -367,7 +367,7 @@ function AdminPage() {
                               guard(
                                 () =>
                                   kick({
-                                    data: { organizationId: org!.id, userId: m.userId },
+                                    data: { organizationId, userId: m.userId },
                                   }),
                                 "Miembro removido",
                               )
@@ -411,11 +411,11 @@ function AdminPage() {
                     key={level}
                     variant={active ? "default" : "outline"}
                     size="sm"
-                    disabled={busy}
+                    disabled={busy || n > 2}
                     className="justify-start"
                     onClick={() =>
                       guard(
-                        () => setLevel({ data: { organizationId: org!.id, level: n } }),
+                        () => setLevel({ data: { organizationId, level: n } }),
                         `Autonomía L${n}`,
                       )
                     }
