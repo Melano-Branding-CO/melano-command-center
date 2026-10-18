@@ -363,7 +363,7 @@ export const listAdminData = createServerFn({ method: "POST" })
     await assertAdmin(context, data.organizationId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    const [{ data: invites }, { data: members }, { data: orgs }] = await Promise.all([
+    const [inviteResult, memberResult, orgResult] = await Promise.all([
       supabaseAdmin
         .from("organization_invites")
         .select("id, email, role, expires_at, accepted_at, created_at")
@@ -380,10 +380,18 @@ export const listAdminData = createServerFn({ method: "POST" })
         .eq("user_id", context.userId),
     ]);
 
+    for (const result of [inviteResult, memberResult, orgResult]) {
+      if (result.error) throw new Error(result.error.message);
+    }
+    const invites = inviteResult.data;
+    const members = memberResult.data;
+    const orgs = orgResult.data;
+
     const userIds = (members ?? []).map((m: { user_id: string }) => m.user_id);
-    const { data: profiles } = userIds.length
+    const { data: profiles, error: profileError } = userIds.length
       ? await supabaseAdmin.from("profiles").select("id, email, full_name").in("id", userIds)
-      : { data: [] as { id: string; email: string | null; full_name: string | null }[] };
+      : { data: [] as { id: string; email: string | null; full_name: string | null }[], error: null };
+    if (profileError) throw new Error(profileError.message);
 
     return {
       invites: (invites ?? []) as {

@@ -22,6 +22,8 @@ export const Route = createFileRoute("/auth")({
         content: "Ingresá al Command Center autónomo de MELANO INC.",
       },
       { name: "robots", content: "noindex" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
