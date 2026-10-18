@@ -8,3 +8,6 @@
 > Commits you push to the connected branch sync back to Lovable and show up in
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
+
+- Google sign-in uses the managed broker and a public same-origin return page so session hydration precedes protected navigation.
+- Administration actions use the selected organization and validate administrator membership server-side to preserve tenant isolation.

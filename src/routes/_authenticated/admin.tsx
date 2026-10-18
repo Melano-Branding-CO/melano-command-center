@@ -62,8 +62,11 @@ function fmt(value: string | null) {
 }
 
 function AdminPage() {
-  const { data: org } = useOrg();
-  const { data: role, isLoading: roleLoading } = useMyRole(org?.id);
+  const { data: defaultOrg, isLoading: orgLoading, error: orgError } = useOrg();
+  const [selectedOrgId, setSelectedOrgId] = useState("");
+  const organizationId = selectedOrgId || defaultOrg?.id;
+  const org = defaultOrg;
+  const { data: role, isLoading: roleLoading } = useMyRole(organizationId);
   const isAdmin = role === "CEO" || role === "ADMIN";
 
   const load = useServerFn(listAdminData);
@@ -81,9 +84,12 @@ function AdminPage() {
   const [orgSlug, setOrgSlug] = useState("");
 
   const admin = useQuery({
-    queryKey: ["admin-data", org?.id],
-    enabled: !!org?.id && isAdmin,
-    queryFn: () => load({ data: { organizationId: org!.id } }),
+    queryKey: ["admin-data", organizationId],
+    enabled: !!organizationId && isAdmin,
+    queryFn: () => {
+      if (!organizationId) throw new Error("Seleccioná una organización");
+      return load({ data: { organizationId } });
+    },
   });
 
   async function guard(fn: () => Promise<unknown>, okMessage: string) {
@@ -99,11 +105,13 @@ function AdminPage() {
     }
   }
 
-  if (roleLoading) {
+  if (roleLoading || orgLoading) {
     return <PageHeader title="Administración" subtitle="Verificando permisos…" />;
   }
 
-  if (!isAdmin) {
+  if (orgError) return <PageHeader title="Administración" subtitle="No se pudo cargar la organización. Volvé a intentar." />;
+
+  if (!isAdmin || !organizationId) {
     return (
       <>
         <PageHeader title="Administración" subtitle={`Rol actual: ${role ?? "sin rol"}`} />
@@ -122,8 +130,21 @@ function AdminPage() {
     <>
       <PageHeader
         title="Administración"
-        subtitle={`Organización: ${org?.name ?? "—"} · Rol: ${role}`}
+        subtitle={`Organización: ${admin.data?.organizations.find((o) => o.id === organizationId)?.name ?? org?.name ?? "—"} · Rol: ${role}`}
       />
+
+      <div className="mb-4 max-w-md">
+        <Label htmlFor="admin-organization">Organización</Label>
+        <Select value={organizationId} onValueChange={setSelectedOrgId}>
+          <SelectTrigger id="admin-organization"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {(data?.organizations ?? []).filter((o) => o.role === "CEO" || o.role === "ADMIN").map((o) => (
+              <SelectItem key={o.id} value={o.id}>{o.name} · {o.role}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {admin.isError && <div role="alert" className="mb-4 text-sm text-destructive">No se pudieron cargar usuarios e invitaciones. <Button variant="outline" size="sm" onClick={() => admin.refetch()}>Reintentar</Button></div>}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Invitar usuario">

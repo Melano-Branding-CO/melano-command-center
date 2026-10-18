@@ -1,11 +1,9 @@
-import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable";
 
-/** Google OAuth through the canonical Supabase project on every environment. */
+/** Return to a public page; the login page navigates after session hydration. */
 export async function signInWithGoogle(next: "/command" | "/publico" = "/command"): Promise<{ error: Error | null }> {
-  const origin = window.location.origin;
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: { redirectTo: `${origin}${next}` },
+  const result = await lovable.auth.signInWithOAuth("google", {
+    redirect_uri: `${window.location.origin}${next === "/publico" ? "/publico" : "/auth"}`,
   });
-  return { error: error ?? null };
+  return { error: result.error ?? null };
 }

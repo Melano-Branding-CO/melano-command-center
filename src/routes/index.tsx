@@ -16,6 +16,8 @@ export const Route = createFileRoute("/")({
         content: "AI. Automation. Impact. Equipo ejecutivo digital con trazabilidad real.",
       },
       { name: "robots", content: "noindex" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
