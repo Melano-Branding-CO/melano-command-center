@@ -411,7 +411,7 @@ function AdminPage() {
                     key={level}
                     variant={active ? "default" : "outline"}
                     size="sm"
-                    disabled={busy || n > 2}
+                    disabled={busy}
                     className="justify-start"
                     onClick={() =>
                       guard(
