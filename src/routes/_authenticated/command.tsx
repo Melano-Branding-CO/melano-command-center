@@ -9,6 +9,8 @@ import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
 import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
 import { runMeetingNow } from "@/lib/melano.functions";
+import { useWebMCP } from "use-webmcp-tool";
+import { runWebMCPTool } from "@/lib/webmcp-telemetry";
 
 export const Route = createFileRoute("/_authenticated/command")({
   head: () => ({
@@ -25,6 +27,8 @@ export const Route = createFileRoute("/_authenticated/command")({
         content: "Estado ejecutivo en vivo del sistema autónomo de MELANO INC.",
       },
       { name: "robots", content: "noindex" },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: CommandCenter,
@@ -113,6 +117,23 @@ function CommandCenter() {
     for (const l of rows) byStatus.set(l.status, (byStatus.get(l.status) ?? 0) + 1);
     return { total: rows.length, byStatus, recientes: rows.slice(0, 5) };
   })();
+
+  useWebMCP({
+    name: "read_command_view",
+    description: "Consultar las prioridades y registros que aparecen actualmente en el Command Center, sin modificar nada.",
+    annotations: { readOnlyHint: true, untrustedContentHint: true },
+    enabled: Boolean(org),
+    execute: () => runWebMCPTool("read_command_view", () => {
+      const sections = [
+        `Hoy: ${loadingToday ? "Cargando" : (todayTasks ?? []).slice(0, 3).map(t => `${t.id}: ${t.title} · ${t.status} · ${t.priority}`).join("; ") || "Sin prioridades"}`,
+        `Agentes: ${(agents ?? []).map(a => `${a.id}: ${a.name} · ${a.status}`).join("; ") || "Sin datos disponibles"}`,
+        `Decisiones: ${(decisions ?? []).map(d => `${d.id}: ${d.title} · ${d.priority}`).join("; ") || "Sin datos disponibles"}`,
+        `Aprobaciones: ${(approvals ?? []).map(a => `${a.id}: ${a.action} · ${a.risk ?? "Sin riesgo informado"}`).join("; ") || "Sin datos disponibles"}`,
+        `Leads: ${leads ? leadStats.total : "Cargando"}; recientes: ${leadStats.recientes.map(l => `${l.id}: ${l.full_name} · ${l.zone ?? "Sin zona"}`).join("; ")}`,
+      ];
+      return sections.join("\n");
+    }),
+  });
 
   async function onRunMeeting() {
     if (!org?.id) return;
