@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 export const Route = createFileRoute("/auth")({
-  validateSearch: (search: Record<string, unknown>) => ({ next: oauthReturnPath(search.next ?? "/command") }),
   head: () => ({
     meta: [
       { title: "Acceso — MELANO INC Command Center" },

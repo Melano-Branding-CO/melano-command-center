@@ -2,7 +2,7 @@ import { auth, defineMcp } from "@lovable.dev/mcp-js";
 import listOrganizations from "./tools/list-organizations";
 import listRecords from "./tools/list-records";
 
-const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
+const projectRef = import.meta.env["VITE_SUPABASE_PROJECT_ID"] ?? "project-ref-unset";
 export default defineMcp({
   name: "melano-command-center",
   title: "Melano Command Center",

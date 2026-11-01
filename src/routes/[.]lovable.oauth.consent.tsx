@@ -14,12 +14,12 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
     { property: "og:type", content: "website" }, { name: "twitter:card", content: "summary" },
     { name: "robots", content: "noindex" },
   ] }),
-  validateSearch: (search: Record<string, unknown>) => ({ authorization_id: typeof search.authorization_id === "string" ? search.authorization_id : "" }),
+  validateSearch: (search: Record<string, unknown>) => ({ authorization_id: typeof search["authorization_id"] === "string" ? search["authorization_id"] : "" }),
   beforeLoad: async ({ search, location }) => {
-    if (!search.authorization_id) throw new Error("Falta la solicitud de autorización. Iniciá la conexión nuevamente desde tu agente.");
+    if (!search["authorization_id"]) throw new Error("Falta la solicitud de autorización. Iniciá la conexión nuevamente desde tu agente.");
     const { data, error } = await supabase.auth.getSession();
     if (error) throw new Error("No se pudo comprobar tu sesión. Reintentá la conexión.");
-    if (!data.session) throw redirect({ to: "/auth", search: { next: location.pathname + location.searchStr + location.hash } });
+    if (!data.session) throw redirect({ href: `/auth?next=${encodeURIComponent(location.pathname + location.searchStr + location.hash)}` });
   },
   loader: async ({ location }) => {
     const id = new URLSearchParams(location.searchStr).get("authorization_id");
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
     return { details: data, email: sessionData.session?.user.email ?? "Cuenta autenticada" };
   },
   pendingComponent: () => <main className="p-8 text-muted-foreground">Consultando solicitud de conexión…</main>,
-  errorComponent: ({ error }) => <main className="mx-auto max-w-lg space-y-4 px-6 py-16"><h1 className="text-xl font-semibold">No se pudo conectar el agente</h1><p role="alert" className="text-muted-foreground">{error.message}</p><Link to="/auth">Volver al acceso</Link></main>,
+  errorComponent: ({ error }) => <main className="mx-auto max-w-lg space-y-4 px-6 py-16"><h1 className="text-xl font-semibold">No se pudo conectar el agente</h1><p role="alert" className="text-muted-foreground">{error instanceof Error ? error.message : "No se pudo consultar la solicitud."}</p><Link to="/auth">Volver al acceso</Link></main>,
   component: Consent,
 });
 

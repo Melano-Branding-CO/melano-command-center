@@ -14,7 +14,7 @@ function configuredEnv(names: readonly string[]) {
   return undefined;
 }
 function supabaseProjectUrl() {
-  const value = configuredEnv(["SUPABASE_URL", "VITE_SUPABASE_URL"]) ?? import.meta.env.VITE_SUPABASE_URL;
+  const value = configuredEnv(["SUPABASE_URL", "VITE_SUPABASE_URL"]) ?? import.meta.env["VITE_SUPABASE_URL"];
   if (!value) throw new ToolError("La conexión de datos no está configurada.");
   return value;
 }
@@ -27,12 +27,12 @@ function supabasePublishableKey() {
       const parsed: unknown = JSON.parse(keyset);
       if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
         const values = parsed as Record<string, unknown>;
-        const key = [values.default, ...Object.values(values)].find((v): v is string => typeof v === "string" && v.trim().startsWith("sb_publishable_"));
+        const key = [values["default"], ...Object.values(values)].find((v): v is string => typeof v === "string" && v.trim().startsWith("sb_publishable_"));
         if (key) return key.trim();
       }
     } catch { /* Other supported keys may still be present. */ }
   }
-  const legacy = configuredEnv(["SUPABASE_ANON_KEY", "VITE_SUPABASE_ANON_KEY"]) ?? import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const legacy = configuredEnv(["SUPABASE_ANON_KEY", "VITE_SUPABASE_ANON_KEY"]) ?? import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
   if (!legacy) throw new ToolError("La conexión de datos no está configurada.");
   return legacy;
 }
