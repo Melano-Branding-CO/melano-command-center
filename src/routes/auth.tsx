@@ -6,8 +6,10 @@ import { signInWithGoogle } from "@/lib/google-signin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 export const Route = createFileRoute("/auth")({
+  validateSearch: (search: Record<string, unknown>) => ({ next: oauthReturnPath(search.next ?? "/command") }),
   head: () => ({
     meta: [
       { title: "Acceso — MELANO INC Command Center" },
@@ -31,6 +33,7 @@ export const Route = createFileRoute("/auth")({
 
 export function AuthPage() {
   const navigate = useNavigate();
+  const [next, setNext] = useState("/command");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -40,12 +43,14 @@ export function AuthPage() {
 
   useEffect(() => {
     let active = true;
+    const target = oauthReturnPath(new URLSearchParams(window.location.search).get("next") ?? "/command");
+    setNext(target);
     supabase.auth.getSession().then(({ data }) => {
-      if (active && data.session) navigate({ to: "/command", replace: true });
+      if (active && data.session) navigate({ href: target, replace: true });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
-        navigate({ to: "/command", replace: true });
+        navigate({ href: target, replace: true });
       }
     });
     return () => {
@@ -63,7 +68,7 @@ export function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: window.location.origin,
+            emailRedirectTo: new URL(next, window.location.origin).href,
             data: { full_name: fullName || email.split("@")[0] },
           },
         });
@@ -87,7 +92,7 @@ export function AuthPage() {
   async function handleGoogle() {
     setBusy(true);
     try {
-      const { error } = await signInWithGoogle();
+      const { error } = await signInWithGoogle(next);
       if (error) throw error;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo iniciar con Google");

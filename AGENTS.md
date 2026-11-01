@@ -11,3 +11,5 @@
 
 - Google sign-in uses the managed broker and a public same-origin return page so session hydration precedes protected navigation.
 - Administration actions use the selected organization and validate administrator membership server-side to preserve tenant isolation.
+- MCP tools are read-only, verify delegated OAuth tokens and use caller-scoped database clients with organization membership checks and existing RLS; browser tools expose only visible page data.
+- OAuth sign-in returns through the public auth page with a canonical local destination, preserving consent authorization through every login method.
