@@ -1,7 +1,7 @@
 # Roadmap
 
 - [ ] Importar CSV completo de LUXIA CRM con zona e importancia (requiere el archivo real; no está adjunto).
-- [ ] Mover un lead desde comandcenter.tech y verificar que la fase persiste.
+- [ ] Mover un lead desde comandcenter.tech y verificar que la fase persiste (bloqueado: /leads muestra configuración de conexión ausente en la versión publicada; no se modificó ningún lead).
 
 - [x] Verificar sesión real CEO, administración, selección de organizaciones y cierre de sesión.
 - [x] Invitar a Paola desde Administración y verificar persistencia.
