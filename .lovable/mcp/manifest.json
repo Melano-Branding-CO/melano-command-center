@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "sdk_version": "3.4.0",
+  "path": "/mcp",
+  "auth": {
+    "type": "oauth",
+    "issuer": "https://iuuzheclayeiytmxahdp.supabase.co/auth/v1",
+    "require_oauth_client_claim": true,
+    "accepted_audiences": [
+      "authenticated"
+    ]
+  },
+  "mcp": {
+    "server": {
+      "name": "melano-command-center",
+      "version": "0.1.0",
+      "title": "Melano Command Center"
+    },
+    "tools": [
+      {
+        "name": "list_organizations",
+        "title": "Consultar organizaciones autorizadas",
+        "description": "Lista las organizaciones de las que el usuario es miembro, para obtener su identificador antes de consultar registros.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "list_operational_records",
+        "title": "Consultar registros operativos",
+        "description": "Consulta hasta 50 tareas, decisiones, aprobaciones, leads o estados de agentes de una organización autorizada; no realiza cambios.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "organization_id": {
+              "type": "string",
+              "format": "uuid",
+              "description": "Identificador obtenido con list_organizations."
+            },
+            "kind": {
+              "type": "string",
+              "enum": [
+                "tasks",
+                "decisions",
+                "approvals",
+                "leads",
+                "agents"
+              ],
+              "description": "Tipo de registros a consultar."
+            },
+            "limit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 20,
+              "description": "Cantidad máxima de registros, entre 1 y 50."
+            }
+          },
+          "required": [
+            "organization_id",
+            "kind"
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
+        },
+        "outputSchema": null
+      }
+    ]
+  }
+}
