@@ -2,11 +2,7 @@
 export async function authenticateCronRequest(
   request: Request,
 ): Promise<Response | null> {
-  // Vercel Cron automatically sends CRON_SECRET as a Bearer token.
-  // Keep Lovable secrets as backward-compatible fallbacks for non-Vercel runners.
-  const currentSecret =
-    process.env['CRON_SECRET'] ??
-    process.env['LOVABLE_CRON_SECRET']
+  const currentSecret = process.env['LOVABLE_CRON_SECRET']
   const previousSecret = process.env['LOVABLE_CRON_SECRET_PREVIOUS']
 
   if (!currentSecret) {
