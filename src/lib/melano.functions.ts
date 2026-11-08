@@ -428,3 +428,94 @@ export const listAdminData = createServerFn({ method: "POST" })
       me: context.userId,
     };
   });
+
+/* ── Administración: cuentas de agentes ─────────────────────────────────── */
+
+export type AdminAgent = {
+  id: string;
+  code: string;
+  name: string;
+  role: string;
+  status: string;
+  enabled: boolean;
+  executionMode: string;
+  lastRunAt: string | null;
+  lastResult: string | null;
+  lastError: string | null;
+  lastAction: string | null;
+  lastActionAt: string | null;
+};
+
+export const listAdminAgents = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string }) => {
+    if (!input?.organizationId) throw new Error("organizationId requerido");
+    return input;
+  })
+  .handler(async ({ data, context }): Promise<AdminAgent[]> => {
+    await assertAdmin(context, data.organizationId);
+    const { data: agents, error } = await context.supabase
+      .from("agents")
+      .select("id, code, name, role, status, enabled, execution_mode, last_run_at, last_result, last_error")
+      .eq("organization_id", data.organizationId)
+      .order("sort_order", { ascending: true });
+    if (error) throw new Error(error.message);
+    const ids = (agents ?? []).map((a) => a.id);
+    const { data: logs, error: logError } = ids.length
+      ? await context.supabase
+          .from("activity_logs")
+          .select("actor_agent, action, created_at")
+          .eq("organization_id", data.organizationId)
+          .in("actor_agent", ids)
+          .order("created_at", { ascending: false })
+          .limit(500)
+      : { data: [] as { actor_agent: string | null; action: string; created_at: string }[], error: null };
+    if (logError) throw new Error(logError.message);
+    return (agents ?? []).map((a) => {
+      const last = (logs ?? []).find((l) => l.actor_agent === a.id);
+      return {
+        id: a.id,
+        code: a.code,
+        name: a.name,
+        role: a.role,
+        status: a.status,
+        enabled: a.enabled,
+        executionMode: a.execution_mode,
+        lastRunAt: a.last_run_at,
+        lastResult: a.last_result,
+        lastError: a.last_error,
+        lastAction: last?.action ?? null,
+        lastActionAt: last?.created_at ?? null,
+      };
+    });
+  });
+
+export const setAgentEnabled = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string; agentId: string; enabled: boolean }) => {
+    if (!input?.organizationId || !input.agentId) throw new Error("Datos incompletos");
+    if (typeof input.enabled !== "boolean") throw new Error("Estado inválido");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context, data.organizationId);
+    const { data: updated, error } = await context.supabase
+      .from("agents")
+      .update({ enabled: data.enabled, status: data.enabled ? "ACTIVE" : "PAUSED" })
+      .eq("id", data.agentId)
+      .eq("organization_id", data.organizationId)
+      .select("id")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!updated) throw new Error("Agente no encontrado en esta organización");
+    await context.supabase.from("activity_logs").insert({
+      organization_id: data.organizationId,
+      actor_type: "human",
+      actor_user: context.userId,
+      action: data.enabled ? "agent.activated" : "agent.paused",
+      entity_type: "agent",
+      entity_id: data.agentId,
+      detail: {},
+    });
+    return { ok: true };
+  });
