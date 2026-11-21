@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -18,9 +18,7 @@ import { AUTONOMY_LEVELS, useMyRole, useOrg, type AppRole } from "@/lib/melano";
 import {
   createOrganization,
   inviteUser,
-  listAdminAgents,
   listAdminData,
-  setAgentEnabled,
   removeMember,
   revokeInvite,
   setAutonomyLevel,
@@ -64,11 +62,8 @@ function fmt(value: string | null) {
 }
 
 function AdminPage() {
-  const { data: defaultOrg, isLoading: orgLoading, error: orgError } = useOrg();
-  const [selectedOrgId, setSelectedOrgId] = useState("");
-  const organizationId = selectedOrgId || defaultOrg?.id;
-  const org = defaultOrg;
-  const { data: role, isLoading: roleLoading } = useMyRole(organizationId);
+  const { data: org } = useOrg();
+  const { data: role, isLoading: roleLoading } = useMyRole(org?.id);
   const isAdmin = role === "CEO" || role === "ADMIN";
 
   const load = useServerFn(listAdminData);
@@ -86,20 +81,9 @@ function AdminPage() {
   const [orgSlug, setOrgSlug] = useState("");
 
   const admin = useQuery({
-    queryKey: ["admin-data", organizationId],
-    enabled: !!organizationId && isAdmin,
-    queryFn: () => {
-      if (!organizationId) throw new Error("Seleccioná una organización");
-      return load({ data: { organizationId } });
-    },
-  });
-
-  const loadAgents = useServerFn(listAdminAgents);
-  const toggleAgent = useServerFn(setAgentEnabled);
-  const agentsQuery = useQuery({
-    queryKey: ["admin-agents", organizationId],
-    enabled: !!organizationId && isAdmin,
-    queryFn: () => loadAgents({ data: { organizationId: organizationId as string } }),
+    queryKey: ["admin-data", org?.id],
+    enabled: !!org?.id && isAdmin,
+    queryFn: () => load({ data: { organizationId: org!.id } }),
   });
 
   async function guard(fn: () => Promise<unknown>, okMessage: string) {
@@ -107,7 +91,7 @@ function AdminPage() {
     try {
       await fn();
       toast.success(okMessage);
-      await Promise.all([admin.refetch(), agentsQuery.refetch()]);
+      await admin.refetch();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Error inesperado");
     } finally {
@@ -115,13 +99,11 @@ function AdminPage() {
     }
   }
 
-  if (roleLoading || orgLoading) {
+  if (roleLoading) {
     return <PageHeader title="Administración" subtitle="Verificando permisos…" />;
   }
 
-  if (orgError) return <PageHeader title="Administración" subtitle="No se pudo cargar la organización. Volvé a intentar." />;
-
-  if (!isAdmin || !organizationId) {
+  if (!isAdmin) {
     return (
       <>
         <PageHeader title="Administración" subtitle={`Rol actual: ${role ?? "sin rol"}`} />
@@ -140,21 +122,8 @@ function AdminPage() {
     <>
       <PageHeader
         title="Administración"
-        subtitle={`Organización: ${admin.data?.organizations.find((o) => o.id === organizationId)?.name ?? org?.name ?? "—"} · Rol: ${role}`}
+        subtitle={`Organización: ${org?.name ?? "—"} · Rol: ${role}`}
       />
-
-      <div className="mb-4 max-w-md">
-        <Label htmlFor="admin-organization">Organización</Label>
-        <Select value={organizationId} onValueChange={setSelectedOrgId}>
-          <SelectTrigger id="admin-organization"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            {(data?.organizations ?? []).filter((o) => o.role === "CEO" || o.role === "ADMIN").map((o) => (
-              <SelectItem key={o.id} value={o.id}>{o.name} · {o.role}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      {admin.isError && <div role="alert" className="mb-4 text-sm text-destructive">No se pudieron cargar usuarios e invitaciones. <Button variant="outline" size="sm" onClick={() => admin.refetch()}>Reintentar</Button></div>}
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Invitar usuario">
@@ -193,7 +162,7 @@ function AdminPage() {
               onClick={() =>
                 guard(async () => {
                   await invite({
-                    data: { organizationId, email, role: inviteRole },
+                    data: { organizationId: org!.id, email, role: inviteRole },
                   });
                   setEmail("");
                 }, "Invitación creada")
@@ -289,7 +258,7 @@ function AdminPage() {
                                 guard(
                                   () =>
                                     revoke({
-                                      data: { organizationId, inviteId: inv.id },
+                                      data: { organizationId: org!.id, inviteId: inv.id },
                                     }),
                                   "Invitación revocada",
                                 )
@@ -347,7 +316,7 @@ function AdminPage() {
                                 () =>
                                   changeRole({
                                     data: {
-                                      organizationId,
+                                      organizationId: org!.id,
                                       userId: m.userId,
                                       role: v,
                                     },
@@ -377,82 +346,13 @@ function AdminPage() {
                               guard(
                                 () =>
                                   kick({
-                                    data: { organizationId, userId: m.userId },
+                                    data: { organizationId: org!.id, userId: m.userId },
                                   }),
                                 "Miembro removido",
                               )
                             }
                           >
                             Quitar
-                          </Button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </Panel>
-
-        <Panel title="Cuentas de agentes">
-          {agentsQuery.isLoading ? (
-            <p className="text-sm text-muted-foreground">Cargando…</p>
-          ) : agentsQuery.isError ? (
-            <div role="alert" className="text-sm text-destructive">
-              No se pudieron cargar los agentes.{" "}
-              <Button variant="outline" size="sm" onClick={() => agentsQuery.refetch()}>Reintentar</Button>
-            </div>
-          ) : !agentsQuery.data?.length ? (
-            <p className="text-sm text-muted-foreground">Esta organización no tiene agentes configurados.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-xs uppercase text-muted-foreground">
-                  <tr className="border-b border-border">
-                    <th className="py-2 text-left font-medium">Agente</th>
-                    <th className="py-2 text-left font-medium">Organización</th>
-                    <th className="py-2 text-left font-medium">Estado</th>
-                    <th className="py-2 text-left font-medium">Última acción</th>
-                    <th className="py-2" />
-                  </tr>
-                </thead>
-                <tbody>
-                  {agentsQuery.data.map((a) => {
-                    const orgName = data?.organizations.find((o) => o.id === organizationId)?.name ?? org?.name ?? "—";
-                    const lastAt = a.lastActionAt ?? a.lastRunAt;
-                    const lastText = a.lastError ? `Error: ${a.lastError}` : a.lastAction ?? a.lastResult ?? "Sin acciones registradas";
-                    return (
-                      <tr key={a.id} className="border-b border-border/60 align-top">
-                        <td className="py-2">
-                          <Link to="/agents/$agentId" params={{ agentId: a.id }} className="font-medium text-foreground hover:underline">
-                            {a.code} · {a.name}
-                          </Link>
-                          <div className="text-xs text-muted-foreground">{a.role}</div>
-                        </td>
-                        <td className="py-2 text-muted-foreground">{orgName}</td>
-                        <td className="py-2">
-                          <span className={a.enabled ? "text-foreground" : "text-muted-foreground"}>
-                            {a.status}{a.enabled ? "" : " · desactivado"}
-                          </span>
-                        </td>
-                        <td className="max-w-xs py-2">
-                          <div className="line-clamp-2 text-xs text-muted-foreground">{lastText}</div>
-                          <div className="text-[11px] text-muted-foreground">{fmt(lastAt)}</div>
-                        </td>
-                        <td className="py-2 text-right">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={busy}
-                            onClick={() =>
-                              guard(
-                                () => toggleAgent({ data: { organizationId, agentId: a.id, enabled: !a.enabled } }),
-                                a.enabled ? "Agente pausado" : "Agente activado",
-                              )
-                            }
-                          >
-                            {a.enabled ? "Pausar" : "Activar"}
                           </Button>
                         </td>
                       </tr>
@@ -494,7 +394,7 @@ function AdminPage() {
                     className="justify-start"
                     onClick={() =>
                       guard(
-                        () => setLevel({ data: { organizationId, level: n } }),
+                        () => setLevel({ data: { organizationId: org!.id, level: n } }),
                         `Autonomía L${n}`,
                       )
                     }

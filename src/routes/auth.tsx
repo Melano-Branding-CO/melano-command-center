@@ -6,7 +6,6 @@ import { signInWithGoogle } from "@/lib/google-signin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { oauthReturnPath } from "@/lib/oauth-return-path";
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -23,8 +22,6 @@ export const Route = createFileRoute("/auth")({
         content: "Ingresá al Command Center autónomo de MELANO INC.",
       },
       { name: "robots", content: "noindex" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: AuthPage,
@@ -32,7 +29,6 @@ export const Route = createFileRoute("/auth")({
 
 export function AuthPage() {
   const navigate = useNavigate();
-  const [next, setNext] = useState("/command");
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -42,14 +38,12 @@ export function AuthPage() {
 
   useEffect(() => {
     let active = true;
-    const target = oauthReturnPath(new URLSearchParams(window.location.search).get("next") ?? "/command");
-    setNext(target);
     supabase.auth.getSession().then(({ data }) => {
-      if (active && data.session) navigate({ href: target, replace: true });
+      if (active && data.session) navigate({ to: "/command", replace: true });
     });
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
-        navigate({ href: target, replace: true });
+        navigate({ to: "/command", replace: true });
       }
     });
     return () => {
@@ -67,7 +61,7 @@ export function AuthPage() {
           email,
           password,
           options: {
-            emailRedirectTo: new URL(next, window.location.origin).href,
+            emailRedirectTo: window.location.origin,
             data: { full_name: fullName || email.split("@")[0] },
           },
         });
@@ -91,7 +85,7 @@ export function AuthPage() {
   async function handleGoogle() {
     setBusy(true);
     try {
-      const { error } = await signInWithGoogle(next);
+      const { error } = await signInWithGoogle();
       if (error) throw error;
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo iniciar con Google");
