@@ -1,5 +1,9 @@
 # Roadmap
 
+- [x] Reparar vínculo de configuración y migrar Google al acceso gestionado antes de publicar.
+- [ ] Confirmar entrada completa con Google: requiere seleccionar una cuenta real de Google.
+- [ ] Confirmar entrada de cuenta invitada: requiere el email elegido; las invitaciones existentes vencieron.
+
 - [x] Diagnosticar variables de preview tras reversión: acceso, health y lectura autenticada del portal verificados el 21/11/2026; el error no se reproduce en el entorno actual. Sin cambios de backend, permisos ni publicación.
 
 - [ ] Conexión real a n8n en Automations (webhook seguro, token en backend, logs en automation_runs)

@@ -12,6 +12,7 @@
 ## Runtime configuration
 
 - Keep backend configuration integration-managed: use the existing Lovable Vite wrapper and generated clients/auth middleware; diagnose restored-version environment bindings before adding fallbacks, because browser `VITE_*` and server `SUPABASE_*` values must refer to the same project without bundling privileged keys.
+- Use the generated Lovable OAuth broker for Google and return to public authentication pages, so managed credentials work and session hydration precedes protected navigation.
 
 ## Lead analytics
 
