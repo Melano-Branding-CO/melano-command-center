@@ -9,6 +9,8 @@ import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge } from "@/components/melano/badges";
 import { fmtDate, useOrg, useAgents, useSession } from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
+import { LeadDashboard } from "@/components/melano/lead-dashboard";
+import { priorityLabel } from "@/lib/lead-summary";
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: () => ({
@@ -114,13 +116,6 @@ const PHASE_LABEL: Record<Phase, string> = {
   FASE_46_90: "46–90",
 };
 
-function priorityLabel(score: number | null | undefined) {
-  const s = score ?? 0;
-  if (s >= 60) return "Alta";
-  if (s >= 30) return "Media";
-  return "Baja";
-}
-
 function db() {
   return supabase as unknown as { from: (t: string) => any };
 }
@@ -132,7 +127,7 @@ function LeadsPage() {
   const { data: agents } = useAgents(org?.id);
   const luxia = (agents ?? []).find((a) => a.code === "LUXIA");
 
-  const { data: leads, isLoading } = useOrgRows<Lead>("leads", org?.id, {
+  const { data: leads, isLoading, isError, refetch } = useOrgRows<Lead>("leads", org?.id, {
     order: "created_at",
     asc: false,
   });
@@ -168,7 +163,7 @@ function LeadsPage() {
         .toLowerCase()
         .includes(term),
     );
-  }, [leads, q]);
+  }, [leads, q, cohort]);
 
   const eventsByLead = useMemo(() => {
     const map = new Map<string, LeadEvent[]>();
@@ -363,6 +358,8 @@ function LeadsPage() {
         ))}
       </div>
 
+      {!isLoading && !isError ? <LeadDashboard leads={filtered} /> : null}
+
       {creating ? (
         <Panel title="Alta de lead verificado">
           <form className="grid gap-3 sm:grid-cols-5" onSubmit={createLead}>
@@ -433,7 +430,12 @@ function LeadsPage() {
 
 
 
-      {isLoading ? (
+      {isError ? (
+        <div role="alert" className="space-y-3">
+          <p className="text-sm text-destructive">No se pudieron cargar los leads. Los gráficos no están disponibles.</p>
+          <Button variant="outline" size="sm" onClick={() => void refetch()}>Reintentar</Button>
+        </div>
+      ) : isLoading ? (
         <Empty text="Cargando cohorte…" />
       ) : filtered.length === 0 ? (
         <Empty text="Sin leads cargados. La cohorte se carga con datos verificados; no se muestran valores estimados." />

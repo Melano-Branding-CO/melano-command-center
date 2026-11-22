@@ -12,3 +12,8 @@
 ## Runtime configuration
 
 - Keep backend configuration integration-managed: use the existing Lovable Vite wrapper and generated clients/auth middleware; diagnose restored-version environment bindings before adding fallbacks, because browser `VITE_*` and server `SUPABASE_*` values must refer to the same project without bundling privileged keys.
+
+## Lead analytics
+
+- Aggregate lead charts through the pure lead-summary module and render the same filtered organization-scoped rows as the list, so analytics never require broader data access or diverge from visible records.
+- Use node:test and node:assert for lightweight TypeScript logic tests, so tests stay compatible with the project's existing Node type declarations.
