@@ -1,42 +1,53 @@
-import { createClient } from '@supabase/supabase-js';
-import type { Database } from './types';
+import { createClient } from "@supabase/supabase-js";
+import type { Database } from "./types";
+import { SUPABASE_PUBLIC_CONFIG_ID, validateSupabasePublicConfig } from "./public-config";
 
 function isNewSupabaseApiKey(value: string): boolean {
-  return value.startsWith('sb_publishable_') || value.startsWith('sb_secret_');
+  return value.startsWith("sb_publishable_") || value.startsWith("sb_secret_");
 }
 
 function createSupabaseFetch(supabaseKey: string): typeof fetch {
   return (input, init) => {
     const headers = new Headers(
-      typeof Request !== 'undefined' && input instanceof Request ? input.headers : undefined,
+      typeof Request !== "undefined" && input instanceof Request ? input.headers : undefined,
     );
 
     if (init?.headers) {
       new Headers(init.headers).forEach((value, key) => headers.set(key, value));
     }
 
-    if (isNewSupabaseApiKey(supabaseKey) && headers.get('Authorization') === `Bearer ${supabaseKey}`) {
-      headers.delete('Authorization');
+    if (
+      isNewSupabaseApiKey(supabaseKey) &&
+      headers.get("Authorization") === `Bearer ${supabaseKey}`
+    ) {
+      headers.delete("Authorization");
     }
 
-    headers.set('apikey', supabaseKey);
+    headers.set("apikey", supabaseKey);
     return fetch(input, { ...init, headers });
   };
 }
 
-function createSupabaseClient() {
-  const SUPABASE_URL = import.meta.env['VITE_SUPABASE_URL'] || process.env['SUPABASE_URL'];
-  const SUPABASE_PUBLISHABLE_KEY = import.meta.env['VITE_SUPABASE_PUBLISHABLE_KEY'] || process.env['SUPABASE_PUBLISHABLE_KEY'];
-
-  if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-    const missing = [
-      ...(!SUPABASE_URL ? ['SUPABASE_URL'] : []),
-      ...(!SUPABASE_PUBLISHABLE_KEY ? ['SUPABASE_PUBLISHABLE_KEY'] : []),
-    ];
-    const message = `Missing Supabase environment variable(s): ${missing.join(', ')}. Configure them in Vercel.`;
-    console.error(`[Supabase] ${message}`);
-    throw new Error(message);
+export function getSupabasePublicConfig() {
+  if (!import.meta.env.SSR && typeof document !== "undefined") {
+    const config = document.getElementById(SUPABASE_PUBLIC_CONFIG_ID)?.textContent;
+    if (config) return validateSupabasePublicConfig(JSON.parse(config));
   }
+
+  // SSR knows the active managed backend even when VITE_* build bindings are absent.
+  // Only this public URL/key pair is passed to the browser, before module evaluation.
+  return validateSupabasePublicConfig({
+    url:
+      (import.meta.env.SSR ? process.env["SUPABASE_URL"] : undefined) ||
+      import.meta.env["VITE_SUPABASE_URL"],
+    publishableKey:
+      (import.meta.env.SSR ? process.env["SUPABASE_PUBLISHABLE_KEY"] : undefined) ||
+      import.meta.env["VITE_SUPABASE_PUBLISHABLE_KEY"],
+  });
+}
+
+function createSupabaseClient() {
+  const { url: SUPABASE_URL, publishableKey: SUPABASE_PUBLISHABLE_KEY } = getSupabasePublicConfig();
 
   return createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     global: {

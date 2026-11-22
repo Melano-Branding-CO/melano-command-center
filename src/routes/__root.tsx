@@ -10,6 +10,11 @@ import {
 } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
+import { getSupabasePublicConfig } from "@/integrations/supabase/client";
+import {
+  SUPABASE_PUBLIC_CONFIG_ID,
+  serializeSupabasePublicConfig,
+} from "@/integrations/supabase/public-config";
 
 import appCss from "../styles.css?url";
 
@@ -45,7 +50,9 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Esta pantalla no cargó
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">{error instanceof Error ? error.message : String(error)}</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {error instanceof Error ? error.message : String(error)}
+        </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -110,6 +117,13 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="es" className="dark">
       <head>
         <HeadContent />
+        <script
+          id={SUPABASE_PUBLIC_CONFIG_ID}
+          type="application/json"
+          dangerouslySetInnerHTML={{
+            __html: serializeSupabasePublicConfig(getSupabasePublicConfig()),
+          }}
+        />
       </head>
       <body>
         {children}
