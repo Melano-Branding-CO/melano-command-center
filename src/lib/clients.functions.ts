@@ -24,12 +24,15 @@ export const getMyPortal = createServerFn({ method: "GET" })
   .handler(async ({ context }): Promise<PortalResult> => {
     const db = context.supabase as unknown as { from: (t: string) => any };
     const email = (context.claims as { email?: string } | undefined)?.email ?? null;
+    if (!email) return { email: null, clients: [] };
     const { data: access, error } = await db
       .from("client_portal_access")
-      .select("client_id, organization_id")
+      .select("client_id, organization_id, email")
       .is("revoked_at", null);
     if (error) throw new Error(error.message);
-    const rows = (access ?? []) as { client_id: string; organization_id: string }[];
+    const me = email.trim().toLowerCase();
+    const rows = ((access ?? []) as { client_id: string; organization_id: string; email: string }[])
+      .filter((r) => r.email.trim().toLowerCase() === me);
     if (rows.length === 0) return { email, clients: [] };
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
