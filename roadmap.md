@@ -7,4 +7,7 @@
 - [x] Diagnosticar variables de preview tras reversión: acceso, health y lectura autenticada del portal verificados el 21/11/2026; el error no se reproduce en el entorno actual. Sin cambios de backend, permisos ni publicación.
 
 - [ ] Conectar Automatizaciones al backend real de n8n sin llamadas de IA y verificar ejecución, permisos y registros persistidos.
+- [ ] Reparar preflight de IA, ejecución scoped de agentes, errores y persistencia; sin cambiar proveedor/modelo ni ejecutar servicios externos.
+- [ ] Generar hasta tres prioridades operativas por reglas con autorización, deduplicación y trazabilidad, sin IA.
+- [ ] Unificar Revenue actual por moneda desde clientes/leads reales y verificar pruebas y UI con identidad existente; sin modificar datos reales durante pruebas ni publicar.
 - [ ] /publico: mostrar datos reales (tareas, decisiones, aprobaciones, leads) en lugar de conteos en 0
