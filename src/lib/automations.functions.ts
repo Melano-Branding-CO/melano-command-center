@@ -1,4 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
+import { workflowOutcome } from "./n8n-result";
+import { checked } from "./operational-guards";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const OPERATOR_ROLES = ["CEO", "ADMIN", "OPERATOR"];
@@ -57,82 +59,116 @@ export const runAutomationRule = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!rule) throw new Error("Automatización no encontrada");
 
-    const { dispatchN8nWorkflow, slugFromWebhookUrl, isValidWorkflowSlug } = await import("./n8n.server");
+    const { dispatchN8nWorkflow, slugFromWebhookUrl, isValidWorkflowSlug, n8nConfigured } =
+      await import("./n8n.server");
     const slug = isValidWorkflowSlug(rule.n8n_workflow)
       ? rule.n8n_workflow
       : slugFromWebhookUrl(rule.n8n_webhook_url);
     if (!slug) throw new Error("La automatización no tiene un workflow de n8n configurado");
 
+    if (!rule.enabled && !data.test) throw new Error("BLOQUEO: automatización pausada");
+    if (!n8nConfigured())
+      throw new Error("BLOQUEO: falta configurar N8N_BASE_URL y N8N_WEBHOOK_TOKEN en el backend");
+
     const traceId = crypto.randomUUID();
     const startedAt = new Date().toISOString();
 
-    const { data: run } = await context.supabase
-      .from("automation_runs")
-      .insert({
-        organization_id: data.organizationId,
-        rule_id: rule.id,
-        status: "RUNNING",
-        started_at: startedAt,
-        trace_id: traceId,
-      })
-      .select("id")
-      .maybeSingle();
-
-    const result = await dispatchN8nWorkflow(
-      slug,
-      {
-        source: "melano-command-center",
-        organization_id: data.organizationId,
-        rule_id: rule.id,
-        rule_name: rule.name,
-        action: rule.action,
-        trace_id: traceId,
-        triggered_by: context.userId,
-        triggered_at: startedAt,
-      },
-      { test: data.test },
+    const { data: run } = await checked(
+      context.supabase
+        .from("automation_runs")
+        .insert({
+          organization_id: data.organizationId,
+          rule_id: rule.id,
+          status: "RUNNING",
+          started_at: startedAt,
+          trace_id: traceId,
+        })
+        .select("id")
+        .single(),
     );
-
-    const finishedAt = new Date().toISOString();
-    const status = result.ok ? "SUCCESS" : "FAILED";
-    const detail = result.ok
-      ? result.body || `HTTP ${result.status}`
-      : `HTTP ${result.status || "sin respuesta"} · ${result.body}`.slice(0, 500);
-
-    if (run?.id) {
-      await context.supabase
+    if (!run) throw new Error("No se pudo registrar la ejecución; no se enviará a n8n");
+    try {
+      const result = await dispatchN8nWorkflow(
+        slug,
+        {
+          source: "melano-command-center",
+          organization_id: data.organizationId,
+          rule_id: rule.id,
+          rule_name: rule.name,
+          action: rule.action,
+          trace_id: traceId,
+          triggered_by: context.userId,
+          triggered_at: startedAt,
+        },
+        { test: data.test },
+      );
+      const outcome = workflowOutcome(result);
+      const finishedAt = new Date().toISOString();
+      // SKIPPED means no final execution result has been verified, not success.
+      const status =
+        outcome.state === "success" ? "SUCCESS" : outcome.state === "failed" ? "FAILED" : "SKIPPED";
+      await checked(
+        context.supabase
+          .from("automation_runs")
+          .update({
+            status,
+            finished_at: finishedAt,
+            output: outcome.state !== "failed" ? outcome.detail : null,
+            error: outcome.state === "failed" ? outcome.detail : null,
+          })
+          .eq("id", run.id)
+          .eq("organization_id", data.organizationId),
+      );
+      await checked(
+        context.supabase
+          .from("automation_rules")
+          .update({
+            last_run_at: finishedAt,
+            status:
+              outcome.state === "success"
+                ? "OK"
+                : outcome.state === "failed"
+                  ? "ERROR"
+                  : "PENDING_VERIFICATION",
+            last_result: outcome.state !== "failed" ? outcome.detail : null,
+            last_error: outcome.state === "failed" ? outcome.detail : null,
+          })
+          .eq("id", rule.id)
+          .eq("organization_id", data.organizationId),
+      );
+      await checked(
+        context.supabase.from("activity_logs").insert({
+          organization_id: data.organizationId,
+          actor_type: "human",
+          actor_user: context.userId,
+          action: `automation.${outcome.state}`,
+          entity_type: "automation_rule",
+          entity_id: rule.id,
+          detail: { workflow: slug, http_status: result.status, test: data.test, run_id: run.id },
+          trace_id: traceId,
+        }),
+      );
+      return {
+        ok: outcome.state === "success",
+        state: outcome.state,
+        status: result.status,
+        detail: outcome.detail,
+        traceId,
+      };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Fallo de automatización";
+      const saved = await context.supabase
         .from("automation_runs")
         .update({
-          status,
-          finished_at: finishedAt,
-          output: result.ok ? detail : null,
-          error: result.ok ? null : detail,
+          status: "FAILED",
+          finished_at: new Date().toISOString(),
+          error: message,
         })
-        .eq("id", run.id);
+        .eq("id", run.id)
+        .eq("organization_id", data.organizationId);
+      if (saved.error) console.error("[automation.run] No se pudo persistir el fallo", traceId);
+      throw error;
     }
-
-    await context.supabase
-      .from("automation_rules")
-      .update({
-        last_run_at: finishedAt,
-        status: result.ok ? "OK" : "ERROR",
-        last_result: result.ok ? detail : null,
-        last_error: result.ok ? null : detail,
-      })
-      .eq("id", rule.id);
-
-    await context.supabase.from("activity_logs").insert({
-      organization_id: data.organizationId,
-      actor_type: "human",
-      actor_user: context.userId,
-      action: result.ok ? "automation.executed" : "automation.failed",
-      entity_type: "automation_rule",
-      entity_id: rule.id,
-      detail: { workflow: slug, status: result.status, test: data.test },
-      trace_id: traceId,
-    });
-
-    return { ok: result.ok, status: result.status, detail, traceId };
   });
 
 /** Guarda el workflow de n8n asociado a una regla (sólo el slug, el host sale del backend). */
@@ -140,7 +176,10 @@ export const setAutomationWorkflow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: { organizationId: string; ruleId: string; workflow: string }) => {
     if (!input?.organizationId || !input?.ruleId) throw new Error("Parámetros inválidos");
-    const workflow = (input.workflow ?? "").trim().replace(/^.*\/webhook(?:-test)?\//, "").replace(/\/+$/, "");
+    const workflow = (input.workflow ?? "")
+      .trim()
+      .replace(/^.*\/webhook(?:-test)?\//, "")
+      .replace(/\/+$/, "");
     if (!/^[a-zA-Z0-9][a-zA-Z0-9_-]{1,80}$/.test(workflow)) {
       throw new Error("Workflow inválido: usá el path del webhook (letras, números, guiones)");
     }

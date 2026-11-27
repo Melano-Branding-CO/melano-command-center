@@ -6,8 +6,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { StatusBadge, ModePill } from "@/components/melano/badges";
-import { fmtDate, useOrg } from "@/lib/melano";
+import { fmtDate, useOrg, useMyRole } from "@/lib/melano";
 import { useOrgRows, useRowById } from "@/lib/melano-queries";
+import { AiStatusNotice, useAiStatus } from "@/components/melano/operational-controls";
 import { runAgentNow } from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/agents/$agentId")({
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/_authenticated/agents/$agentId")({
 
 type AgentRow = {
   id: string;
+  enabled: boolean;
   code: string;
   name: string;
   role: string;
@@ -113,10 +115,11 @@ function RunOutput({ output }: { output: Record<string, unknown> }) {
   );
 }
 
-
 function AgentDetail() {
   const { agentId } = Route.useParams();
   const { data: org } = useOrg();
+  const { data: aiStatus } = useAiStatus(org?.id);
+  const { data: role } = useMyRole(org?.id);
   const { data: agent, isLoading } = useRowById<AgentRow>("agents", agentId);
   const { data: runs } = useOrgRows<Run>("agent_runs", org?.id, {
     eq: { agent_id: agentId },
@@ -154,12 +157,22 @@ function AgentDetail() {
             <Link to="/agents" className="text-sm text-muted-foreground hover:underline">
               Volver
             </Link>
-            <Button onClick={execute} disabled={busy}>
+            <Button
+              onClick={execute}
+              disabled={
+                busy ||
+                !aiStatus?.configured ||
+                !agent.enabled ||
+                agent.status === "RUNNING" ||
+                !["CEO", "ADMIN", "OPERATOR"].includes(role ?? "")
+              }
+            >
               {busy ? "Ejecutando…" : "Ejecutar ahora"}
             </Button>
           </>
         }
       />
+      <AiStatusNotice organizationId={org?.id} />
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel title="Estado" action={<StatusBadge status={agent.status} />}>
           <p className="text-sm text-muted-foreground">{agent.objective}</p>
@@ -196,7 +209,6 @@ function AgentDetail() {
                   ) : r.output ? (
                     <RunOutput output={r.output} />
                   ) : null}
-
                 </li>
               ))}
             </ul>
@@ -220,7 +232,9 @@ function AgentDetail() {
             ).map(([label, value]) =>
               value ? (
                 <div key={label}>
-                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{label}</p>
+                  <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
+                    {label}
+                  </p>
                   <p className="text-sm text-foreground">{value}</p>
                 </div>
               ) : null,

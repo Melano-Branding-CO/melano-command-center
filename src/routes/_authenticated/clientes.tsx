@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
+import { ClientCommercial } from "@/components/melano/client-commercial";
 import { StatusBadge } from "@/components/melano/badges";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,7 @@ export const Route = createFileRoute("/_authenticated/clientes")({
   component: ClientsPage,
 });
 
-type Client = { id: string; name: string; contact_name: string | null; email: string | null; plan: string | null; status: string; created_at: string };
+type Client = { id: string; name: string; contact_name: string | null; email: string | null; plan: string | null; status: string; created_at: string; mrr: number; currency: string; next_action: string | null; next_follow_up_at: string | null };
 type Item = { id: string; title?: string; action?: string; status: string; created_at?: string; requested_at?: string; client_id: string | null };
 type Access = { id: string; client_id: string; email: string; revoked_at: string | null; created_at: string };
 
@@ -180,6 +181,10 @@ function ClientDetail({ client, orgId, canWrite, isAdmin, tasks, decisions, appr
         <p className="text-sm text-muted-foreground">
           {client.contact_name ?? "Sin contacto"} · {client.email ?? "sin email"} · Plan: {client.plan ?? "—"} · Alta: {fmtDate(client.created_at)}
         </p>
+      </Panel>
+
+      <Panel title="Seguimiento comercial">
+        <ClientCommercial client={client} organizationId={orgId} canWrite={canWrite} />
       </Panel>
 
       <Panel title="Acceso al portal (/publico)">

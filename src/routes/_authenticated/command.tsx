@@ -6,8 +6,23 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
 import { PriorityBadge, StatusBadge } from "@/components/melano/badges";
-import { agentMap, fmtDate, todayKey, useAgents, useOrg, type Agent } from "@/lib/melano";
+import {
+  agentMap,
+  fmtDate,
+  todayKey,
+  useAgents,
+  useOrg,
+  type Agent,
+  useMyRole,
+} from "@/lib/melano";
 import { useOrgRows, useRealtime } from "@/lib/melano-queries";
+import { PriorityEvidence, PriorityOwner } from "@/components/melano/priority-evidence";
+import { RevenueCurrent } from "@/components/melano/revenue-current";
+import {
+  AiStatusNotice,
+  GeneratePrioritiesButton,
+  useAiStatus,
+} from "@/components/melano/operational-controls";
 import { runMeetingNow } from "@/lib/melano.functions";
 
 export const Route = createFileRoute("/_authenticated/command")({
@@ -39,12 +54,17 @@ type Task = {
   next_action: string | null;
   success_metric: string | null;
   assigned_agent: string | null;
+  assigned_user: string | null;
+  description: string | null;
   deadline: string | null;
 };
 
 function CommandCenter() {
   const { data: org } = useOrg();
   const { data: agents } = useAgents(org?.id);
+  const { data: aiStatus } = useAiStatus(org?.id);
+  const { data: role } = useMyRole(org?.id);
+  const canOperate = ["CEO", "ADMIN", "OPERATOR"].includes(role ?? "");
   const map = agentMap(agents as Agent[] | undefined);
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
@@ -59,6 +79,7 @@ function CommandCenter() {
     "metrics",
     "agents",
     "leads",
+    "clients",
   ]);
 
   const today = todayKey(org?.timezone ?? undefined);
@@ -71,11 +92,12 @@ function CommandCenter() {
     eq: { status: "BLOCKED" },
     order: "updated_at",
   });
-  const { data: decisions } = useOrgRows<{ id: string; title: string; status: string; priority: string }>(
-    "decisions",
-    org?.id,
-    { eq: { status: "PROPOSED" }, order: "created_at", limit: 6 },
-  );
+  const { data: decisions } = useOrgRows<{
+    id: string;
+    title: string;
+    status: string;
+    priority: string;
+  }>("decisions", org?.id, { eq: { status: "PROPOSED" }, order: "created_at", limit: 6 });
   const { data: approvals } = useOrgRows<{ id: string; action: string; risk: string | null }>(
     "approvals",
     org?.id,
@@ -92,13 +114,6 @@ function CommandCenter() {
     status: string;
     next_run_at: string | null;
   }>("automation_rules", org?.id, { order: "created_at" });
-  const { data: revenueMetrics } = useOrgRows<{
-    id: string;
-    label: string;
-    value: number;
-    unit: string | null;
-    captured_at: string;
-  }>("metrics", org?.id, { eq: { category: "revenue" }, order: "captured_at", limit: 4 });
   const { data: leads } = useOrgRows<{
     id: string;
     full_name: string;
@@ -119,8 +134,8 @@ function CommandCenter() {
     setBusy(true);
     try {
       const res = await runMeeting({ data: { organizationId: org.id } });
-      toast.success(`Board enviado · trace ${res.traceId.slice(0, 8)}`);
-      window.setTimeout(() => qc.invalidateQueries(), 2500);
+      toast.success(`Reunión completada · trace ${res.traceId.slice(0, 8)}`);
+      await qc.invalidateQueries();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo ejecutar la reunión");
     } finally {
@@ -134,12 +149,23 @@ function CommandCenter() {
         title="Command Center"
         subtitle="Todo lo que ves sale de la base de datos real. Sin datos inventados."
         actions={
-          <Button onClick={onRunMeeting} disabled={busy || !org?.id}>
-            {busy ? "Ejecutando…" : "Ejecutar reunión ahora"}
-          </Button>
+          <>
+            <GeneratePrioritiesButton organizationId={org?.id} />
+            <Button
+              onClick={onRunMeeting}
+              disabled={busy || !org?.id || !canOperate || !aiStatus?.configured}
+            >
+              {busy ? "Ejecutando…" : "Ejecutar reunión con IA"}
+            </Button>
+          </>
         }
       />
 
+      <AiStatusNotice organizationId={org?.id} />
+      <p className="mb-4 text-xs text-muted-foreground">
+        Las prioridades operativas se generan por reglas sobre registros actuales, sin IA ni
+        contacto automático.
+      </p>
       <div className="grid gap-4 lg:grid-cols-3">
         <Panel
           title="Hoy — Top 3"
@@ -153,7 +179,7 @@ function CommandCenter() {
           {loadingToday ? (
             <Empty text="Cargando prioridades desde la base…" />
           ) : (todayTasks ?? []).length === 0 ? (
-            <Empty text="Sin prioridades definidas hoy. Ejecutá la reunión ejecutiva para generarlas." />
+            <Empty text="Sin prioridades definidas hoy. Usá Generar prioridades operativas para revisar los registros actuales." />
           ) : (
             <ul className="space-y-3">
               {(todayTasks ?? []).slice(0, 3).map((t) => (
@@ -174,34 +200,31 @@ function CommandCenter() {
                     </div>
                     <div>
                       <dt className="label-caps">Owner</dt>
-                      <dd>{t.assigned_agent ? map.get(t.assigned_agent)?.name ?? "—" : "—"}</dd>
+                      <dd>
+                        <PriorityOwner
+                          userId={t.assigned_user}
+                          agentName={t.assigned_agent ? map.get(t.assigned_agent)?.name : undefined}
+                        />
+                      </dd>
                     </div>
                     <div>
                       <dt className="label-caps">Success metric</dt>
                       <dd>{t.success_metric ?? "—"}</dd>
                     </div>
+                    <div>
+                      <dt className="label-caps">Plazo</dt>
+                      <dd>{fmtDate(t.deadline)}</dd>
+                    </div>
                   </dl>
+                  <PriorityEvidence description={t.description} />
                 </li>
               ))}
             </ul>
           )}
         </Panel>
 
-        <Panel title="Revenue">
-          {(revenueMetrics ?? []).length === 0 ? (
-            <Empty text="Sin métricas de revenue registradas." />
-          ) : (
-            <ul className="space-y-2 text-sm">
-              {(revenueMetrics ?? []).map((m) => (
-                <li key={m.id} className="flex items-baseline justify-between gap-2">
-                  <span className="text-muted-foreground">{m.label}</span>
-                  <span className="font-semibold text-foreground">
-                    {m.value} {m.unit ?? ""}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
+        <Panel title="Revenue actual">
+          <RevenueCurrent organizationId={org?.id} />
         </Panel>
 
         <Panel title="Agentes">
@@ -232,10 +255,7 @@ function CommandCenter() {
             <ul className="space-y-2 text-sm">
               {(decisions ?? []).map((d) => (
                 <li key={d.id} className="flex items-center justify-between gap-2">
-                  <Link
-                    to="/decisions"
-                    className="truncate text-foreground hover:underline"
-                  >
+                  <Link to="/decisions" className="truncate text-foreground hover:underline">
                     {d.title}
                   </Link>
                   <PriorityBadge priority={d.priority} />
