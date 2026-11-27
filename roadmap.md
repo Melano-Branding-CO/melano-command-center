@@ -15,7 +15,8 @@
 
 ## Reparación operativa 26/11/2026
 - [x] Integrar preflight de IA, ejecución de agente por organización y reclamación condicional, timeout y comprobación de persistencia. Verificación de código y pruebas, no certificación de IA productiva.
-- [x] Integrar prioridades por reglas con RPC transaccional, RLS, trazabilidad, tope de tres e idempotencia; migración aplicada y prueba SQL revertida.
+- [x] Integrar prioridades por reglas con RPC transaccional, RLS, trazabilidad e idempotencia; primera migración aplicada y pruebas SQL revertidas.
+- [ ] Aplicar 20261127012500_shared_daily_priority_cap.sql antes de publicar para compartir el tope de tres con la reunión de IA; instalación bloqueada por cuota temporal del MCP de Lovable.
 - [x] Unificar Revenue actual y agregar edición del seguimiento comercial en Clientes; 18 pruebas, TypeScript y build PASS.
 - [ ] Publicar desde una sesión autorizada de Lovable y verificar login, rutas, recarga, tareas/audit y seguimiento con datos autorizados.
 - [ ] Certificar una ejecución real de IA con credenciales/saldo y la conexión real de n8n. Estado global RED.

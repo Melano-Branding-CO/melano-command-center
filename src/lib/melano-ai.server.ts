@@ -456,38 +456,23 @@ Respondé SOLO JSON:
       throw new Error("BLOQUEO: la consolidación de IA no tiene un formato válido");
     }
 
-    const codeToAgent = new Map((agents ?? []).map((a) => [a.code, a]));
-    const { data: organization } = await checked(
-      db.from("organizations").select("timezone").eq("id", orgId).single(),
+    const { data: priorityReceipt, error: priorityError } = await db.rpc(
+      "save_meeting_priorities" as never,
+      {
+        p_organization_id: orgId,
+        p_meeting_id: meeting.id,
+        p_items: brief.top3.slice(0, 3),
+      } as never,
     );
-    const today = new Intl.DateTimeFormat("en-CA", {
-      timeZone: organization?.timezone ?? "America/Argentina/Buenos_Aires",
-    }).format(now);
-
-    for (const [i, item] of (brief.top3 ?? []).slice(0, 3).entries()) {
-      const owner = item.owner_code ? codeToAgent.get(item.owner_code.toUpperCase()) : undefined;
-      await db
-        .from("tasks")
-        .insert({
-          organization_id: orgId,
-          title: item.title,
-          description: item.why_now ?? null,
-          meeting_id: meeting.id,
-          priority: (PRIORITIES.includes(item.priority ?? "") ? item.priority : "P1") as "P1",
-          assigned_agent: owner?.id ?? null,
-          created_by_agent: melania?.id ?? null,
-          status: "READY" as const,
-          execution_mode: "ASSISTED" as const,
-          success_metric: item.success_metric ?? null,
-          why_now: item.why_now ?? null,
-          next_action: item.next_action ?? null,
-          is_today_priority: true,
-          today_date: today,
-          trace_id: traceId,
-        })
-        .throwOnError();
-      void i;
-    }
+    if (priorityError)
+      throw new Error(`No se pudieron guardar las prioridades: ${priorityError.message}`);
+    const receipt = priorityReceipt as unknown as {
+      saved_items: TopItem[];
+      total: number;
+      day: string;
+    };
+    // Report the priorities actually persisted, not proposals beyond today's capacity.
+    brief.top3 = receipt.saved_items;
 
     for (const dec of (brief.decisions ?? []).slice(0, 6)) {
       const { data: inserted } = await db

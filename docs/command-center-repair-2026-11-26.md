@@ -20,22 +20,22 @@ Revisión: 26/11/2026, Argentina. Base: `300a7c5283f16b06b4f5e33339d4dc265ba3a28
 | `npm run build` | PASS, cliente + SSR |
 | `node --import tsx --test src/lib/operations.test.ts src/lib/lead-summary.test.ts src/integrations/supabase/public-config.test.ts` | PASS: 18 pruebas |
 | ESLint en módulos nuevos, agregación y componente Revenue | 0 errores; aviso de Fast Refresh por exportación del hook compartido |
-| Prueba de RPC con rol `authenticated`, claims de miembro existente y RLS | PASS: persistencia, auditoría, máximo tres, idempotencia y rechazo de otra organización; escrituras de prueba revertidas |
+| Prueba de RPC con rol `authenticated`, claims de miembro existente y RLS | PASS: persistencia, auditoría, máximo tres compartido entre reglas y reunión de IA (en ambos órdenes), idempotencia y rechazo de otra organización; escrituras de prueba revertidas |
 | Permisos efectivos de RPC aplicada | SECURITY INVOKER; authenticated puede ejecutar; anon no puede ejecutar |
 | Bundle público | No contiene los nombres de las credenciales privilegiadas de Supabase ni IA |
 
-La migración `20261127011000_operational_priorities.sql` se aplicó al backend activo de Lovable. No modifica tablas existentes ni crea tareas al instalarse. Las tareas se crean cuando un operador acciona el botón.
+La migración `20261127011000_operational_priorities.sql` se aplicó al backend activo de Lovable. La migración `20261127012500_shared_daily_priority_cap.sql` está PENDIENTE: el MCP de Lovable alcanzó su límite temporal de operaciones de base de datos al instalarla; la llamada fue rechazada sin ejecutarse (reintento indicado por el proveedor: 39 minutos). No modifica tablas existentes ni crea tareas al instalarse. Las tareas se crean cuando un operador acciona el botón. La generación por IA requiere esa segunda migración antes de publicar esta revisión.
 
 ## Bloqueos y comprobación publicada pendiente
 
 Se observó en `https://www.comandcenter.tech/command`: “Missing Supabase environment variable(s): SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY. Configure them in Vercel.” En el mismo dominio `/api/public/health` respondió `status: ok`. Un health check aislado no certifica la pantalla ni el login.
 
-Lovable agotó créditos durante su turno y se terminó la integración desde el repositorio. La publicación por interfaz requiere una sesión de Lovable; el navegador disponible muestra el login. La ejecución real de IA requiere credenciales válidas y saldo. La conexión y el resultado real de n8n siguen pendientes de certificar.
+Lovable agotó créditos durante su turno y se terminó la integración desde el repositorio. La publicación por interfaz requiere una sesión de Lovable; el navegador disponible muestra el login. Cloudflare compiló y desplegó la primera revisión del PR en dos previews; el preview `melano-command-center-prod` redirigió `/command` a `/auth` correctamente, sin el error de configuración. Vercel mantiene los mismos estados de bloqueo de despliegue que tenía el commit base. El análisis de GitHub no inició pasos y DCO informa falta de sign-off en el commit. Estos checks no se presentan como aprobados. La ejecución real de IA requiere credenciales válidas y saldo. La conexión y el resultado real de n8n siguen pendientes de certificar.
 
-Después de publicar, cerrar el gate con una cuenta existente: entrar en `/command`, comprobar Revenue, generar prioridades, recargar y comparar tareas/trace con `activity_logs`; repetir la generación y verificar cero duplicados; abrir Clientes y guardar un seguimiento autorizado; comprobar la misma cifra de Revenue después de recargar. La IA sólo queda certificada con un run exitoso persistido y permisos correctos.
+Primero aplicar la segunda migración y completar la integración/publicación. Después, cerrar el gate con una cuenta existente: entrar en `/command`, comprobar Revenue, generar prioridades, recargar y comparar tareas/trace con `activity_logs`; repetir la generación y verificar cero duplicados; abrir Clientes y guardar un seguimiento autorizado; comprobar la misma cifra de Revenue después de recargar. La IA sólo queda certificada con un run exitoso persistido y permisos correctos.
 
 **Estado global: RED hasta completar estas pruebas en la versión publicada.** No se acredita rentabilidad: faltan costos de entrega y cobros verificados.
 
 ## Reversión
 
-Revertir el commit de aplicación y volver a publicar la versión anterior. La nueva RPC puede quedar sin uso; las tareas y logs ya creados conservan su historial. No se necesita borrar datos ni revertir tablas.
+Revertir el commit de aplicación y volver a publicar la versión anterior. Las nuevas RPC pueden quedar sin uso; las tareas y logs ya creados conservan su historial. No se necesita borrar datos ni revertir tablas.
