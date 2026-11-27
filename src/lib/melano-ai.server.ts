@@ -1,8 +1,9 @@
 // Server-only: orquestación de MELANIA y ejecución de agentes.
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
-
-const MODEL = "google/gemini-2.5-flash";
-const GATEWAY = "https://ai-gateway.vercel.sh/v1/chat/completions";
+import { AI_MODEL as MODEL, requestAiCompletion } from "./ai-gateway.server";
+import { requireAiConfiguration } from "./ai-status.server";
+import { assertAgentScope, checked } from "./operational-guards";
+import { summarizeRevenue, type RevenueClient, type RevenueLead } from "./revenue-summary";
 
 import type { Json as DbJson } from "@/integrations/supabase/types";
 
@@ -12,35 +13,7 @@ export type AiResult = { text: string; tokens: number; model: string; ms: number
 
 async function aiFull(system: string, user: string): Promise<AiResult> {
   const key = process.env["AI_GATEWAY_API_KEY"] || process.env["VERCEL_OIDC_TOKEN"];
-  if (!key) throw new Error("Falta AI_GATEWAY_API_KEY o VERCEL_OIDC_TOKEN en el servidor");
-  const t0 = Date.now();
-  const res = await fetch(GATEWAY, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: "system", content: system },
-        { role: "user", content: user },
-      ],
-    }),
-  });
-  if (!res.ok) {
-    const body = await res.text();
-    if (res.status === 429) throw new Error("Límite de uso de IA alcanzado. Reintentá en unos minutos.");
-    if (res.status === 402) throw new Error("Sin créditos de IA disponibles.");
-    throw new Error(`AI gateway ${res.status}: ${body.slice(0, 300)}`);
-  }
-  const data = (await res.json()) as {
-    choices?: Array<{ message?: { content?: string } }>;
-    usage?: { total_tokens?: number };
-  };
-  return {
-    text: data.choices?.[0]?.message?.content ?? "",
-    tokens: data.usage?.total_tokens ?? 0,
-    model: MODEL,
-    ms: Date.now() - t0,
-  };
+  return requestAiCompletion(system, user, key);
 }
 
 async function ai(system: string, user: string): Promise<string> {
@@ -87,6 +60,7 @@ async function loadOrgContext(orgId: string) {
       .from("metrics")
       .select("key,label,value,unit,captured_at")
       .eq("organization_id", orgId)
+      .neq("category", "revenue")
       .order("captured_at", { ascending: false })
       .limit(30),
     db
@@ -98,8 +72,46 @@ async function loadOrgContext(orgId: string) {
     db.from("products").select("code,name,status,priority").eq("organization_id", orgId),
   ]);
 
+  for (const response of [tasks, decisions, approvals, metrics, alerts, products]) {
+    if (response.error) throw new Error(`No se pudo leer el contexto: ${response.error.message}`);
+  }
+  // Use the same current records as Revenue; historical revenue snapshots are excluded.
+  const clients: RevenueClient[] = [];
+  const leads: RevenueLead[] = [];
+  for (let offset = 0; ; offset += 1000) {
+    const { data } = await checked(
+      db
+        .from("clients")
+        .select("id,organization_id,name,status,currency,mrr,is_demo,next_action,next_follow_up_at")
+        .eq("organization_id", orgId)
+        .eq("is_demo", false)
+        .order("id")
+        .range(offset, offset + 999),
+    );
+    clients.push(...(data ?? []));
+    if ((data?.length ?? 0) < 1000) break;
+  }
+  for (let offset = 0; ; offset += 1000) {
+    const { data } = await checked(
+      db
+        .from("leads")
+        .select("id,organization_id,status,is_demo,next_follow_up_at")
+        .eq("organization_id", orgId)
+        .eq("is_demo", false)
+        .order("id")
+        .range(offset, offset + 999),
+    );
+    leads.push(...(data ?? []));
+    if ((data?.length ?? 0) < 1000) break;
+  }
   return JSON.stringify(
     {
+      revenue_actual_registrado_no_acredita_cobros: summarizeRevenue(
+        clients,
+        leads,
+        orgId,
+        new Date().toISOString(),
+      ),
       tareas_abiertas: tasks.data ?? [],
       decisiones_recientes: decisions.data ?? [],
       aprobaciones_pendientes: approvals.data ?? [],
@@ -166,119 +178,159 @@ export function buildAgentPrompt(agent: AgentRowFull, toolNames: string[]): stri
 const COST_PER_1K_TOKENS = 0.0003;
 
 /** Ejecuta un agente individual con su prompt real y persiste el run completo. */
-export async function runAgentServer(agentId: string, meetingId?: string) {
+export async function runAgentServer(agentId: string, organizationId: string, meetingId?: string) {
   const db = supabaseAdmin;
-  const { data: agent, error } = await db.from("agents").select("*").eq("id", agentId).single();
-  if (error || !agent) throw new Error("Agente no encontrado");
+  const { data: agent } = await checked(
+    db
+      .from("agents")
+      .select("*")
+      .eq("id", agentId)
+      .eq("organization_id", organizationId)
+      .maybeSingle(),
+  );
+  assertAgentScope(agent, organizationId);
+  if (!agent) throw new Error("DENIED: agente fuera de la organización autorizada");
+  requireAiConfiguration();
+
+  // Compare-and-set claim prevents two concurrent requests from running the same agent.
+  const { data: claimed } = await checked(
+    db
+      .from("agents")
+      .update({ status: "RUNNING" })
+      .eq("id", agentId)
+      .eq("organization_id", organizationId)
+      .eq("enabled", true)
+      .neq("status", "RUNNING")
+      .select("id")
+      .maybeSingle(),
+  );
+  if (!claimed) throw new Error("BLOQUEO: agente ya en ejecución o pausado");
 
   const traceId = crypto.randomUUID();
-  const context = await loadOrgContext(agent.organization_id);
-
-  const { data: toolRows } = await db
-    .from("agent_tools")
-    .select("tool_name")
-    .eq("agent_id", agent.id)
-    .eq("enabled", true);
-  const toolNames = (toolRows ?? []).map((t) => t.tool_name);
-
-  const systemPrompt = buildAgentPrompt(agent as unknown as AgentRowFull, toolNames);
-  const userPrompt = `Estado real de la organización (JSON):\n${context}\n\nProducí tu análisis ejecutivo de hoy siguiendo tu ciclo de ejecución.`;
-
-  const { data: run } = await db
-    .from("agent_runs")
-    .insert({
-      organization_id: agent.organization_id,
-      agent_id: agent.id,
-      ...(meetingId ? { meeting_id: meetingId } : {}),
-      trigger: meetingId ? ("schedule" as const) : ("manual" as const),
-      status: "RUNNING" as const,
-      input: {
-        model: MODEL,
-        agent_code: agent.code,
-        system_prompt: systemPrompt,
-        user_prompt_preview: userPrompt.slice(0, 2000),
-        context_bytes: context.length,
-      } as unknown as DbJson,
-      tools_used: toolNames as unknown as DbJson,
-      trace_id: traceId,
-    })
-    .select("id")
-    .single();
-
-  await db.from("agents").update({ status: "RUNNING" }).eq("id", agent.id);
-
+  let runId: string | null = null;
   try {
+    const context = await loadOrgContext(organizationId);
+    const { data: toolRows } = await checked(
+      db.from("agent_tools").select("tool_name").eq("agent_id", agentId).eq("enabled", true),
+    );
+    const toolNames = (toolRows ?? []).map((t) => t.tool_name);
+    const systemPrompt = buildAgentPrompt(agent as unknown as AgentRowFull, toolNames);
+    const userPrompt = `Estado real de la organización (JSON):\n${context}\n\nProducí tu análisis ejecutivo de hoy siguiendo tu ciclo de ejecución.`;
+    const { data: run } = await checked(
+      db
+        .from("agent_runs")
+        .insert({
+          organization_id: organizationId,
+          agent_id: agentId,
+          ...(meetingId ? { meeting_id: meetingId } : {}),
+          trigger: meetingId ? ("schedule" as const) : ("manual" as const),
+          status: "RUNNING" as const,
+          input: {
+            model: MODEL,
+            agent_code: agent.code,
+            system_prompt: systemPrompt,
+            user_prompt_preview: userPrompt.slice(0, 2000),
+            context_bytes: context.length,
+            configured_tools: toolNames,
+          } as unknown as DbJson,
+          // These tools are context, not executed tool calls.
+          tools_used: [],
+          trace_id: traceId,
+        })
+        .select("id")
+        .single(),
+    );
+    if (!run) throw new Error("No se pudo registrar la ejecución");
+    runId = run.id;
     const result = await aiFull(systemPrompt, userPrompt);
-    const text = result.text;
-    const parsed = parseJson<Record<string, unknown>>(text, {
-      situation: text.slice(0, 800) || "SIN DATOS",
-      proposed_action: "SIN DATOS",
-      raw_text: text.slice(0, 4000),
-    });
-
-    if (run?.id) {
-      await db
+    const parsed = parseJson<Record<string, unknown> | null>(result.text, null);
+    if (
+      !parsed ||
+      typeof parsed["situation"] !== "string" ||
+      typeof parsed["proposed_action"] !== "string"
+    ) {
+      throw new Error("BLOQUEO: la IA devolvió un análisis con formato inválido");
+    }
+    await checked(
+      db.from("activity_logs").insert({
+        organization_id: organizationId,
+        actor_type: "agent",
+        actor_agent: agentId,
+        action: "agent.run.success",
+        entity_type: "agent",
+        entity_id: agentId,
+        detail: {
+          proposed_action: parsed["proposed_action"] as DbJson,
+          tokens: result.tokens,
+          duration_ms: result.ms,
+          model: result.model,
+          run_id: runId,
+        },
+        trace_id: traceId,
+      }),
+    );
+    await checked(
+      db
+        .from("agents")
+        .update({
+          status: "ACTIVE",
+          last_run_at: new Date().toISOString(),
+          last_result: String(parsed["proposed_action"]).slice(0, 500),
+          last_error: null,
+        })
+        .eq("id", agentId)
+        .eq("organization_id", organizationId),
+    );
+    await checked(
+      db
         .from("agent_runs")
         .update({
-          status: "SUCCESS" as const,
+          status: "SUCCESS",
           finished_at: new Date().toISOString(),
-          output: parsed as unknown as DbJson,
+          output: parsed as DbJson,
           tokens: result.tokens,
           estimated_cost: Number(((result.tokens / 1000) * COST_PER_1K_TOKENS).toFixed(6)),
         })
-        .eq("id", run.id);
-    }
-    await db
-      .from("agents")
-      .update({
-        status: "ACTIVE" as const,
-        last_run_at: new Date().toISOString(),
-        last_result: String(parsed["proposed_action"] ?? "").slice(0, 500),
-        last_error: null,
-      })
-      .eq("id", agent.id);
-
-    await db.from("activity_logs").insert({
-      organization_id: agent.organization_id,
-      actor_type: "agent",
-      actor_agent: agent.id,
-      action: "agent.run.success",
-      entity_type: "agent",
-      entity_id: agent.id,
-      detail: {
-        proposed_action: (parsed["proposed_action"] ?? null) as DbJson,
-        tokens: result.tokens,
-        duration_ms: result.ms,
-        model: result.model,
-        run_id: run?.id ?? null,
-      } as unknown as DbJson,
-      trace_id: traceId,
-    });
-
-    return { agent, parsed, traceId, runId: run?.id ?? null, tokens: result.tokens };
+        .eq("id", runId)
+        .eq("organization_id", organizationId),
+    );
+    return { agent, parsed, traceId, runId, tokens: result.tokens };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    if (run?.id) {
-      await db
-        .from("agent_runs")
-        .update({
-          status: "FAILED" as const,
-          finished_at: new Date().toISOString(),
-          error: message,
-        })
-        .eq("id", run.id);
-    }
-    await db.from("agents").update({ status: "ERROR", last_error: message }).eq("id", agent.id);
-    await db.from("activity_logs").insert({
-      organization_id: agent.organization_id,
-      actor_type: "agent",
-      actor_agent: agent.id,
-      action: "agent.run.failed",
-      entity_type: "agent",
-      entity_id: agent.id,
-      detail: { error: message },
-      trace_id: traceId,
-    });
+    const outcomes = await Promise.allSettled([
+      ...(runId
+        ? [
+            checked(
+              db
+                .from("agent_runs")
+                .update({ status: "FAILED", finished_at: new Date().toISOString(), error: message })
+                .eq("id", runId)
+                .eq("organization_id", organizationId),
+            ),
+          ]
+        : []),
+      checked(
+        db
+          .from("agents")
+          .update({ status: "ERROR", last_error: message })
+          .eq("id", agentId)
+          .eq("organization_id", organizationId),
+      ),
+      checked(
+        db.from("activity_logs").insert({
+          organization_id: organizationId,
+          actor_type: "agent",
+          actor_agent: agentId,
+          action: "agent.run.failed",
+          entity_type: "agent",
+          entity_id: agentId,
+          detail: { error: message },
+          trace_id: traceId,
+        }),
+      ),
+    ]);
+    if (outcomes.some((outcome) => outcome.status === "rejected"))
+      console.error("[agent.run] No se pudo persistir completamente el fallo", traceId);
     throw err;
   }
 }
@@ -316,6 +368,7 @@ const PRIORITIES = ["P0", "P1", "P2", "P3"];
 export async function runExecutiveMeetingServer(
   opts: { orgId?: string; trigger?: "schedule" | "manual" } = {},
 ) {
+  requireAiConfiguration();
   const db = supabaseAdmin;
   const orgId = await resolveOrgId(opts.orgId);
   const trigger = opts.trigger ?? "manual";
@@ -327,11 +380,14 @@ export async function runExecutiveMeetingServer(
     .select("*")
     .eq("organization_id", orgId)
     .eq("enabled", true)
-    .order("sort_order");
+    .order("sort_order")
+    .throwOnError();
   if (agentsError) throw agentsError;
 
   const melania = (agents ?? []).find((a) => a.code === "MELANIA");
   const specialists = (agents ?? []).filter((a) => a.code !== "MELANIA");
+  if (!specialists.length)
+    throw new Error("BLOQUEO: no hay especialistas habilitados para la reunión");
 
   const { data: meeting, error: meetingError } = await db
     .from("executive_meetings")
@@ -345,42 +401,39 @@ export async function runExecutiveMeetingServer(
       trace_id: traceId,
     })
     .select("*")
-    .single();
+    .single()
+    .throwOnError();
   if (meetingError || !meeting) throw meetingError ?? new Error("No se pudo crear la reunión");
 
   try {
-    const results = await Promise.all(
-      specialists.map(async (agent) => {
-        try {
-          const { parsed } = await runAgentServer(agent.id, meeting.id);
-          await db.from("meeting_participants").insert({
-            organization_id: orgId,
-            meeting_id: meeting.id,
-            agent_id: agent.id,
-            role_in_meeting: agent.role,
-          });
-          await db.from("meeting_outputs").insert({
-            organization_id: orgId,
-            meeting_id: meeting.id,
-            agent_id: agent.id,
-            situation: String(parsed["situation"] ?? ""),
-            changes: String(parsed["changes"] ?? ""),
-            problems: String(parsed["problems"] ?? ""),
-            opportunities: String(parsed["opportunities"] ?? ""),
-            metrics: (parsed["metrics"] as DbJson) ?? {},
-            proposed_action: String(parsed["proposed_action"] ?? ""),
-            raw: parsed as unknown as DbJson,
-          });
-          return { code: agent.code, name: agent.name, output: parsed };
-        } catch (err) {
-          return {
-            code: agent.code,
-            name: agent.name,
-            output: { error: err instanceof Error ? err.message : String(err) },
-          };
-        }
-      }),
-    );
+    const results: { code: string; name: string; output: Record<string, unknown> }[] = [];
+    // Stop on the first rejected execution: no fan-out on invalid credentials or exhausted credit.
+    for (const agent of specialists) {
+      const { parsed } = await runAgentServer(agent.id, orgId, meeting.id);
+      await checked(
+        db.from("meeting_participants").insert({
+          organization_id: orgId,
+          meeting_id: meeting.id,
+          agent_id: agent.id,
+          role_in_meeting: agent.role,
+        }),
+      );
+      await checked(
+        db.from("meeting_outputs").insert({
+          organization_id: orgId,
+          meeting_id: meeting.id,
+          agent_id: agent.id,
+          situation: String(parsed["situation"] ?? ""),
+          changes: String(parsed["changes"] ?? ""),
+          problems: String(parsed["problems"] ?? ""),
+          opportunities: String(parsed["opportunities"] ?? ""),
+          metrics: (parsed["metrics"] as DbJson) ?? {},
+          proposed_action: String(parsed["proposed_action"] ?? ""),
+          raw: parsed as DbJson,
+        }),
+      );
+      results.push({ code: agent.code, name: agent.name, output: parsed });
+    }
 
     const consolidationSystem = `${melania?.system_prompt ?? "Sos MELANIA, CEO digital de MELANO INC."}
 Consolidá los aportes del comité. Detectá contradicciones. Definí máximo 3 prioridades del día.
@@ -393,35 +446,46 @@ Respondé SOLO JSON:
       consolidationSystem,
       `Aportes de los agentes (JSON):\n${JSON.stringify(results).slice(0, 14000)}`,
     );
-    const brief = parseJson<Consolidation>(consolidationText, {
-      summary: consolidationText.slice(0, 1000),
-      brief: [],
-      top3: [],
-      decisions: [],
-    });
+    const brief = parseJson<Consolidation | null>(consolidationText, null);
+    if (
+      !brief ||
+      typeof brief.summary !== "string" ||
+      !Array.isArray(brief.top3) ||
+      !Array.isArray(brief.decisions)
+    ) {
+      throw new Error("BLOQUEO: la consolidación de IA no tiene un formato válido");
+    }
 
     const codeToAgent = new Map((agents ?? []).map((a) => [a.code, a]));
-    const today = now.toISOString().slice(0, 10);
+    const { data: organization } = await checked(
+      db.from("organizations").select("timezone").eq("id", orgId).single(),
+    );
+    const today = new Intl.DateTimeFormat("en-CA", {
+      timeZone: organization?.timezone ?? "America/Argentina/Buenos_Aires",
+    }).format(now);
 
     for (const [i, item] of (brief.top3 ?? []).slice(0, 3).entries()) {
       const owner = item.owner_code ? codeToAgent.get(item.owner_code.toUpperCase()) : undefined;
-      await db.from("tasks").insert({
-        organization_id: orgId,
-        title: item.title,
-        description: item.why_now ?? null,
-        meeting_id: meeting.id,
-        priority: (PRIORITIES.includes(item.priority ?? "") ? item.priority : "P1") as "P1",
-        assigned_agent: owner?.id ?? null,
-        created_by_agent: melania?.id ?? null,
-        status: "READY" as const,
-        execution_mode: "ASSISTED" as const,
-        success_metric: item.success_metric ?? null,
-        why_now: item.why_now ?? null,
-        next_action: item.next_action ?? null,
-        is_today_priority: true,
-        today_date: today,
-        trace_id: traceId,
-      });
+      await db
+        .from("tasks")
+        .insert({
+          organization_id: orgId,
+          title: item.title,
+          description: item.why_now ?? null,
+          meeting_id: meeting.id,
+          priority: (PRIORITIES.includes(item.priority ?? "") ? item.priority : "P1") as "P1",
+          assigned_agent: owner?.id ?? null,
+          created_by_agent: melania?.id ?? null,
+          status: "READY" as const,
+          execution_mode: "ASSISTED" as const,
+          success_metric: item.success_metric ?? null,
+          why_now: item.why_now ?? null,
+          next_action: item.next_action ?? null,
+          is_today_priority: true,
+          today_date: today,
+          trace_id: traceId,
+        })
+        .throwOnError();
       void i;
     }
 
@@ -444,23 +508,27 @@ Respondé SOLO JSON:
           trace_id: traceId,
         })
         .select("id")
-        .single();
+        .single()
+        .throwOnError();
 
       if (dec.requires_approval && inserted?.id) {
-        await db.from("approvals").insert({
-          organization_id: orgId,
-          action: dec.title,
-          category: dec.category ?? "critical",
-          agent_id: melania?.id ?? null,
-          decision_id: inserted.id,
-          reason: dec.description ?? null,
-          impact: dec.expected_impact ?? null,
-          risk: dec.risk ?? null,
-          evidence: { meeting_id: meeting.id },
-          payload: dec as unknown as DbJson,
-          status: "PENDING" as const,
-          trace_id: traceId,
-        });
+        await db
+          .from("approvals")
+          .insert({
+            organization_id: orgId,
+            action: dec.title,
+            category: dec.category ?? "critical",
+            agent_id: melania?.id ?? null,
+            decision_id: inserted.id,
+            reason: dec.description ?? null,
+            impact: dec.expected_impact ?? null,
+            risk: dec.risk ?? null,
+            evidence: { meeting_id: meeting.id },
+            payload: dec as unknown as DbJson,
+            status: "PENDING" as const,
+            trace_id: traceId,
+          })
+          .throwOnError();
       }
     }
 
@@ -472,22 +540,26 @@ Respondé SOLO JSON:
         summary: brief.summary ?? null,
         executive_brief: brief as unknown as DbJson,
       })
-      .eq("id", meeting.id);
+      .eq("id", meeting.id)
+      .throwOnError();
 
-    await db.from("activity_logs").insert({
-      organization_id: orgId,
-      actor_type: "agent",
-      actor_agent: melania?.id ?? null,
-      action: "meeting.completed",
-      entity_type: "executive_meeting",
-      entity_id: meeting.id,
-      detail: {
-        participantes: results.length,
-        top3: (brief.top3 ?? []).length,
-        decisiones: (brief.decisions ?? []).length,
-      },
-      trace_id: traceId,
-    });
+    await db
+      .from("activity_logs")
+      .insert({
+        organization_id: orgId,
+        actor_type: "agent",
+        actor_agent: melania?.id ?? null,
+        action: "meeting.completed",
+        entity_type: "executive_meeting",
+        entity_id: meeting.id,
+        detail: {
+          participantes: results.length,
+          top3: (brief.top3 ?? []).length,
+          decisiones: (brief.decisions ?? []).length,
+        },
+        trace_id: traceId,
+      })
+      .throwOnError();
 
     return { meetingId: meeting.id, traceId, brief };
   } catch (err) {
@@ -499,16 +571,20 @@ Respondé SOLO JSON:
         finished_at: new Date().toISOString(),
         error: message,
       })
-      .eq("id", meeting.id);
-    await db.from("activity_logs").insert({
-      organization_id: orgId,
-      actor_type: "system",
-      action: "meeting.failed",
-      entity_type: "executive_meeting",
-      entity_id: meeting.id,
-      detail: { error: message },
-      trace_id: traceId,
-    });
+      .eq("id", meeting.id)
+      .throwOnError();
+    await db
+      .from("activity_logs")
+      .insert({
+        organization_id: orgId,
+        actor_type: "system",
+        action: "meeting.failed",
+        entity_type: "executive_meeting",
+        entity_id: meeting.id,
+        detail: { error: message },
+        trace_id: traceId,
+      })
+      .throwOnError();
     throw err;
   }
 }

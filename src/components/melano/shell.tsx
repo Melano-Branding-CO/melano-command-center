@@ -71,7 +71,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     order: "requested_at",
   });
 
-  const activeAgents = (agents ?? []).filter((a) => a.enabled && a.status !== "PAUSED").length;
+  const activeAgents = (agents ?? []).filter(
+    (a) => a.enabled && ["ACTIVE", "RUNNING"].includes(a.status),
+  ).length;
+  const failedAgents = (agents ?? []).filter(
+    (a) => a.enabled && ["ERROR", "BLOCKED"].includes(a.status),
+  ).length;
   const criticalAlerts = (alerts ?? []).filter((a) =>
     ["CRITICAL", "HIGH"].includes(a.severity),
   ).length;
@@ -104,25 +109,27 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
         </div>
         <nav className="flex flex-col gap-0.5 overflow-y-auto p-2">
-          {[...NAV, ...(role === "CEO" || role === "ADMIN" ? ADMIN_NAV : [])].map(({ to, label, icon: Icon }) => (
-            <Link
-              key={to}
-              to={to}
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
-              activeProps={{
-                className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
-              }}
-            >
-              <Icon className="size-4 shrink-0" />
-              <span className="flex-1">{label}</span>
-              {to === "/approvals" && (pendingApprovals?.length ?? 0) > 0 ? (
-                <span className="rounded bg-warning/20 px-1.5 text-[11px] font-semibold text-warning">
-                  {pendingApprovals?.length}
-                </span>
-              ) : null}
-            </Link>
-          ))}
+          {[...NAV, ...(role === "CEO" || role === "ADMIN" ? ADMIN_NAV : [])].map(
+            ({ to, label, icon: Icon }) => (
+              <Link
+                key={to}
+                to={to}
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-sm text-sidebar-foreground transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                activeProps={{
+                  className: "bg-sidebar-accent text-sidebar-accent-foreground font-medium",
+                }}
+              >
+                <Icon className="size-4 shrink-0" />
+                <span className="flex-1">{label}</span>
+                {to === "/approvals" && (pendingApprovals?.length ?? 0) > 0 ? (
+                  <span className="rounded bg-warning/20 px-1.5 text-[11px] font-semibold text-warning">
+                    {pendingApprovals?.length}
+                  </span>
+                ) : null}
+              </Link>
+            ),
+          )}
         </nav>
         <div className="border-t border-sidebar-border p-2">
           <button
@@ -170,6 +177,11 @@ export function AppShell({ children }: { children: ReactNode }) {
               <span className="rounded border border-border bg-muted px-2 py-0.5">
                 Agentes activos {activeAgents}
               </span>
+              {failedAgents > 0 ? (
+                <span className="rounded border border-destructive/40 bg-destructive/15 px-2 py-0.5 text-destructive">
+                  Agentes con bloqueo {failedAgents}
+                </span>
+              ) : null}
               <span
                 className={cn(
                   "rounded border px-2 py-0.5",

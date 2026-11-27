@@ -1,5 +1,6 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { PageHeader, Panel, Empty } from "@/components/melano/shell";
+import { AiStatusNotice } from "@/components/melano/operational-controls";
 import { StatusBadge, ModePill } from "@/components/melano/badges";
 import { fmtDate, useAgents, useOrg } from "@/lib/melano";
 
@@ -35,6 +36,7 @@ function AgentsGrid() {
   return (
     <>
       <PageHeader title="Agents" subtitle="12 agentes ejecutivos con loop, permisos y evidencia." />
+      <AiStatusNotice organizationId={org?.id} />
       {isLoading ? (
         <Empty text="Cargando…" />
       ) : (agents ?? []).length === 0 ? (

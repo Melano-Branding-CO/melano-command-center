@@ -21,7 +21,10 @@ export const Route = createFileRoute("/_authenticated/automations")({
   head: () => ({
     meta: [
       { title: "Automations — MELANO INC" },
-      { name: "description", content: "Automatizaciones conectadas a n8n con ejecución, logs y resultado real." },
+      {
+        name: "description",
+        content: "Automatizaciones conectadas a n8n con ejecución, logs y resultado real.",
+      },
       { property: "og:title", content: "Automations — MELANO INC" },
       { property: "og:description", content: "Ejecución automática real del sistema MELANO INC." },
       { name: "robots", content: "noindex" },
@@ -67,8 +70,14 @@ function AutomationsPage() {
 
   useRealtime(["automation_rules", "automation_runs"]);
 
-  const { data: rules, isLoading } = useOrgRows<Rule>("automation_rules", org?.id, { order: "created_at", asc: true });
-  const { data: runs } = useOrgRows<Run>("automation_runs", org?.id, { order: "started_at", limit: 60 });
+  const { data: rules, isLoading } = useOrgRows<Rule>("automation_rules", org?.id, {
+    order: "created_at",
+    asc: true,
+  });
+  const { data: runs } = useOrgRows<Run>("automation_runs", org?.id, {
+    order: "started_at",
+    limit: 60,
+  });
 
   const statusFn = useServerFn(getN8nStatus);
   const { data: n8n } = useQuery({ queryKey: ["n8n-status"], queryFn: () => statusFn({}) });
@@ -87,7 +96,8 @@ function AutomationsPage() {
       runFn({ data: { organizationId: org!.id, ruleId: vars.ruleId, test: vars.test } }),
     onSuccess: (r) => {
       invalidate();
-      if (r.ok) toast.success(`Ejecutado en n8n · HTTP ${r.status}`);
+      if (r.state === "pending") toast.info(r.detail);
+      else if (r.ok) toast.success(`Ejecutado en n8n · HTTP ${r.status}`);
       else toast.error(`n8n respondió con error: ${r.detail}`);
     },
     onError: (e: Error) => toast.error(e.message),
@@ -119,16 +129,18 @@ function AutomationsPage() {
 
       <Panel
         title="Conexión n8n"
-        action={<StatusBadge status={n8n?.configured ? "ACTIVE" : "PAUSED"} />}
+        action={<StatusBadge status={n8n?.configured ? "READY" : "BLOCKED"} />}
       >
         {n8n?.configured ? (
           <p className="text-sm text-muted-foreground">
-            Instancia: <span className="text-foreground">{n8n.host}</span> · El token de webhook se guarda en el
-            backend y nunca se expone en la interfaz.
+            Configuración presente; ejecución no verificada. Instancia:{" "}
+            <span className="text-foreground">{n8n.host}</span> · El token de webhook se guarda en
+            el backend y nunca se expone en la interfaz.
           </p>
         ) : (
           <p className="text-sm text-muted-foreground">
-            Falta configurar la conexión con n8n en el backend. Sin eso, ninguna automatización puede ejecutarse.
+            Falta configurar la conexión con n8n en el backend. Sin eso, ninguna automatización
+            puede ejecutarse.
           </p>
         )}
       </Panel>
@@ -176,7 +188,8 @@ function RuleCard({
   onToggle: (enabled: boolean) => void;
   onSave: (workflow: string) => void;
 }) {
-  const fallbackSlug = rule.n8n_webhook_url?.split("?")[0]?.replace(/\/+$/, "").split("/").pop() ?? "";
+  const fallbackSlug =
+    rule.n8n_webhook_url?.split("?")[0]?.replace(/\/+$/, "").split("/").pop() ?? "";
   const [workflow, setWorkflow] = useState(rule.n8n_workflow ?? fallbackSlug);
   const configured = !!(rule.n8n_workflow ?? fallbackSlug);
 
@@ -185,7 +198,9 @@ function RuleCard({
       title={rule.name}
       action={
         <div className="flex items-center gap-2">
-          <StatusBadge status={rule.enabled ? "ACTIVE" : "PAUSED"} />
+          <StatusBadge
+            status={!rule.enabled ? "PAUSED" : rule.status === "OK" ? "READY" : rule.status}
+          />
           <Switch
             checked={rule.enabled}
             disabled={!canOperate || busy}
@@ -208,22 +223,33 @@ function RuleCard({
         <Button
           size="sm"
           variant="outline"
-          disabled={!canOperate || busy || !workflow || workflow === (rule.n8n_workflow ?? fallbackSlug)}
+          disabled={
+            !canOperate || busy || !workflow || workflow === (rule.n8n_workflow ?? fallbackSlug)
+          }
           onClick={() => onSave(workflow)}
         >
           Guardar
         </Button>
-        <Button size="sm" disabled={!canOperate || busy || !configured} onClick={() => onRun(false)}>
+        <Button
+          size="sm"
+          disabled={!canOperate || busy || !configured || !rule.enabled}
+          onClick={() => onRun(false)}
+        >
           Ejecutar
         </Button>
-        <Button size="sm" variant="ghost" disabled={!canOperate || busy || !configured} onClick={() => onRun(true)}>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={!canOperate || busy || !configured}
+          onClick={() => onRun(true)}
+        >
           Probar
         </Button>
       </div>
 
       <p className="mt-3 text-[11px] text-muted-foreground">
-        Trigger: {rule.trigger} · Schedule: {rule.schedule_expression ?? "—"} · Último run: {fmtDate(rule.last_run_at)} ·{" "}
-        {rule.status ?? "SIN DATOS"}
+        Trigger: {rule.trigger} · Schedule: {rule.schedule_expression ?? "—"} · Último run:{" "}
+        {fmtDate(rule.last_run_at)} · {rule.status ?? "SIN DATOS"}
       </p>
       {rule.last_error ? (
         <p className="mt-1 text-[11px] text-destructive">Error: {rule.last_error}</p>
@@ -234,7 +260,10 @@ function RuleCard({
       {runs.length > 0 ? (
         <ul className="mt-3 space-y-1 border-t border-border/60 pt-2">
           {runs.map((x) => (
-            <li key={x.id} className="flex items-center justify-between text-[11px] text-muted-foreground">
+            <li
+              key={x.id}
+              className="flex items-center justify-between text-[11px] text-muted-foreground"
+            >
               <span>{fmtDate(x.started_at)}</span>
               <span className={x.status === "FAILED" ? "text-destructive" : ""}>{x.status}</span>
               <span className="truncate max-w-[45%] text-right">{x.error ?? x.output ?? "—"}</span>

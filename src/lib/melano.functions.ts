@@ -1,7 +1,54 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { assertAgentScope, assertOperationRole, checked } from "./operational-guards";
 
-type Serializable = string | number | boolean | null | Serializable[] | { [k: string]: Serializable };
+export const getAiStatus = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string }) => {
+    if (!input?.organizationId) throw new Error("organizationId requerido");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    const { data: member } = await checked(
+      context.supabase
+        .from("organization_members")
+        .select("role")
+        .eq("organization_id", data.organizationId)
+        .eq("user_id", context.userId)
+        .maybeSingle(),
+    );
+    if (!member) throw new Error("DENIED: organización no autorizada");
+    const { getAiConfiguration } = await import("./ai-status.server");
+    return getAiConfiguration();
+  });
+
+export const generateOperationalPriorities = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: { organizationId: string }) => {
+    if (!input?.organizationId) throw new Error("organizationId requerido");
+    return input;
+  })
+  .handler(async ({ data, context }) => {
+    const { data: member } = await checked(
+      context.supabase
+        .from("organization_members")
+        .select("role")
+        .eq("organization_id", data.organizationId)
+        .eq("user_id", context.userId)
+        .maybeSingle(),
+    );
+    assertOperationRole(member?.role);
+    // The invoker RPC enforces RLS, locks this organization's day and commits tasks + audit together.
+    const { data: result, error } = await context.supabase.rpc(
+      "generate_operational_priorities" as never,
+      { p_organization_id: data.organizationId } as never,
+    );
+    if (error) throw new Error(`No se pudieron generar prioridades: ${error.message}`);
+    return result as unknown as { created: number; total: number; trace_id: string; day: string };
+  });
+
+type Serializable =
+  string | number | boolean | null | Serializable[] | { [k: string]: Serializable };
 
 export const runMeetingNow = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -43,8 +90,17 @@ export const runAgentNow = createServerFn({ method: "POST" })
     if (!member || !["CEO", "ADMIN", "OPERATOR"].includes(member.role)) {
       throw new Error("Sin permisos para ejecutar agentes");
     }
+    const { data: scopedAgent } = await checked(
+      context.supabase
+        .from("agents")
+        .select("organization_id,enabled,status")
+        .eq("id", data.agentId)
+        .eq("organization_id", data.organizationId)
+        .maybeSingle(),
+    );
+    assertAgentScope(scopedAgent, data.organizationId);
     const { runAgentServer } = await import("./melano-ai.server");
-    const { parsed, traceId } = await runAgentServer(data.agentId);
+    const { parsed, traceId } = await runAgentServer(data.agentId, data.organizationId);
     return { traceId, output: JSON.parse(JSON.stringify(parsed)) as Record<string, Serializable> };
   });
 
@@ -166,16 +222,18 @@ async function assertAdmin(context: AdminContext, organizationId: string) {
 
 export const inviteUser = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { organizationId: string; email: string; role: string; days?: number }) => {
-    if (!input?.organizationId) throw new Error("organizationId requerido");
-    const email = (input.email ?? "").trim().toLowerCase();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Email inválido");
-    if (!["CEO", "ADMIN", "OPERATOR", "VIEWER", "AGENT"].includes(input.role)) {
-      throw new Error("Rol inválido");
-    }
-    const days = Math.min(Math.max(input.days ?? 14, 1), 90);
-    return { organizationId: input.organizationId, email, role: input.role, days };
-  })
+  .inputValidator(
+    (input: { organizationId: string; email: string; role: string; days?: number }) => {
+      if (!input?.organizationId) throw new Error("organizationId requerido");
+      const email = (input.email ?? "").trim().toLowerCase();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Email inválido");
+      if (!["CEO", "ADMIN", "OPERATOR", "VIEWER", "AGENT"].includes(input.role)) {
+        throw new Error("Rol inválido");
+      }
+      const days = Math.min(Math.max(input.days ?? 14, 1), 90);
+      return { organizationId: input.organizationId, email, role: input.role, days };
+    },
+  )
   .handler(async ({ data, context }) => {
     await assertAdmin(context, data.organizationId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -405,18 +463,33 @@ export const listAdminData = createServerFn({ method: "POST" })
         };
       }),
       organizations: (orgs ?? [])
-        .map((row: { role: string; organizations: { id: string; name: string; slug: string; autonomy_level: number } | null }) =>
-          row.organizations
-            ? {
-                id: row.organizations.id,
-                name: row.organizations.name,
-                slug: row.organizations.slug,
-                autonomyLevel: row.organizations.autonomy_level,
-                role: row.role,
-              }
-            : null,
+        .map(
+          (row: {
+            role: string;
+            organizations: {
+              id: string;
+              name: string;
+              slug: string;
+              autonomy_level: number;
+            } | null;
+          }) =>
+            row.organizations
+              ? {
+                  id: row.organizations.id,
+                  name: row.organizations.name,
+                  slug: row.organizations.slug,
+                  autonomyLevel: row.organizations.autonomy_level,
+                  role: row.role,
+                }
+              : null,
         )
-        .filter(Boolean) as { id: string; name: string; slug: string; autonomyLevel: number; role: string }[],
+        .filter(Boolean) as {
+        id: string;
+        name: string;
+        slug: string;
+        autonomyLevel: number;
+        role: string;
+      }[],
       me: context.userId,
     };
   });
