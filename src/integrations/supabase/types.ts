@@ -1807,7 +1807,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_operational_priorities: {
+        Args: { p_organization_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       agent_status: "ACTIVE" | "PAUSED" | "RUNNING" | "BLOCKED" | "ERROR"
