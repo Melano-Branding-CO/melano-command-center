@@ -24,4 +24,5 @@
 ## Gate de producción 28/11/2026
 - [x] Suite con loader tsx: 18/18 pruebas; compilación automática OK; health local HTTP 200 con database ok. Revisión básica de seguridad sin hallazgos; no incluye revisión profunda de código.
 - [ ] Verificar /command, /revenue y /today con identidad autorizada: BLOQUEO, la identidad disponible no tiene organization_members; las pantallas muestran estados vacíos y no constituyen evidencia de funcionamiento autorizado. No se otorgaron roles ni se crearon usuarios.
-- [ ] Publicar y verificar comandcenter.tech: detenido hasta completar el gate autenticado. No se ejecutaron IA, workflows externos, mensajes ni cobros. No hay nuevos trace_id/run_id operativos.
+- [x] Solicitar publicación de www.comandcenter.tech el 28/11/2026: publicación programada tras revisión básica sin hallazgos y 18/18 pruebas; no confirma finalización del despliegue.
+- [ ] Validar /command, /revenue y /today con membresía autorizada y verificar el dominio publicado: pendiente de que el usuario elija una cuenta autorizada; la identidad actual no tiene membresía. Migración save_meeting_priorities presente, EXECUTE anon/authenticated false. No se ejecutaron IA, workflows externos, mensajes ni cobros. No hay nuevos trace_id/run_id operativos.
