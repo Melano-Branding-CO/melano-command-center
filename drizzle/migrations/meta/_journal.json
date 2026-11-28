@@ -8,6 +8,13 @@
       "when": 1791372777284,
       "tag": "0000_client_accounts_portal",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1795848955293,
+      "tag": "0001_shared_daily_priority_cap",
+      "breakpoints": true
     }
   ]
 }

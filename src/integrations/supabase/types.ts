@@ -1811,6 +1811,10 @@ export type Database = {
         Args: { p_organization_id: string }
         Returns: Json
       }
+      save_meeting_priorities: {
+        Args: { p_items: Json; p_meeting_id: string; p_organization_id: string }
+        Returns: Json
+      }
     }
     Enums: {
       agent_status: "ACTIVE" | "PAUSED" | "RUNNING" | "BLOCKED" | "ERROR"
